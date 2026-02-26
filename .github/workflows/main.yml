@@ -1,30 +1,29 @@
-name: Docker TipMolde
+name: TipMolde CI/CD Pipeline
 
 on:
   push:
-    branches: [ "main" ] 
+    branches: [ "master" , "main"  ]
 
 jobs:
-  build-and-push:
-    runs-on: self-hosted 
-
+  build-job:
+    runs-on: self-hosted
     steps:
-      - name: Checkout do código
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+      - name: Compilar .NET
+        run: dotnet build --configuration Release
 
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '8.0.x'
+  test-code:
+    runs-on: self-hosted
+    needs: build-job
+    steps:
+      - uses: actions/checkout@v4
+      - name: Executar Testes
+        run: dotnet test
 
-      - name: Restaurar e Compilar
-        run: |
-          dotnet restore
-          dotnet build --configuration Release
-
-      - name: Build Docker Image
-        run: |
-          docker build -t tipmolde-api:latest .
-
-      - name: Tag Image
-        run: docker tag tipmolde-api:latest minha-empresa.azurecr.io/tipmolde-api:v1
+  deploy-docker:
+    runs-on: self-hosted
+    needs: test-code
+    steps:
+      - uses: actions/checkout@v4
+      - name: Criar Imagem Docker
+        run: docker build -t tipmolde-api:latest .
