@@ -2,10 +2,9 @@ name: TipMolde CI/CD Pipeline
 
 on:
   push:
-    branches: [ "master", "main" ] # Ativa em qualquer uma das duas
+    branches: [ "master", "main" ]
 
 jobs:
-  # ESTÁGIO 1: Build e Compilação
   build-job:
     name: Build Binaries
     runs-on: self-hosted
@@ -23,7 +22,6 @@ jobs:
       - name: Build
         run: dotnet build --no-restore --configuration Release
 
-  # ESTÁGIO 2: Testes (Opcional, mas profissional)
   test-code:
     name: Run Unit Tests
     needs: build-job
@@ -33,7 +31,6 @@ jobs:
       - name: Test
         run: dotnet test --no-build --configuration Release
 
-  # ESTÁGIO 3: Criação da Imagem Docker (O teu objetivo principal)
   deploy-docker:
     name: Build & Deploy Docker Image
     needs: test-code
