@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using TipMolde.Core.Models;
 
-namespace TipMolde.Core.Interface.User
+namespace TipMolde.Core.Interface.IUser
 {
     public interface IUserService
     {
@@ -15,5 +15,6 @@ namespace TipMolde.Core.Interface.User
         Task UpdateUserAsync(User user);
         Task DeleteUserAsync(int id);
         Task<IEnumerable<User>> SearchByNameAsync(string searchTerm);
+        Task<User?> GetUserByEmailAsync(string email);
     }
 }

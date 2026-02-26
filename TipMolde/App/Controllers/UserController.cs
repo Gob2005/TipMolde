@@ -1,13 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Microsoft.AspNetCore.Mvc;
+using TipMolde.App.DTOs.UserDTO;
 using TipMolde.Core.Interface.IUser;
+using TipMolde.Core.Models;
+
+
 
 namespace TipMolde.App.Controllers
 {
-    public class UserController
+    [ApiController]
+    [Route("api/[controller]")]
+    public class UserController : ControllerBase
     {
         private readonly IUserService _userService;
 
@@ -27,10 +29,7 @@ namespace TipMolde.App.Controllers
         public async Task<IActionResult> GetUserById(int id)
         {
             var user = await _userService.GetUserByIdAsync(id);
-            if (user == null)
-            {
-                return NotFound();
-            }
+            if (user == null) return NotFound();
             return Ok(user);
         }
 
@@ -41,25 +40,35 @@ namespace TipMolde.App.Controllers
             return Ok(users);
         }
 
-        [HttpGet]
-        public async Task<IActionResult> CreateUser(User user)
+        [HttpPost]
+        public async Task<IActionResult> CreateUser(CreateUserDTO dto)
         {
-            await _userService.CreateUserAsync(user);
-            return Ok();
+            var user = new User
+            {
+                Nome = dto.Nome?.Trim(),
+                Email = dto.Email?.Trim(),
+                Password = dto.Password,
+                CreatedAt = dto.CreatedAt
+            };
+
+            var createdUser = await _userService.CreateUserAsync(user);
+            var res = ToResponse(createdUser);
+            return CreatedAtAction(nameof(GetUserById), new { id = createdUser.Id }, res);
         }
 
         [HttpPost]
         public async Task<IActionResult> UpdateUser(User user)
         {
             await _userService.UpdateUserAsync(user);
-            return Ok();
+            var res = ToResponse(user);
+            return Ok(res);
         }
 
         [HttpDelete]
         public async Task<IActionResult> DeleteUser(int id)
         {
             await _userService.DeleteUserAsync(id);
-            return Ok();
+            return NoContent();
         }
         [HttpPost]
         public async Task<IActionResult> Login(string email, string password)
@@ -92,4 +101,27 @@ namespace TipMolde.App.Controllers
             await _userService.UpdateUserAsync(user);
             return Ok();
         }
+        [HttpPost]
+        public async Task<IActionResult> ChangeRole(int userId, User.Role newRole)
+        {
+            var user = await _userService.GetUserByIdAsync(userId);
+            if (user == null)
+            {
+                return NotFound();
+            }
+            user.Role = newRole;
+            await _userService.UpdateUserAsync(user);
+            return Ok();
+        }
+
+        private static ResponseUserDTO ToResponse(User u) => new()
+        {
+            Id = u.Id,
+            Nome = u.Nome,
+            Email = u.Email,
+            Password = u.Password,
+            Role = u.Role,
+            CreatedAt = u.CreatedAt
+        };
+    }
 }
