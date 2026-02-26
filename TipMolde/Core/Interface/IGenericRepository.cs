@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ConsultaPlus.Core.Interfaces
+namespace TipMolde.Core.Interface
 {
     public interface IGenericRepository<T> where T : class
     {

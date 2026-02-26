@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace TipMolde.Infrastutura.Service
 {
-    internal class UserService
+    internal class UserService : IUserService
     {
     }
 }

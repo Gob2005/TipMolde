@@ -1,0 +1,12 @@
+﻿{
+  "repositoryName": "Gob2005/TipMolde",
+  "pipelineDirectory": "TipMolde",
+  "workspaceDirectory": "TipMolde\\TipMolde",
+  "repositories": {
+    "Gob2005/TipMolde": {
+      "repositoryPath": "TipMolde\\TipMolde",
+      "lastRunOn": "02/26/2026 18:04:45 +00:00"
+    }
+  },
+  "lastRunOn": "02/26/2026 18:15:52 +00:00"
+}
