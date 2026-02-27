@@ -63,12 +63,22 @@ namespace TipMolde.App.Controllers
             return CreatedAtAction(nameof(GetUserById), new { id = createdUser.Id }, res);
         }
 
-        [HttpPost]
-        public async Task<IActionResult> UpdateUser(User user)
+        [HttpPut]
+        public async Task<IActionResult> UpdateUser(int id, UpdateUserDTO dto)
         {
+            var user = await _userService.GetUserByIdAsync(id);
+            if (user == null) return NotFound();
+
+            user.Nome = dto.Nome?.Trim() ?? user.Nome;
+            user.Email = dto.Email?.Trim() ?? user.Email;
+            user.Password = dto.Password ?? user.Password;
+            if (Enum.IsDefined(typeof(UpdateUserDTO.UserRole), dto.Role))
+            {
+                user.Role = (User.UserRole)dto.Role;
+            }
+
             await _userService.UpdateUserAsync(user);
-            var res = ToResponse(user);
-            return Ok(res);
+            return NoContent();
         }
 
         [HttpDelete]
@@ -77,6 +87,7 @@ namespace TipMolde.App.Controllers
             await _userService.DeleteUserAsync(id);
             return NoContent();
         }
+
         [HttpPost]
         public async Task<IActionResult> Login(string email, string password)
         {
@@ -97,18 +108,19 @@ namespace TipMolde.App.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> ChangePassword(int userId, string currentPassword, string newPassword)
+        public async Task<IActionResult> ChangePassword(ChangeUserPassworDTO dto)
         {
-            var user = await _userService.GetUserByIdAsync(userId);
-            if (user == null || user.Password != currentPassword)
+            var user = await _userService.GetUserByEmailAsync(dto.Email);
+            if (user == null || user.Password != dto.CurrentPassword)
             {
                 return Unauthorized();
             }
-            user.Password = newPassword;
+            user.Password = dto.NewPassword;
             await _userService.UpdateUserAsync(user);
             return Ok();
         }
-        [HttpPost]
+
+        [HttpPut]
         public async Task<IActionResult> ChangeRole(ChangeUserRoleDTO dto)
         {
             var user = await _userService.GetUserByIdAsync(dto.Id);
