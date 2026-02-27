@@ -8,6 +8,7 @@ namespace TipMolde.Infrastutura.DB
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
 
-        public DbSet<User> Users { get; set; }
+        public virtual DbSet<User> Users { get; set; }
+        public virtual DbSet<Cliente> Clientes { get; set; }
     }
 }

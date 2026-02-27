@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Microsoft.EntityFrameworkCore;
 using TipMolde.Core.Interface.IUser;
 using TipMolde.Core.Models;
 using TipMolde.Infrastutura.DB;
@@ -13,14 +9,22 @@ namespace TipMolde.Infrastutura.Repositorio
     {
         public UserRepository(ApplicationDbContext context) : base(context) { }
 
-        public Task<IEnumerable<User>> SearchByNameAsync(string searchTerm)
+        public async Task<IEnumerable<User>> SearchByNameAsync(string searchTerm)
         {
-            throw new NotImplementedException();
+            if (string.IsNullOrWhiteSpace(searchTerm))
+            {
+                return Enumerable.Empty<User>();
+            }
+
+            var term = $"%{searchTerm.Trim()}%";
+            return await _context.Users
+                .AsNoTracking()
+                .Where(c => EF.Functions.Like(c.Nome, term))
+                .OrderBy(c => c.Nome)
+                .ToListAsync();
         }
 
-        public Task<User?> GetByEmailAsync(string email)
-        {
-            throw new NotImplementedException();
-        }
+        public Task<User?> GetByEmailAsync(string email) =>
+            _context.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Email == email);
     }
 }

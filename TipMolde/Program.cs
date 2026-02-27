@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using TipMolde.Core.Interface;
+using TipMolde.Core.Interface.ICliente;
 using TipMolde.Core.Interface.IUser;
 using TipMolde.Infrastutura.DB;
 using TipMolde.Infrastutura.Repositorio;
@@ -17,7 +18,11 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IClienteRepository, ClienteRepository>();
+
+
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IClienteService, ClienteService>();
 
 var app = builder.Build();
 

@@ -1,4 +1,5 @@
-﻿using TipMolde.Core.Interface.ICliente;
+﻿using Microsoft.EntityFrameworkCore;
+using TipMolde.Core.Interface.ICliente;
 using TipMolde.Core.Models;
 using TipMolde.Infrastutura.DB;
 
@@ -11,7 +12,17 @@ namespace TipMolde.Infrastutura.Repositorio
         }
         public async Task<IEnumerable<Cliente>> SearchByNameAsync(string searchTerm)
         {
-            throw new NotImplementedException();
+            if (string.IsNullOrWhiteSpace(searchTerm))
+            {
+                return Enumerable.Empty<Cliente>();
+            }
+
+            var term = $"%{searchTerm.Trim()}%";
+            return await _context.Clientes
+                .AsNoTracking()
+                .Where(c => EF.Functions.Like(c.Nome, term))
+                .OrderBy(c => c.Nome)
+                .ToListAsync();
         }
     }
 }
