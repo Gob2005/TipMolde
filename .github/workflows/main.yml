@@ -10,7 +10,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Compilar .NET
-        run: dotnet build --configuration Release
+        run: dotnet build --configuration Release Aplicacao/TipMolde/
 
   test-code:
     runs-on: self-hosted
@@ -18,7 +18,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Executar Testes
-        run: dotnet test
+        run: dotnet test Aplicacao/TipMolde/
 
   deploy-docker:
     runs-on: self-hosted
@@ -26,4 +26,4 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Criar Imagem Docker
-        run: docker build -t tipmolde-api:latest .
+        run: docker build -t tipmolde-api:latest Aplicacao/TipMolde/TipMolde/
