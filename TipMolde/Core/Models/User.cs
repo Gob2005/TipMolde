@@ -13,13 +13,15 @@ namespace TipMolde.Core.Models
         public string ?Email { get; set; }
         public string ?Password { get; set; }
 
-        public enum Role
+        public enum UserRole
         {
             Admin,
             Responsavel_Encomendas,
             Engenheiro,
             Producao
         }
+
+        public UserRole ?Role { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.Now;
     }
 }

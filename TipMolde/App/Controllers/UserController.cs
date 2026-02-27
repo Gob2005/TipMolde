@@ -43,15 +43,22 @@ namespace TipMolde.App.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateUser(CreateUserDTO dto)
         {
+            if (string.IsNullOrWhiteSpace(dto.Nome)) return BadRequest("Nome e obrigatorio.");
+            if (string.IsNullOrWhiteSpace(dto.Email)) return BadRequest("Email e obrigatorio.");
+            if (string.IsNullOrWhiteSpace(dto.Password)) return BadRequest("Password e obrigatoria.");
+            if (!Enum.IsDefined(typeof(CreateUserDTO.UserRole), dto.Role)) return BadRequest("Role invalida.");
+
             var user = new User
             {
                 Nome = dto.Nome?.Trim(),
                 Email = dto.Email?.Trim(),
                 Password = dto.Password,
+                Role = (User.UserRole)dto.Role,
                 CreatedAt = dto.CreatedAt
             };
 
             var createdUser = await _userService.CreateUserAsync(user);
+
             var res = ToResponse(createdUser);
             return CreatedAtAction(nameof(GetUserById), new { id = createdUser.Id }, res);
         }
@@ -102,14 +109,14 @@ namespace TipMolde.App.Controllers
             return Ok();
         }
         [HttpPost]
-        public async Task<IActionResult> ChangeRole(int userId, User.Role newRole)
+        public async Task<IActionResult> ChangeRole(ChangeUserRoleDTO dto)
         {
-            var user = await _userService.GetUserByIdAsync(userId);
+            var user = await _userService.GetUserByIdAsync(dto.Id);
             if (user == null)
             {
                 return NotFound();
             }
-            user.Role = newRole;
+            user.Role = (User.UserRole)dto.Role;
             await _userService.UpdateUserAsync(user);
             return Ok();
         }
@@ -120,7 +127,7 @@ namespace TipMolde.App.Controllers
             Nome = u.Nome,
             Email = u.Email,
             Password = u.Password,
-            Role = u.Role,
+            Role = (ResponseUserDTO.UserRole)u.Role,
             CreatedAt = u.CreatedAt
         };
     }

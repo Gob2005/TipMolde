@@ -11,7 +11,7 @@ namespace TipMolde.Core.Interface.IUser
     {
         Task<IEnumerable<User>> GetAllUsersAsync();
         Task<User> GetUserByIdAsync(int id);
-        Task CreateUserAsync(User user);
+        Task<User> CreateUserAsync(User user);
         Task UpdateUserAsync(User user);
         Task DeleteUserAsync(int id);
         Task<IEnumerable<User>> SearchByNameAsync(string searchTerm);

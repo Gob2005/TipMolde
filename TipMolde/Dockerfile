@@ -6,7 +6,7 @@ EXPOSE 443
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
-COPY ["TipMolde.csproj", "./"]
+COPY ["Aplicacao/TipMolde/TipMolde/TipMolde.csproj", "./"]
 RUN dotnet restore "TipMolde.csproj"
 
 COPY . .
