@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using MySqlX.XDevAPI;
 using TipMolde.App.DTOs.UserDTO;
 using TipMolde.Core.Interface.IUser;
 using TipMolde.Core.Models;
@@ -69,9 +70,9 @@ namespace TipMolde.App.Controllers
             var user = await _userService.GetUserByIdAsync(id);
             if (user == null) return NotFound();
 
-            user.Nome = dto.Nome?.Trim() ?? user.Nome;
-            user.Email = dto.Email?.Trim() ?? user.Email;
-            user.Password = dto.Password ?? user.Password;
+            user.Nome = !string.IsNullOrWhiteSpace(dto.Nome) ? dto.Nome.Trim() : user.Nome;
+            user.Email = !string.IsNullOrWhiteSpace(dto.Email) ? dto.Email.Trim() : user.Email;
+            user.Password = !string.IsNullOrWhiteSpace(dto.Password) ? dto.Password.Trim() : user.Password;
             if (Enum.IsDefined(typeof(UpdateUserDTO.UserRole), dto.Role))
             {
                 user.Role = (User.UserRole)dto.Role;
