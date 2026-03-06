@@ -124,5 +124,5 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Build Docker image
-        run: docker build -t tipmolde-api:latest .
+        run: docker build -t tipmolde-api:latest -f TipMolde/Dockerfile TipMolde
 
