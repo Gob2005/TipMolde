@@ -1,9 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using TipMolde.Core.Interface;
 using TipMolde.Infrastutura.DB;
 
@@ -20,7 +15,7 @@ namespace TipMolde.Infrastutura.Repositorio
             _db = _context.Set<T>();
         }
 
-        public async Task<IEnumerable<T>> GetAllAsync() => await _db.ToListAsync();
+        public async Task<IEnumerable<T>> GetAllAsync() => await _db.AsNoTracking().ToListAsync();
 
         public async Task<T?> GetByIdAsync(int id) => await _db.FindAsync(id);
 

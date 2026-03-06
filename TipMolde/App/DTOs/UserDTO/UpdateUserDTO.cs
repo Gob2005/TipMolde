@@ -1,10 +1,20 @@
-﻿namespace TipMolde.App.DTOs.UserDTO
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace TipMolde.App.DTOs.UserDTO
 {
     public class UpdateUserDTO
     {
-        public string Nome { get; set; }
-        public string Email { get; set; }
-        public string Password { get; set; }
+        [Required]
+        public int Id { get; set; }
+
+        [MinLength(5), MaxLength(100)]
+        public string? Nome { get; set; }
+
+        [EmailAddress, MaxLength(150)]
+        public string? Email { get; set; }
+
+        [MinLength(8), MaxLength(255)]
+        public string? Password { get; set; }
 
         public enum UserRole
         {
@@ -13,7 +23,6 @@
             Engenheiro,
             Producao
         }
-
-        public UserRole Role { get; set; }
+        public UserRole? Role { get; set; }
     }
 }

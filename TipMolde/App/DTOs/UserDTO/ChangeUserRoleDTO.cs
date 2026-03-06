@@ -1,7 +1,10 @@
-﻿namespace TipMolde.App.DTOs.UserDTO
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace TipMolde.App.DTOs.UserDTO
 {
     public class ChangeUserRoleDTO
     {
+        [Required]
         public int Id { get; set; }
         public enum UserRole
         {
@@ -11,6 +14,7 @@
             Producao
         }
 
-        public UserRole ?Role { get; set; }
+        [Required]
+        public required UserRole Role { get; set; }
     }
 }

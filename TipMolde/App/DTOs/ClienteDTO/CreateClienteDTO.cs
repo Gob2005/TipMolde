@@ -1,12 +1,25 @@
-﻿namespace TipMolde.App.DTOs.ClienteDTO
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace TipMolde.App.DTOs.ClienteDTO
 {
     public class CreateClienteDTO
     {
-        public string? Nome { get; set; }
-        public string Pais { get; set; }
-        public string Email { get; set; }
-        public string Telefone { get; set; }
-        public string? NIF { get; set; }
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        [Required, MinLength(5), MaxLength(100)]
+        public required string Nome { get; set; }
+
+        [MinLength(5), MaxLength(50)]
+        public string? Pais { get; set; }
+
+        [EmailAddress, MaxLength(150)]
+        public string? Email { get; set; }
+
+        [Phone, MaxLength(20)]
+        public string? Telefone { get; set; }
+
+        [Required, MinLength(9), MaxLength(20)]
+        public required string NIF { get; set; }
+
+        [Required, MaxLength(5)]
+        public required string Sigla { get; set; }
     }
 }

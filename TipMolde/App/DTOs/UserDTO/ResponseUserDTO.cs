@@ -9,9 +9,8 @@ namespace TipMolde.App.DTOs.UserDTO
     public class ResponseUserDTO
     {
         public int Id { get; set; }
-        public string ?Nome { get; set; }
-        public string ?Email { get; set; }
-        public string ?Password { get; set; }
+        public required string Nome { get; set; }
+        public required string Email { get; set; }
         public enum UserRole
         {
             Admin,
@@ -19,7 +18,7 @@ namespace TipMolde.App.DTOs.UserDTO
             Engenheiro,
             Producao
         }
-        public UserRole ?Role { get; set; }
+        public required UserRole Role { get; set; }
 
         public DateTime CreatedAt { get; set; } = DateTime.Now;
 

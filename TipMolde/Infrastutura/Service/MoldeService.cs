@@ -1,4 +1,4 @@
-﻿using TipMolde.Core.Interface.IMolde;
+using TipMolde.Core.Interface.IMolde;
 using TipMolde.Core.Models;
 
 namespace TipMolde.Infrastutura.Service
@@ -12,45 +12,52 @@ namespace TipMolde.Infrastutura.Service
             _moldeRepository = moldeRepository;
         }
 
-        public async Task<IEnumerable<Molde>> GetAllMoldesAsync()
+        public Task<IEnumerable<Molde>> GetAllMoldesAsync()
         {
-            return await _moldeRepository.GetAllAsync();
+            return _moldeRepository.GetAllAsync();
         }
 
-        public async Task<Molde> GetMoldeByIdAsync(int id)
+        public Task<Molde?> GetMoldeByIdAsync(int id)
         {
-            return await _moldeRepository.GetByIdAsync(id);
+            return _moldeRepository.GetByIdAsync(id);
         }
 
         public async Task<Molde> CreateMoldeAsync(Molde molde)
         {
+            if (molde.Cliente == null)
+            {
+                throw new ArgumentException("Cliente do molde e obrigatorio.");
+            }
+
             var cliente = await _moldeRepository.GetClienteByIdAsync(molde.Cliente.Cliente_id);
-            if (cliente == null) throw new Exception($"Cliente com ID {molde.Cliente.Cliente_id} nao encontrado.");
-            if (string.IsNullOrEmpty(molde.Dimensoes_molde)) throw new Exception("Dimensoes do molde e obrigatorio.");
-            if (molde.Peso_estimado <= 0) throw new Exception("Peso estimado deve ser maior que zero.");
-            if (molde.Numero_cavidades <= 0) throw new Exception("Numero de cavidades deve ser maior que zero.");
+            if (cliente == null) throw new KeyNotFoundException($"Cliente com ID {molde.Cliente.Cliente_id} nao encontrado.");
+            if (string.IsNullOrWhiteSpace(molde.Dimensoes_molde)) throw new ArgumentException("Dimensoes do molde sao obrigatorias.");
+            if (molde.Peso_estimado <= 0) throw new ArgumentException("Peso estimado deve ser maior que zero.");
+            if (molde.Numero_cavidades <= 0) throw new ArgumentException("Numero de cavidades deve ser maior que zero.");
+
             await _moldeRepository.AddAsync(molde);
             return molde;
         }
 
-        public async Task UpdateMoldeAsync(Molde molde)
+        public Task UpdateMoldeAsync(Molde molde)
         {
-            await _moldeRepository.UpdateAsync(molde);
+            return _moldeRepository.UpdateAsync(molde);
         }
 
         public async Task DeleteMoldeAsync(int id)
         {
-            var user = await _moldeRepository.GetByIdAsync(id);
-            if (user == null)
+            var molde = await _moldeRepository.GetByIdAsync(id);
+            if (molde == null)
             {
-                throw new Exception($"User com ID {id} nao encontrado.");
+                throw new KeyNotFoundException($"Molde com ID {id} nao encontrado.");
             }
+
             await _moldeRepository.DeleteAsync(id);
         }
 
-        public async Task<Cliente> GetClienteByIdAsync(int id)
+        public Task<Cliente?> GetClienteByIdAsync(int id)
         {
-            return await _moldeRepository.GetClienteByIdAsync(id);
+            return _moldeRepository.GetClienteByIdAsync(id);
         }
     }
 }

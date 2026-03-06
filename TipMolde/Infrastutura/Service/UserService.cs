@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using TipMolde.App.DTOs.UserDTO;
+using TipMolde.Core.Interface.ISecurity;
 using TipMolde.Core.Interface.IUser;
 using TipMolde.Core.Models;
 
@@ -11,35 +8,61 @@ namespace TipMolde.Infrastutura.Service
     public class UserService : IUserService
     {
         private readonly IUserRepository _userRepository;
+        private readonly IPasswordHasherService _passwordHasher;
 
-        public UserService(IUserRepository userRepository)
+        public UserService(IUserRepository userRepository, IPasswordHasherService passwordHasher)
         {
             _userRepository = userRepository;
+            _passwordHasher = passwordHasher;
         }
 
-        public async Task<IEnumerable<User>> GetAllUsersAsync()
+        public Task<IEnumerable<User>> GetAllUsersAsync()
         {
-            return await _userRepository.GetAllAsync();
+            return _userRepository.GetAllAsync();
         }
 
-        public async Task<User> GetUserByIdAsync(int id)
+        public Task<User?> GetUserByIdAsync(int id)
         {
-            return await _userRepository.GetByIdAsync(id);
+            return _userRepository.GetByIdAsync(id);
         }
 
         public async Task<User> CreateUserAsync(User user)
         {
-            if (string.IsNullOrEmpty(user.Nome)) throw new Exception("Nome e obrigatorio.");
-            if (string.IsNullOrEmpty(user.Email)) throw new Exception("Email e obrigatorio.");
-            if (string.IsNullOrEmpty(user.Password)) throw new Exception("Senha e obrigatoria.");
-            if (user.Role == null) throw new Exception("Role e obrigatoria.");
+            if (string.IsNullOrWhiteSpace(user.Nome)) throw new ArgumentException("Nome e obrigatorio.");
+            if (string.IsNullOrWhiteSpace(user.Email)) throw new ArgumentException("Email e obrigatorio.");
+            if (string.IsNullOrWhiteSpace(user.Password)) throw new ArgumentException("Senha e obrigatoria.");
+
+            user.Nome = user.Nome.Trim();
+            user.Email = user.Email.Trim().ToLowerInvariant();
+
+            var existing = await _userRepository.GetByEmailAsync(user.Email);
+            if (existing is not null) throw new ArgumentException("Ja existe utilizador com este email.");
+
+            user.Password = _passwordHasher.Hash(user.Password);
+
             await _userRepository.AddAsync(user);
             return user;
         }
 
         public async Task UpdateUserAsync(User user)
         {
-            await _userRepository.UpdateAsync(user);
+            var existing = await _userRepository.GetByIdAsync(user.Id);
+            if (!string.IsNullOrWhiteSpace(user.Nome))
+                existing.Nome = user.Nome.Trim();
+
+            if (!string.IsNullOrWhiteSpace(user.Email))
+                existing.Email = user.Email.Trim();
+
+            if (!string.IsNullOrWhiteSpace(user.Password))
+            {
+                existing.Password = _passwordHasher.Hash(user.Password.Trim());
+            }
+
+            if (user.Role != existing.Role)
+            {
+                existing.Role = user.Role;
+            }
+            await _userRepository.UpdateAsync(existing);
         }
 
         public async Task DeleteUserAsync(int id)
@@ -47,19 +70,20 @@ namespace TipMolde.Infrastutura.Service
             var user = await _userRepository.GetByIdAsync(id);
             if (user == null)
             {
-                throw new Exception($"User com ID {id} nao encontrado.");
+                throw new KeyNotFoundException($"User com ID {id} nao encontrado.");
             }
+
             await _userRepository.DeleteAsync(id);
         }
 
-        public async Task<IEnumerable<User>> SearchByNameAsync(string searchTerm)
+        public Task<IEnumerable<User>> SearchByNameAsync(string searchTerm)
         {
-            return await _userRepository.SearchByNameAsync(searchTerm);
+            return _userRepository.SearchByNameAsync(searchTerm);
         }
 
-        public async Task<User?> GetUserByEmailAsync(string email)
+        public Task<User?> GetUserByEmailAsync(string email)
         {
-            return await _userRepository.GetByEmailAsync(email);
+            return _userRepository.GetByEmailAsync(email);
         }
     }
 }

@@ -24,5 +24,18 @@ namespace TipMolde.Infrastutura.Repositorio
                 .OrderBy(c => c.Nome)
                 .ToListAsync();
         }
+        public async Task<IEnumerable<Cliente>> SearchBySiglaAsync(string searchTerm)
+        {
+            if (string.IsNullOrWhiteSpace(searchTerm))
+            {
+                return Enumerable.Empty<Cliente>();
+            }
+            var term = $"%{searchTerm.Trim()}%";
+            return await _context.Clientes
+                .AsNoTracking()
+                .Where(c => EF.Functions.Like(c.Sigla, term))
+                .OrderBy(c => c.Sigla)
+                .ToListAsync();
+        }
     }
 }

@@ -1,10 +1,12 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using TipMolde.App.DTOs.MoldeDTO;
 using TipMolde.Core.Interface.IMolde;
 using TipMolde.Core.Models;
 
 namespace TipMolde.App.Controllers
 {
+    [ApiController]
+    [Route("api/[controller]")]
     public class MoldeController : ControllerBase
     {
         private readonly IMoldeService _moldeService;
@@ -14,14 +16,14 @@ namespace TipMolde.App.Controllers
             _moldeService = moldeService;
         }
 
-        [HttpGet]
+        [HttpGet("all-moldes")]
         public async Task<IActionResult> GetAllMoldes()
         {
             var moldes = await _moldeService.GetAllMoldesAsync();
             return Ok(moldes);
         }
 
-        [HttpGet]
+        [HttpGet("molde-byID")]
         public async Task<IActionResult> GetMoldeById(int id)
         {
             var molde = await _moldeService.GetMoldeByIdAsync(id);
@@ -29,21 +31,26 @@ namespace TipMolde.App.Controllers
             return Ok(molde);
         }
 
-        [HttpGet]
-        public async Task<IActionResult> GetClienteId(int clienteId)
+        [HttpGet("cliente-molde-byID")]
+        public async Task<IActionResult> GetByClienteId(int clienteId)
         {
-            var moldes = await _moldeService.GetClienteByIdAsync(clienteId);
-            return Ok(moldes);
+            var cliente = await _moldeService.GetClienteByIdAsync(clienteId);
+            if (cliente == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(cliente);
         }
 
-        [HttpPost]
-        public async Task<IActionResult> CreateMolde(CreateMoldeDTO dto)
+        [HttpPost("create-molde")]
+        public async Task<IActionResult> CreateMolde([FromBody] CreateMoldeDTO dto)
         {
-            if(dto == null) return BadRequest("Dados do molde sao obrigatorios.");
+            if (dto == null) return BadRequest("Dados do molde sao obrigatorios.");
             if (dto.ClienteId <= 0) return BadRequest("O ID do cliente deve ser um numero positivo.");
             var cliente = await _moldeService.GetClienteByIdAsync(dto.ClienteId);
             if (cliente == null) return BadRequest("O cliente informado nao existe.");
-            if (string.IsNullOrWhiteSpace(dto.Dimensoes_molde)) return BadRequest("As dimensões do molde sao obrigatorias.");
+            if (string.IsNullOrWhiteSpace(dto.Dimensoes_molde)) return BadRequest("As dimensoes do molde sao obrigatorias.");
             if (dto.Numero_cavidades <= 0) return BadRequest("O numero de cavidades deve ser um numero positivo.");
 
             var molde = new Molde
@@ -60,20 +67,22 @@ namespace TipMolde.App.Controllers
             return CreatedAtAction(nameof(GetMoldeById), new { id = createdMolde.Molde_id }, res);
         }
 
-        [HttpPut]
-        public async Task<IActionResult> UpdateMolde(int id, UpdateMoldeDTO dto)
+        [HttpPut("update-molde")]
+        public async Task<IActionResult> UpdateMolde(int id, [FromBody] UpdateMoldeDTO dto)
         {
             var molde = await _moldeService.GetMoldeByIdAsync(id);
             if (molde == null) return NotFound();
+
             molde.Material = !string.IsNullOrWhiteSpace(dto.Material) ? dto.Material.Trim() : molde.Material;
             molde.Dimensoes_molde = !string.IsNullOrWhiteSpace(dto.Dimensoes_molde) ? dto.Dimensoes_molde.Trim() : molde.Dimensoes_molde;
-            molde.Peso_estimado = dto.Peso_estimado > 0 ? dto.Peso_estimado : molde.Peso_estimado;
-            molde.Numero_cavidades = dto.Numero_cavidades > 0 ? dto.Numero_cavidades : molde.Numero_cavidades;
+            molde.Peso_estimado = dto.Peso_estimado.HasValue && dto.Peso_estimado.Value > 0 ? dto.Peso_estimado.Value : molde.Peso_estimado;
+            molde.Numero_cavidades = dto.Numero_cavidades.HasValue && dto.Numero_cavidades.Value > 0 ? dto.Numero_cavidades.Value : molde.Numero_cavidades;
+
             await _moldeService.UpdateMoldeAsync(molde);
             return NoContent();
         }
 
-        [HttpDelete]
+        [HttpDelete("delete-molde")]
         public async Task<IActionResult> DeleteMolde(int id)
         {
             var molde = await _moldeService.GetMoldeByIdAsync(id);
@@ -85,7 +94,7 @@ namespace TipMolde.App.Controllers
         private static ResponseMoldeDTO ToResponse(Molde m) => new()
         {
             MoldeId = m.Molde_id,
-            ClienteId = m.Cliente.Cliente_id,
+            ClienteId = m.Cliente?.Cliente_id ?? 0,
             Material = m.Material,
             Dimensoes_molde = m.Dimensoes_molde,
             Peso_estimado = m.Peso_estimado,
@@ -93,3 +102,4 @@ namespace TipMolde.App.Controllers
         };
     }
 }
+
