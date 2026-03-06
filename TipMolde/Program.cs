@@ -2,16 +2,16 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
-using TipMolde.App.Middleware;
-using TipMolde.App.Settings;
+using TipMolde.API.Middleware;
+using TipMolde.Infrastructure.Settings;
 using TipMolde.Core.Interface.IAuth;
 using TipMolde.Core.Interface.ICliente;
 using TipMolde.Core.Interface.IMolde;
 using TipMolde.Core.Interface.ISecurity;
 using TipMolde.Core.Interface.IUser;
-using TipMolde.Infrastutura.DB;
-using TipMolde.Infrastutura.Repositorio;
-using TipMolde.Infrastutura.Service;
+using TipMolde.Infrastructure.DB;
+using TipMolde.Infrastructure.Repositorio;
+using TipMolde.Infrastructure.Service;
 
 var builder = WebApplication.CreateBuilder(args);
 
