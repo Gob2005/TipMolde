@@ -6,19 +6,17 @@ on:
   pull_request:
     branches: [ "main", "master" ]
 
-env:
-  DOTNET_VERSION: "8.0.x"
-
 jobs:
   build:
     runs-on: self-hosted
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: ${{ env.DOTNET_VERSION }}
+      - name: Check local .NET SDK
+        shell: pwsh
+        run: |
+          dotnet --info
+          dotnet --list-sdks
 
       - name: Cache NuGet packages
         uses: actions/cache@v4
@@ -49,10 +47,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: ${{ env.DOTNET_VERSION }}
+      - name: Check local .NET SDK
+        shell: pwsh
+        run: |
+          dotnet --info
+          dotnet --list-sdks
 
       - name: Restore dependencies
         run: dotnet restore
@@ -70,7 +69,7 @@ jobs:
 
   coverage-report:
     runs-on: self-hosted
-    needs: test
+    needs: [build, test]
     if: always()
     continue-on-error: true
     steps:
@@ -126,3 +125,4 @@ jobs:
 
       - name: Build Docker image
         run: docker build -t tipmolde-api:latest .
+
