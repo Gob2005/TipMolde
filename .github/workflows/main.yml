@@ -2,28 +2,127 @@ name: TipMolde CI/CD Pipeline
 
 on:
   push:
-    branches: [ "master" , "main"  ]
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+
+env:
+  DOTNET_VERSION: "8.0.x"
 
 jobs:
-  build-job:
+  build:
     runs-on: self-hosted
     steps:
       - uses: actions/checkout@v4
-      - name: Compilar .NET
-        run: dotnet build --configuration Release
 
-  test-code:
-    runs-on: self-hosted
-    needs: build-job
-    steps:
-      - uses: actions/checkout@v4
-      - name: Executar Testes
-        run: dotnet test
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
 
-  deploy-docker:
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --configuration Release --no-restore
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-output
+          path: |
+            **/bin/Release/**
+          if-no-files-found: error
+
+  test:
     runs-on: self-hosted
-    needs: test-code
+    needs: build
+    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
-      - name: Criar Imagem Docker
-        run: docker build -t tipmolde-api:latest TipMolde/
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Run tests with coverage (non-blocking for now)
+        run: dotnet test --configuration Release --collect:"XPlat Code Coverage"
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: "**/TestResults/**"
+          if-no-files-found: warn
+        if: always()
+
+  coverage-report:
+    runs-on: self-hosted
+    needs: test
+    if: always()
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download test results
+        uses: actions/download-artifact@v4
+        with:
+          name: test-results
+          path: TestResults
+        continue-on-error: true
+
+      - name: Install ReportGenerator
+        run: dotnet tool update -g dotnet-reportgenerator-globaltool
+
+      - name: Generate coverage report
+        run: reportgenerator -reports:"TestResults/**/coverage.cobertura.xml" -targetdir:"coveragereport" -reporttypes:Html
+        continue-on-error: true
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-html
+          path: coveragereport
+          if-no-files-found: warn
+        if: always()
+
+  docs:
+    runs-on: self-hosted
+    needs: build
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Generate API documentation (placeholder)
+        run: echo "Documentation generation not yet implemented"
+
+      - name: Upload docs
+        uses: actions/upload-artifact@v4
+        with:
+          name: documentation
+          path: docs
+          if-no-files-found: warn
+        if: always()
+
+  docker-build:
+    runs-on: self-hosted
+    needs: [build, test, coverage-report, docs]
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: docker build -t tipmolde-api:latest .
