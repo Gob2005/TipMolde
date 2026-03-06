@@ -123,16 +123,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Debug Dockerfile path
-        shell: powershell
-        run: |
-          Write-Host "Workspace: $env:GITHUB_WORKSPACE"
-          Get-ChildItem -Path $env:GITHUB_WORKSPACE -Recurse -Filter Dockerfile | Select-Object FullName
-
       - name: Build Docker image
         shell: powershell
         run: |
-          docker build `
-            -t tipmolde-api:latest `
-            -f "$env:GITHUB_WORKSPACE/TipMolde/Dockerfile" `
-            "$env:GITHUB_WORKSPACE/TipMolde"
+          $dockerfile = Get-ChildItem -Path $env:GITHUB_WORKSPACE -Recurse -Filter Dockerfile | Select-Object -First 1 -ExpandProperty FullName
+          if (-not $dockerfile) { throw "Dockerfile nao encontrado em $env:GITHUB_WORKSPACE" }
+
+          $context = Split-Path -Path $dockerfile -Parent
+          Write-Host "Dockerfile: $dockerfile"
+          Write-Host "Contexto: $context"
+
+          docker build -t tipmolde-api:latest -f "$dockerfile" "$context"
