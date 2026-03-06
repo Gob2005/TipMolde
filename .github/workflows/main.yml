@@ -48,7 +48,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Check local .NET SDK
-        shell: pwsh
+        shell: powershell
         run: |
           dotnet --info
           dotnet --list-sdks
