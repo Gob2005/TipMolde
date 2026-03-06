@@ -6,16 +6,17 @@ EXPOSE 443
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
-COPY ["TipMolde.csproj", "./"]
-RUN dotnet restore "TipMolde.csproj"
+COPY ["TipMolde.API/TipMolde.API.csproj", "TipMolde.API/"]
+COPY ["TipMolde.Core/TipMolde.Core.csproj", "TipMolde.Core/"]
+COPY ["TipMolde.Infrastructure/TipMolde.Infrastructure.csproj", "TipMolde.Infrastructure/"]
+
+RUN dotnet restore "TipMolde.API/TipMolde.API.csproj"
 
 COPY . .
-RUN dotnet build "TipMolde.csproj" -c Release -o /app/build
-
-FROM build AS publish
-RUN dotnet publish "TipMolde.csproj" -c Release -o /app/publish
+WORKDIR "/src/TipMolde.API"
+RUN dotnet publish "TipMolde.API.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
 FROM base AS final
 WORKDIR /app
-COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "TipMolde.dll"]
+COPY --from=build /app/publish .
+ENTRYPOINT ["dotnet", "TipMolde.API.dll"]
