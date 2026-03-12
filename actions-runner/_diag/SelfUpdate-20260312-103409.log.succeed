@@ -1,0 +1,20 @@
+[12/03/2026 10:34:09,33] --------whoami-------- 
+desktop-143en22\hp
+[12/03/2026 10:34:09,40] --------whoami-------- 
+[12/03/2026 10:34:09,43] Waiting for Runner.Listener.exe (31312) to complete 
+Runner.Listener.exe          31312 Console                   26     83ÿ076 K
+[12/03/2026 10:34:09,89] Process 31312 still running, check again after 1 second. 
+[12/03/2026 10:34:11,18] Process 31312 finished running 
+[12/03/2026 10:34:11,18] Sleep 1 more second to make sure process exited 
+[12/03/2026 10:34:12,23] Re-organize folders 
+[12/03/2026 10:34:12,31] move "C:\Users\HP\Documents\TipMolde\Aplicacao\TipMolde\actions-runner\bin" "C:\Users\HP\Documents\TipMolde\Aplicacao\TipMolde\actions-runner\bin.2.331.0" 
+        1 dir(s) moved.
+[12/03/2026 10:34:12,46] move "C:\Users\HP\Documents\TipMolde\Aplicacao\TipMolde\actions-runner\externals" "C:\Users\HP\Documents\TipMolde\Aplicacao\TipMolde\actions-runner\externals.2.331.0" 
+        1 dir(s) moved.
+[12/03/2026 10:34:12,48] Create junction bin folder 
+Junction created for C:\Users\HP\Documents\TipMolde\Aplicacao\TipMolde\actions-runner\bin <<===>> C:\Users\HP\Documents\TipMolde\Aplicacao\TipMolde\actions-runner\bin.2.332.0
+[12/03/2026 10:34:12,53] Create junction externals folder 
+Junction created for C:\Users\HP\Documents\TipMolde\Aplicacao\TipMolde\actions-runner\externals <<===>> C:\Users\HP\Documents\TipMolde\Aplicacao\TipMolde\actions-runner\externals.2.332.0
+[12/03/2026 10:34:12,58] Update succeed 
+[12/03/2026 10:34:12,59] update.finished file creation succeed 
+[12/03/2026 10:34:12,61] Rename "C:\Users\HP\Documents\TipMolde\Aplicacao\TipMolde\actions-runner\_diag\SelfUpdate-20260312-103409.log" to be "C:\Users\HP\Documents\TipMolde\Aplicacao\TipMolde\actions-runner\_diag\SelfUpdate-20260312-103409.log.succeed" 

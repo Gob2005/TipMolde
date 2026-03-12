@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TipMolde.API.DTOs.UserDTO;
+using TipMolde.Core.Enums;
 using TipMolde.Core.Interface.IUser;
 using TipMolde.Core.Models;
 
@@ -39,20 +40,21 @@ namespace TipMolde.API.Controllers
             return Ok(users.Select(ToResponse));
         }
 
+        [Authorize(Roles = "ADMIN")]
         [HttpPost("create-user")]
         public async Task<IActionResult> CreateUser([FromBody] CreateUserDTO dto)
         {
             if (string.IsNullOrWhiteSpace(dto.Nome)) return BadRequest("Nome e obrigatorio.");
             if (string.IsNullOrWhiteSpace(dto.Email)) return BadRequest("Email e obrigatorio.");
             if (string.IsNullOrWhiteSpace(dto.Password)) return BadRequest("Password e obrigatoria.");
-            if (!Enum.IsDefined(typeof(CreateUserDTO.UserRole), dto.Role)) return BadRequest("Role invalida.");
+            if (!Enum.IsDefined(dto.Role)) return BadRequest("Role invalida.");
 
             var user = new User
             {
                 Nome = dto.Nome.Trim(),
                 Email = dto.Email.Trim(),
                 Password = dto.Password,
-                Role = (User.UserRole)dto.Role,
+                Role = dto.Role,
                 CreatedAt = DateTime.UtcNow
             };
 
@@ -69,7 +71,7 @@ namespace TipMolde.API.Controllers
             return NoContent();
         }
 
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "ADMIN")]
         [HttpDelete("delete-user")]
         public async Task<IActionResult> DeleteUser(int id)
         {
@@ -77,7 +79,7 @@ namespace TipMolde.API.Controllers
             return NoContent();
         }
 
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "ADMIN")]
         [HttpPut("change-role")]
         public async Task<IActionResult> ChangeRole([FromBody] ChangeUserRoleDTO dto)
         {
@@ -87,7 +89,7 @@ namespace TipMolde.API.Controllers
                 return NotFound();
             }
 
-            user.Role = (User.UserRole)dto.Role;
+            user.Role = dto.Role;
             await _userService.UpdateUserAsync(user);
             return Ok(ToResponse(user));
         }
@@ -97,7 +99,7 @@ namespace TipMolde.API.Controllers
             Id = u.Id,
             Nome = u.Nome,
             Email = u.Email,
-            Role = (ResponseUserDTO.UserRole)u.Role,
+            Role = u.Role,
             CreatedAt = u.CreatedAt
         };
     }

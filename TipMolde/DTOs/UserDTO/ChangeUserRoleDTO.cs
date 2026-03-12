@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using TipMolde.Core.Enums;
 
 namespace TipMolde.API.DTOs.UserDTO
 {
@@ -6,13 +7,6 @@ namespace TipMolde.API.DTOs.UserDTO
     {
         [Required]
         public int Id { get; set; }
-        public enum UserRole
-        {
-            Admin,
-            Responsavel_Encomendas,
-            Engenheiro,
-            Producao
-        }
 
         [Required]
         public required UserRole Role { get; set; }

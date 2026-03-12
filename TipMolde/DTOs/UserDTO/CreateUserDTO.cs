@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.ComponentModel.DataAnnotations;
+using TipMolde.Core.Enums;
 
 namespace TipMolde.API.DTOs.UserDTO
 {
@@ -17,15 +13,6 @@ namespace TipMolde.API.DTOs.UserDTO
 
         [Required, MinLength(8), MaxLength(255)]
         public required string Password { get; set; }
-
-        public enum UserRole
-        {
-            Admin,
-            Responsavel_Encomendas,
-            Engenheiro,
-            Producao
-        }
-
         public required UserRole Role { get; set; }
     }
 }
