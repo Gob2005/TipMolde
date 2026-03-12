@@ -45,7 +45,7 @@ namespace TipMolde.Infrastructure.Service
 
         public async Task UpdateUserAsync(User user)
         {
-            var existing = await _userRepository.GetByIdAsync(user.Id);
+            var existing = await _userRepository.GetByIdAsync(user.User_id);
             if (!string.IsNullOrWhiteSpace(user.Nome))
                 existing.Nome = user.Nome.Trim();
 

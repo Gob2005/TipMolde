@@ -12,6 +12,7 @@ using TipMolde.Core.Interface.IUser;
 using TipMolde.Infrastructure.DB;
 using TipMolde.Infrastructure.Repositorio;
 using TipMolde.Infrastructure.Service;
+using TipMolde.Core.Interface.IFases_producao;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -58,11 +59,13 @@ builder.Services.AddScoped<IAuthRepository, AuthRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IClienteRepository, ClienteRepository>();
 builder.Services.AddScoped<IMoldeRepository, MoldeRepository>();
+builder.Services.AddScoped<IFases_producaoRepository, Fases_producaoRepository>();
 
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IClienteService, ClienteService>();
 builder.Services.AddScoped<IMoldeService, MoldeService>();
+builder.Services.AddScoped<IFases_producaoService, Fases_producaoService>();
 
 builder.Services.AddScoped<IPasswordHasherService, PasswordHasherService>();
 builder.Services.AddScoped<ITokenService, JwtTokenService>();

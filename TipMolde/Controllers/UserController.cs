@@ -59,13 +59,13 @@ namespace TipMolde.API.Controllers
             };
 
             var createdUser = await _userService.CreateUserAsync(user);
-            return CreatedAtAction(nameof(GetUserById), new { id = createdUser.Id }, ToResponse(createdUser));
+            return CreatedAtAction(nameof(GetUserById), new { id = createdUser.User_id }, ToResponse(createdUser));
         }
 
         [HttpPut("update-user")]
         public async Task<IActionResult> UpdateUser([FromBody] UpdateUserDTO dto)
         {
-            var user = await _userService.GetUserByIdAsync(dto.Id);
+            var user = await _userService.GetUserByIdAsync(dto.User_id);
             if (user == null) return NotFound();
             await _userService.UpdateUserAsync(user);
             return NoContent();
@@ -83,7 +83,7 @@ namespace TipMolde.API.Controllers
         [HttpPut("change-role")]
         public async Task<IActionResult> ChangeRole([FromBody] ChangeUserRoleDTO dto)
         {
-            var user = await _userService.GetUserByIdAsync(dto.Id);
+            var user = await _userService.GetUserByIdAsync(dto.User_id);
             if (user == null)
             {
                 return NotFound();
@@ -96,7 +96,7 @@ namespace TipMolde.API.Controllers
 
         private static ResponseUserDTO ToResponse(User u) => new()
         {
-            Id = u.Id,
+            User_id = u.User_id,
             Nome = u.Nome,
             Email = u.Email,
             Role = u.Role,

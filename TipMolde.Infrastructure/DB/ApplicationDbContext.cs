@@ -10,5 +10,6 @@ namespace TipMolde.Infrastructure.DB
         public virtual DbSet<User> Users { get; set; }
         public virtual DbSet<Cliente> Clientes { get; set; }
         public virtual DbSet<Molde> Moldes { get; set; }
+        public virtual DbSet<Fases_producao> Fases_Producaos { get; set; }
     }
 }
