@@ -28,9 +28,20 @@ namespace TipMolde.Infrastructure.Service
             await _clienteRepository.DeleteAsync(id);
         }
 
-        public Task UpdateClienteAsync(Cliente cliente)
+        public async Task UpdateClienteAsync(Cliente cliente)
         {
-            return _clienteRepository.UpdateAsync(cliente);
+            var existing = await _clienteRepository.GetByIdAsync(cliente.Cliente_id);
+            if (existing == null)
+                throw new KeyNotFoundException($"Cliente com ID {cliente.Cliente_id} não encontrado.");
+
+            existing.Nome = string.IsNullOrWhiteSpace(cliente.Nome) ? existing.Nome : cliente.Nome.Trim();
+            existing.Pais = string.IsNullOrWhiteSpace(cliente.Pais) ? existing.Pais : cliente.Pais.Trim();
+            existing.Email = string.IsNullOrWhiteSpace(cliente.Email) ? existing.Email : cliente.Email.Trim();
+            existing.Telefone = string.IsNullOrWhiteSpace(cliente.Telefone) ? existing.Telefone : cliente.Telefone.Trim();
+            existing.NIF = string.IsNullOrWhiteSpace(cliente.NIF) ? existing.NIF : cliente.NIF.Trim();
+            existing.Sigla = string.IsNullOrWhiteSpace(cliente.Sigla) ? existing.Sigla : cliente.Sigla.Trim();
+
+            await _clienteRepository.UpdateAsync(existing);
         }
 
         public Task<IEnumerable<Cliente>> GetAllClientesAsync()

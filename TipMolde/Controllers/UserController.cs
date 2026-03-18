@@ -63,10 +63,16 @@ namespace TipMolde.API.Controllers
         }
 
         [HttpPut("update-user")]
-        public async Task<IActionResult> UpdateUser([FromBody] UpdateUserDTO dto)
+        public async Task<IActionResult> UpdateUser(int id, [FromBody] UpdateUserDTO dto)
         {
-            var user = await _userService.GetUserByIdAsync(dto.User_id);
+            var user = await _userService.GetUserByIdAsync(id);
             if (user == null) return NotFound();
+
+            user.Nome = dto.Nome?.Trim() ?? user.Nome;
+            user.Email = dto.Email?.Trim() ?? user.Email;
+            user.Password = dto.Password ?? user.Password;
+            if (dto.Role.HasValue) user.Role = dto.Role.Value;
+
             await _userService.UpdateUserAsync(user);
             return NoContent();
         }

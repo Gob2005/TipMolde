@@ -46,21 +46,14 @@ namespace TipMolde.Infrastructure.Service
         public async Task UpdateUserAsync(User user)
         {
             var existing = await _userRepository.GetByIdAsync(user.User_id);
-            if (!string.IsNullOrWhiteSpace(user.Nome))
-                existing.Nome = user.Nome.Trim();
+            if (existing == null)
+                throw new KeyNotFoundException($"Utilizador com ID {user.User_id} não encontrado.");
 
-            if (!string.IsNullOrWhiteSpace(user.Email))
-                existing.Email = user.Email.Trim();
+            existing.Nome = string.IsNullOrWhiteSpace(user.Nome) ? existing.Nome : user.Nome.Trim();
+            existing.Email = string.IsNullOrWhiteSpace(user.Email) ? existing.Email : user.Email.Trim().ToLowerInvariant();
+            existing.Password = string.IsNullOrWhiteSpace(user.Password) ? existing.Password : _passwordHasher.Hash(user.Password.Trim());
+            if (user.Role != existing.Role) existing.Role = user.Role;
 
-            if (!string.IsNullOrWhiteSpace(user.Password))
-            {
-                existing.Password = _passwordHasher.Hash(user.Password.Trim());
-            }
-
-            if (user.Role != existing.Role)
-            {
-                existing.Role = user.Role;
-            }
             await _userRepository.UpdateAsync(existing);
         }
 

@@ -5,9 +5,6 @@ namespace TipMolde.API.DTOs.UserDTO
 {
     public class UpdateUserDTO
     {
-        [Required]
-        public int User_id { get; set; }
-
         [MinLength(5), MaxLength(100)]
         public string? Nome { get; set; }
 

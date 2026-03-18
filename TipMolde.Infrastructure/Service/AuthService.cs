@@ -23,10 +23,7 @@ namespace TipMolde.Infrastructure.Service
         public async Task<string> LoginAsync(string email, string password)
         {
             var user = await _authRepository.GetByEmailAsync(email);
-            if (user == null || user.Password != password)
-            {
-                return string.Empty;
-            }
+            if (user == null)  return string.Empty;
 
             bool valid;
             if (_passwordHasher.IsHash(user.Password))

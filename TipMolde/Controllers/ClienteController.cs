@@ -59,12 +59,12 @@ namespace TipMolde.API.Controllers
             var cliente = await _clienteService.GetClienteByIdAsync(id);
             if (cliente == null) return NotFound();
 
-            cliente.Nome = !string.IsNullOrWhiteSpace(dto.Nome) ? dto.Nome.Trim() : cliente.Nome;
-            cliente.Pais = !string.IsNullOrWhiteSpace(dto.Pais) ? dto.Pais.Trim() : cliente.Pais;
-            cliente.Email = !string.IsNullOrWhiteSpace(dto.Email) ? dto.Email.Trim() : cliente.Email;
-            cliente.Telefone = !string.IsNullOrWhiteSpace(dto.Telefone) ? dto.Telefone.Trim() : cliente.Telefone;
-            cliente.NIF = !string.IsNullOrWhiteSpace(dto.NIF) ? dto.NIF.Trim() : cliente.NIF;
-            cliente.Sigla = !string.IsNullOrWhiteSpace(dto.Sigla) ? dto.Sigla.Trim() : cliente.Sigla;
+            cliente.Nome = dto.Nome?.Trim() ?? cliente.Nome;
+            cliente.Pais = dto.Pais?.Trim() ?? cliente.Pais;
+            cliente.Email = dto.Email?.Trim() ?? cliente.Email;
+            cliente.Telefone = dto.Telefone?.Trim() ?? cliente.Telefone;
+            cliente.NIF = dto.NIF?.Trim() ?? cliente.NIF;
+            cliente.Sigla = dto.Sigla?.Trim() ?? cliente.Sigla;
 
             await _clienteService.UpdateClienteAsync(cliente);
             return NoContent();

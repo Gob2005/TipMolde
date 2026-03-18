@@ -25,24 +25,18 @@ namespace TipMolde.Infrastructure.Service
         {
             var existing = await _fpRepository.GetByIdAsync(fp.Fases_producao_id);
             if (existing == null)
-            {
-                throw new KeyNotFoundException($"Fase de Producao com ID {fp.Fases_producao_id} nao encontrada.");
-            }
+                throw new KeyNotFoundException($"Fase de Produção com ID {fp.Fases_producao_id} não encontrada.");
 
             if (fp.Nome != existing.Nome)
             {
                 var byNome = await _fpRepository.GetByNomeAsync(fp.Nome);
                 if (byNome != null && byNome.Fases_producao_id != existing.Fases_producao_id)
-                {
-                    throw new ArgumentException("Ja existe uma fase de producao com este nome.");
-                }
+                    throw new ArgumentException("Já existe uma fase de produção com este nome.");
+
                 existing.Nome = fp.Nome;
             }
 
-            if (!string.IsNullOrWhiteSpace(fp.Descricao))
-            {
-                existing.Descricao = fp.Descricao.Trim();
-            }
+            existing.Descricao = string.IsNullOrWhiteSpace(fp.Descricao) ? existing.Descricao : fp.Descricao.Trim();
 
             await _fpRepository.UpdateAsync(existing);
         }
@@ -63,7 +57,7 @@ namespace TipMolde.Infrastructure.Service
             return _fpRepository.GetAllAsync();
         }
 
-        public Task<Fases_producao> GetFase_producaoByIdAsync(int id)
+        public Task<Fases_producao?> GetFase_producaoByIdAsync(int id)
         {
             return _fpRepository.GetByIdAsync(id);
         }

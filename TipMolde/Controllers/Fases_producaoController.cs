@@ -49,11 +49,11 @@ namespace TipMolde.API.Controllers
         [HttpPut("update-fases_producao")]
         public async Task<IActionResult> UpdateFases_producao(int id, [FromBody] UpdateFases_producaoDTO dto)
         {
-            var fasesProducao = await _fasesProducaoService.GetFase_producaoByIdAsync(id);
-            if (fasesProducao == null) return NotFound();
-            if (!string.IsNullOrWhiteSpace(dto.Nome.ToString())) fasesProducao.Nome = dto.Nome.Value;
-            if (!string.IsNullOrWhiteSpace(dto.Descricao)) fasesProducao.Descricao = dto.Descricao;
-            await _fasesProducaoService.UpdateFase_producaoAsync(fasesProducao);
+            var fase = await _fasesProducaoService.GetFase_producaoByIdAsync(id);
+            if (fase == null) return NotFound();
+            if (!string.IsNullOrWhiteSpace(dto.Nome.ToString())) fase.Nome = dto.Nome.Value;
+            if (!string.IsNullOrWhiteSpace(dto.Descricao)) fase.Descricao = dto.Descricao;
+            await _fasesProducaoService.UpdateFase_producaoAsync(fase);
             return NoContent();
         }
 
