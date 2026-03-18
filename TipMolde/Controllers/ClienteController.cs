@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TipMolde.API.DTOs.ClienteDTO;
 using TipMolde.Core.Interface.ICliente;
@@ -53,7 +54,8 @@ namespace TipMolde.API.Controllers
             return CreatedAtAction(nameof(GetClienteById), new { id = createdCliente.Cliente_id }, createdCliente);
         }
 
-        [HttpPut("update-cliente")]
+        [Authorize (Roles = "ADMIN,GESTOR_COMERCIAL")]
+        [HttpPut("update-cliente/{id:int}")]
         public async Task<IActionResult> UpdateCliente(int id, [FromBody] UpdateClienteDTO dto)
         {
             var cliente = await _clienteService.GetClienteByIdAsync(id);

@@ -13,6 +13,5 @@ namespace TipMolde.API.DTOs.UserDTO
 
         [MinLength(8), MaxLength(255)]
         public string? Password { get; set; }
-        public UserRole? Role { get; set; }
     }
 }

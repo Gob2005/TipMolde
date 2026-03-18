@@ -1,3 +1,4 @@
+using TipMolde.Core.Enums;
 using TipMolde.Core.Interface.ISecurity;
 using TipMolde.Core.Interface.IUser;
 using TipMolde.Core.Models;
@@ -52,9 +53,18 @@ namespace TipMolde.Infrastructure.Service
             existing.Nome = string.IsNullOrWhiteSpace(user.Nome) ? existing.Nome : user.Nome.Trim();
             existing.Email = string.IsNullOrWhiteSpace(user.Email) ? existing.Email : user.Email.Trim().ToLowerInvariant();
             existing.Password = string.IsNullOrWhiteSpace(user.Password) ? existing.Password : _passwordHasher.Hash(user.Password.Trim());
-            if (user.Role != existing.Role) existing.Role = user.Role;
 
             await _userRepository.UpdateAsync(existing);
+        }
+
+        public async Task ChangeRoleAsync(int userId, UserRole newRole)
+        {
+            var user = await _userRepository.GetByIdAsync(userId);
+            if (user == null)
+                throw new KeyNotFoundException($"Utilizador com ID {userId} não encontrado.");
+
+            user.Role = newRole;
+            await _userRepository.UpdateAsync(user);
         }
 
         public async Task DeleteUserAsync(int id)

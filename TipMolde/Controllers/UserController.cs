@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TipMolde.API.DTOs.UserDTO;
-using TipMolde.Core.Enums;
 using TipMolde.Core.Interface.IUser;
 using TipMolde.Core.Models;
 
@@ -62,7 +61,8 @@ namespace TipMolde.API.Controllers
             return CreatedAtAction(nameof(GetUserById), new { id = createdUser.User_id }, ToResponse(createdUser));
         }
 
-        [HttpPut("update-user")]
+        [Authorize]
+        [HttpPut("update-user/{id:int}")]
         public async Task<IActionResult> UpdateUser(int id, [FromBody] UpdateUserDTO dto)
         {
             var user = await _userService.GetUserByIdAsync(id);
@@ -71,7 +71,6 @@ namespace TipMolde.API.Controllers
             user.Nome = dto.Nome?.Trim() ?? user.Nome;
             user.Email = dto.Email?.Trim() ?? user.Email;
             user.Password = dto.Password ?? user.Password;
-            if (dto.Role.HasValue) user.Role = dto.Role.Value;
 
             await _userService.UpdateUserAsync(user);
             return NoContent();
@@ -86,17 +85,13 @@ namespace TipMolde.API.Controllers
         }
 
         [Authorize(Roles = "ADMIN")]
-        [HttpPut("change-role")]
-        public async Task<IActionResult> ChangeRole([FromBody] ChangeUserRoleDTO dto)
+        [HttpPut("change-role/{id:int}")]
+        public async Task<IActionResult> ChangeRole(int id, [FromBody] ChangeUserRoleDTO dto)
         {
-            var user = await _userService.GetUserByIdAsync(dto.User_id);
-            if (user == null)
-            {
-                return NotFound();
-            }
+            var user = await _userService.GetUserByIdAsync(id);
+            if (user == null) return NotFound();
 
-            user.Role = dto.Role;
-            await _userService.UpdateUserAsync(user);
+            await _userService.ChangeRoleAsync(id, dto.Role);
             return Ok(ToResponse(user));
         }
 

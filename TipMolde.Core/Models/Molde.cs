@@ -8,5 +8,7 @@
         public decimal Peso_estimado { get; set; }
         public int Numero_cavidades { get; set; } = 1;
         public Cliente? Cliente { get; set; }
+
+        public ICollection<Peca> Pecas { get; set; } = new List<Peca>();
     }
 }

@@ -1,3 +1,4 @@
+using TipMolde.Core.Enums;
 using TipMolde.Core.Models;
 
 namespace TipMolde.Core.Interface.IUser
@@ -8,6 +9,7 @@ namespace TipMolde.Core.Interface.IUser
         Task<User?> GetUserByIdAsync(int id);
         Task<User> CreateUserAsync(User user);
         Task UpdateUserAsync(User user);
+        Task ChangeRoleAsync(int id, UserRole newRole);
         Task DeleteUserAsync(int id);
         Task<IEnumerable<User>> SearchByNameAsync(string searchTerm);
         Task<User?> GetUserByEmailAsync(string email);
