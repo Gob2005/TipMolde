@@ -9,9 +9,9 @@ namespace TipMolde.Infrastructure.Repositorio
     {
         public PecaRepository(ApplicationDbContext context) : base(context) { }
 
-        public Task<Peca?> GetByNumberAsync(int numero)
+        public Task<Peca?> GetByNumberAsync(int peca_id, int molde_id)
         {
-            return _context.Pecas.FirstOrDefaultAsync(p => p.Numero_peca == numero);
+            return _context.Pecas.FirstOrDefaultAsync(p => p.Numero_peca == peca_id && p.Molde_id == molde_id);
         }
     }
 }

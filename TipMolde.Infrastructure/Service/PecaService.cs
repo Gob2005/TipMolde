@@ -17,16 +17,11 @@ namespace TipMolde.Infrastructure.Service
 
         public async Task<Peca> CreatePecaAsync(Peca peca)
         {
-            var molde = await _moldeRepository.GetByIdAsync(peca.Molde.Molde_id);
+            var molde = await _moldeRepository.GetByIdAsync(peca.Molde_id);
             if (molde == null)
-                throw new KeyNotFoundException($"Molde com ID {peca.Molde.Molde_id} nao encontrado.");
+                throw new KeyNotFoundException($"Molde com ID {peca.Molde_id} nao encontrado.");
 
-            peca.Numero_peca = peca.Numero_peca;
-            peca.Prioridade = peca.Prioridade;
-            peca.Descricao = peca.Descricao;
-            peca.Molde = molde;
-
-            var existing = await _pecaRepository.GetByNumberAsync(peca.Numero_peca);
+            var existing = await _pecaRepository.GetByNumberAsync(peca.Numero_peca, peca.Molde_id);
             if (existing is not null) throw new ArgumentException("Ja existe uma peca com este numero.");
 
             await _pecaRepository.AddAsync(peca);
@@ -48,10 +43,10 @@ namespace TipMolde.Infrastructure.Service
         {
             var existing = await _pecaRepository.GetByIdAsync(peca.Peca_id);
             if (existing == null)
-                throw new KeyNotFoundException($"Utilizador com ID {peca.Peca_id} não encontrado.");
+                throw new KeyNotFoundException($"Peca com ID {peca.Peca_id} nao encontrado.");
 
             existing.Numero_peca = peca.Numero_peca > 0 ? peca.Numero_peca : existing.Numero_peca;
-            existing.Prioridade = peca.Prioridade > 1 || peca.Prioridade < 101 ? peca.Prioridade : existing.Prioridade;
+            existing.Prioridade = peca.Prioridade > 1 ? peca.Prioridade : existing.Prioridade;
             existing.Descricao = !string.IsNullOrWhiteSpace(peca.Descricao) ? peca.Descricao : existing.Descricao;
 
             await _pecaRepository.UpdateAsync(existing);
@@ -67,9 +62,9 @@ namespace TipMolde.Infrastructure.Service
             return _pecaRepository.GetByIdAsync(id);
         }
 
-        public Task<Peca?> GetPecaByNumberAsync(int number)
+        public Task<Peca?> GetPecaByNumberAsync(int peca_id, int molde_id)
         {
-            return _pecaRepository.GetByNumberAsync(number);
+            return _pecaRepository.GetByNumberAsync(peca_id, molde_id);
         }
     }
 }

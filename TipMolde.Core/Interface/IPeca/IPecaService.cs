@@ -6,7 +6,7 @@ namespace TipMolde.Core.Interface.IPeca
     {
         Task<IEnumerable<Peca>> GetAllPecasAsync();
         Task<Peca?> GetPecaByIdAsync(int id);
-        Task<Peca?> GetPecaByNumberAsync(int number);
+        Task<Peca?> GetPecaByNumberAsync(int peca_id, int molde_id);
         Task<Peca> CreatePecaAsync(Peca peca);
         Task UpdatePecaAsync(Peca peca);
         Task DeletePecaAsync(int id);

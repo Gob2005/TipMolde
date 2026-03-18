@@ -37,14 +37,12 @@ namespace TipMolde.API.Controllers
         [HttpPost("create-peca")]
         public async Task<IActionResult> CreatePeca([FromBody] CreatePecaDTO dto)
         {
-            var molde = await _moldeService.GetMoldeByIdAsync(dto.Molde_id);
-            if (molde == null) return BadRequest($"Molde com ID {dto.Molde_id} nao encontrado.");
             var peca = new Peca
             {
                 Numero_peca = dto.Numero_peca,
                 Prioridade = dto.Prioridade,
                 Descricao = dto.Descricao,
-                Molde = molde
+                Molde_id = dto.Molde_id
             };
             var createdPeca = await _pecaService.CreatePecaAsync(peca);
             return CreatedAtAction(nameof(GetPecaById), new { id = createdPeca.Peca_id }, createdPeca);
@@ -57,7 +55,7 @@ namespace TipMolde.API.Controllers
             if (peca == null) return NotFound();
 
             peca.Numero_peca = dto.Numero_peca > 0 ? dto.Numero_peca : peca.Numero_peca;
-            peca.Prioridade = dto.Prioridade > 1 || dto.Prioridade < 101 ? dto.Prioridade : peca.Prioridade;
+            peca.Prioridade = dto.Prioridade > 1 ? dto.Prioridade : peca.Prioridade;
             peca.Descricao = dto.Descricao?.Trim() ?? peca.Descricao;
 
             await _pecaService.UpdatePecaAsync(peca);
@@ -74,9 +72,9 @@ namespace TipMolde.API.Controllers
         }
 
         [HttpGet("search-number")]
-        public async Task<IActionResult> SearchByNumber([FromQuery] int number)
+        public async Task<IActionResult> SearchByNumber([FromQuery] int peca_id, int molde_id)
         {
-            var pecas = await _pecaService.GetPecaByNumberAsync(number);
+            var pecas = await _pecaService.GetPecaByNumberAsync(peca_id, molde_id);
             return Ok(pecas);
         }
     }
