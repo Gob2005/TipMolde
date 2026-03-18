@@ -3,16 +3,16 @@ using TipMolde.Core.Models;
 
 namespace TipMolde.Infrastructure.Service
 {
-    public class Fases_producaoService : IFases_producaoService
+    public class FasesProducaoService : IFasesProducaoService
     {
-        private readonly IFases_producaoRepository _fpRepository;
+        private readonly IFasesProducaoRepository _fpRepository;
 
-        public Fases_producaoService(IFases_producaoRepository fpRepository)
+        public FasesProducaoService(IFasesProducaoRepository fpRepository)
         {
             _fpRepository = fpRepository;
         }
 
-        public async Task<Fases_producao> CreateFase_producaoAsync(Fases_producao fp)
+        public async Task<FasesProducao> CreateFase_producaoAsync(FasesProducao fp)
         {
             var existing = await _fpRepository.GetByNomeAsync(fp.Nome);
             if (existing != null) throw new ArgumentException("Ja existe uma fase de producao com este nome.");
@@ -21,7 +21,7 @@ namespace TipMolde.Infrastructure.Service
             return fp;
         }
 
-        public async Task UpdateFase_producaoAsync(Fases_producao fp)
+        public async Task UpdateFase_producaoAsync(FasesProducao fp)
         {
             var existing = await _fpRepository.GetByIdAsync(fp.Fases_producao_id);
             if (existing == null)
@@ -52,12 +52,12 @@ namespace TipMolde.Infrastructure.Service
             await _fpRepository.DeleteAsync(id);
         }
 
-        public Task<IEnumerable<Fases_producao>> GetAllFases_producaoAsync()
+        public Task<IEnumerable<FasesProducao>> GetAllFases_producaoAsync()
         {
             return _fpRepository.GetAllAsync();
         }
 
-        public Task<Fases_producao?> GetFase_producaoByIdAsync(int id)
+        public Task<FasesProducao?> GetFase_producaoByIdAsync(int id)
         {
             return _fpRepository.GetByIdAsync(id);
         }

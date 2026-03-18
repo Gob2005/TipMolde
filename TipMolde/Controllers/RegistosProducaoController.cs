@@ -1,0 +1,81 @@
+﻿using Microsoft.AspNetCore.Mvc;
+using TipMolde.Core.Interface.IRegistosProducao;
+using TipMolde.Core.Models;
+
+namespace TipMolde.API.Controllers
+{
+    [ApiController]
+    [Route("api/[controller]")]
+    public class RegistosProducaoController : ControllerBase
+    {
+        private readonly IRegistosProducaoService _registosProducaoService;
+
+        public RegistosProducaoController(IRegistosProducaoService registosProducaoService)
+        {
+            _registosProducaoService = registosProducaoService;
+        }
+
+        [HttpGet("all-registos_producao")]
+        public async Task<IActionResult> GetAllRegistos_producao()
+        {
+            var registosProducao = await _registosProducaoService.GetAllRegistosProducaoAsync();
+            return Ok(registosProducao);
+        }
+
+        [HttpGet("registos_producao-byID")]
+        public async Task<IActionResult> GetRegistos_producaoById(int id)
+        {
+            var registoProducao = await _registosProducaoService.GetRegistoProducaoByIdAsync(id);
+            if (registoProducao == null) return NotFound();
+            return Ok(registoProducao);
+        }
+
+        [HttpPost("add-registos_producao")]
+        public async Task<IActionResult> AddRegistos_producao([FromBody] CreateRegistosProducaoDTO dto)
+        {
+            var rp = new RegistosProducao
+            {
+                Molde_id = dto.Molde_id,
+                Fase_id = dto.Fase_id,
+                Operador_id = dto.Operador_id,
+                Peca_id = dto.Peca_id,
+                Maquina = dto.Maquina,
+                Estado_producao = dto.Estado_producao
+            };
+
+            var createdRegistoProducao = await _registosProducaoService.CreateRegistoProducaoAsync(rp);
+            return CreatedAtAction(nameof(GetRegistos_producaoById), new { id = createdRegistoProducao.Registo_Producao_id }, createdRegistoProducao);
+        }
+
+        [HttpPut("update-registos_producao/{id:int}")]
+        public async Task<IActionResult> UpdateRegistos_producao(int id, [FromBody] UpdateRegistosProducaoDTO dto)
+        {
+            var registoProducao = await _registosProducaoService.GetRegistoProducaoByIdAsync(id);
+            if (registoProducao == null) return NotFound();
+
+            registoProducao.Maquina = dto.Maquina?.Trim() ?? registoProducao.Maquina;
+
+            await _registosProducaoService.UpdateRegistoProducaoAsync(registoProducao);
+            return NoContent();
+        }
+
+        [HttpDelete("delete-registos_producao")]
+        public async Task<IActionResult> DeleteRegistos_producao(int id)
+        {
+            await _registosProducaoService.DeleteRegistoProducaoAsync(id);
+            return NoContent();
+        }
+
+        [HttpGet("historico")]
+        public async Task<IActionResult> GetHistorico(
+            [FromQuery] int moldeId,
+            [FromQuery] int faseId,
+            [FromQuery] int pecaId,
+            [FromQuery] int operadorId)
+        {
+            var historico = await _registosProducaoService.GetHistoricoAsync(moldeId, faseId, pecaId, operadorId);
+            return Ok(historico);
+        }
+    }
+
+}

@@ -8,10 +8,10 @@ namespace TipMolde.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class Fases_producaoController : ControllerBase
+    public class FasesProducaoController : ControllerBase
     {
-        private readonly IFases_producaoService _fasesProducaoService;
-        public Fases_producaoController(IFases_producaoService fasesProducaoService)
+        private readonly IFasesProducaoService _fasesProducaoService;
+        public FasesProducaoController(IFasesProducaoService fasesProducaoService)
         {
             _fasesProducaoService = fasesProducaoService;
         }
@@ -33,10 +33,10 @@ namespace TipMolde.API.Controllers
 
         [Authorize(Roles = "ADMIN")]
         [HttpPost("create-fases_producao")]
-        public async Task<IActionResult> CreateFases_producao([FromBody] CreateFases_producaoDTO dto)
+        public async Task<IActionResult> CreateFases_producao([FromBody] CreateFasesProducaoDTO dto)
         {
             if (string.IsNullOrWhiteSpace(dto.Nome.ToString())) return BadRequest("Nome e obrigatorio.");
-            var fasesProducao = new Fases_producao
+            var fasesProducao = new FasesProducao
             {
                 Nome = dto.Nome,
                 Descricao = dto.Descricao,
@@ -47,7 +47,7 @@ namespace TipMolde.API.Controllers
 
         [Authorize(Roles = "ADMIN")]
         [HttpPut("update-fases_producao")]
-        public async Task<IActionResult> UpdateFases_producao(int id, [FromBody] UpdateFases_producaoDTO dto)
+        public async Task<IActionResult> UpdateFases_producao(int id, [FromBody] UpdateFasesProducaoDTO dto)
         {
             var fase = await _fasesProducaoService.GetFase_producaoByIdAsync(id);
             if (fase == null) return NotFound();

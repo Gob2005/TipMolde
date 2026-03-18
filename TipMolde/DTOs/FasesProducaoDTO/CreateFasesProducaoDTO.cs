@@ -2,7 +2,7 @@
 
 namespace TipMolde.API.DTOs.Fases_producaoDTO
 {
-    public class CreateFases_producaoDTO
+    public class CreateFasesProducaoDTO
     {
         public required Nome_fases Nome { get; set; }
         public string? Descricao { get; set; }

@@ -72,7 +72,7 @@ namespace TipMolde.API.Controllers
         }
 
         [HttpGet("search-number")]
-        public async Task<IActionResult> SearchByNumber([FromQuery] int peca_id, int molde_id)
+        public async Task<IActionResult> SearchByNumber([FromQuery] int peca_id, [FromQuery] int molde_id)
         {
             var pecas = await _pecaService.GetPecaByNumberAsync(peca_id, molde_id);
             return Ok(pecas);

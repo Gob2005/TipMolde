@@ -21,7 +21,7 @@ namespace TipMolde.API.Controllers
         public async Task<IActionResult> GetAllUsers()
         {
             var users = await _userService.GetAllUsersAsync();
-            return Ok(users.Select(ToResponse));
+            return Ok(users);
         }
 
         [HttpGet("user-byID")]
@@ -29,14 +29,14 @@ namespace TipMolde.API.Controllers
         {
             var user = await _userService.GetUserByIdAsync(id);
             if (user == null) return NotFound();
-            return Ok(ToResponse(user));
+            return Ok(user);
         }
 
         [HttpGet("search-name")]
         public async Task<IActionResult> SearchByName([FromQuery] string searchTerm)
         {
             var users = await _userService.SearchByNameAsync(searchTerm);
-            return Ok(users.Select(ToResponse));
+            return Ok(users);
         }
 
         [Authorize(Roles = "ADMIN")]
@@ -58,7 +58,7 @@ namespace TipMolde.API.Controllers
             };
 
             var createdUser = await _userService.CreateUserAsync(user);
-            return CreatedAtAction(nameof(GetUserById), new { id = createdUser.User_id }, ToResponse(createdUser));
+            return CreatedAtAction(nameof(GetUserById), new { id = createdUser.User_id }, createdUser);
         }
 
         [Authorize]
@@ -92,16 +92,7 @@ namespace TipMolde.API.Controllers
             if (user == null) return NotFound();
 
             await _userService.ChangeRoleAsync(id, dto.Role);
-            return Ok(ToResponse(user));
+            return Ok(user);
         }
-
-        private static ResponseUserDTO ToResponse(User u) => new()
-        {
-            User_id = u.User_id,
-            Nome = u.Nome,
-            Email = u.Email,
-            Role = u.Role,
-            CreatedAt = u.CreatedAt
-        };
     }
 }

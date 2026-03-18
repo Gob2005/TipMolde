@@ -2,7 +2,7 @@
 
 namespace TipMolde.Core.Models
 {
-    public class Fases_producao
+    public class FasesProducao
     {
         public int Fases_producao_id { get; set; }
         public required Nome_fases Nome { get; set; }

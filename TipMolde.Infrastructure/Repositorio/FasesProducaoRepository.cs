@@ -6,13 +6,13 @@ using TipMolde.Infrastructure.DB;
 
 namespace TipMolde.Infrastructure.Repositorio
 {
-    public class Fases_producaoRepository : GenericRepository<Fases_producao>, IFases_producaoRepository
+    public class FasesProducaoRepository : GenericRepository<FasesProducao>, IFasesProducaoRepository
     {
-        public Fases_producaoRepository(ApplicationDbContext context) : base(context)  { }
+        public FasesProducaoRepository(ApplicationDbContext context) : base(context)  { }
 
-        public Task<Fases_producao?> GetByNomeAsync(Nome_fases nome)
+        public Task<FasesProducao?> GetByNomeAsync(Nome_fases nome)
         {
-            return _context.Set<Fases_producao>()
+            return _context.Set<FasesProducao>()
                 .AsNoTracking()
                 .FirstOrDefaultAsync(f => f.Nome == nome);
         }
