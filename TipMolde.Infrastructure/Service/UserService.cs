@@ -28,16 +28,16 @@ namespace TipMolde.Infrastructure.Service
 
         public async Task<User> CreateUserAsync(User user)
         {
-            if (string.IsNullOrWhiteSpace(user.Nome)) throw new ArgumentException("Nome e obrigatorio.");
-            if (string.IsNullOrWhiteSpace(user.Email)) throw new ArgumentException("Email e obrigatorio.");
-            if (string.IsNullOrWhiteSpace(user.Password)) throw new ArgumentException("Senha e obrigatoria.");
-
-            user.Nome = user.Nome.Trim();
             user.Email = user.Email.Trim().ToLowerInvariant();
 
             var existing = await _userRepository.GetByEmailAsync(user.Email);
             if (existing is not null) throw new ArgumentException("Ja existe utilizador com este email.");
 
+            if (string.IsNullOrWhiteSpace(user.Nome)) throw new ArgumentException("Nome e obrigatorio.");
+            if (string.IsNullOrWhiteSpace(user.Email)) throw new ArgumentException("Email e obrigatorio.");
+            if (string.IsNullOrWhiteSpace(user.Password)) throw new ArgumentException("Senha e obrigatoria.");
+
+            user.Nome = user.Nome.Trim();
             user.Password = _passwordHasher.Hash(user.Password);
 
             await _userRepository.AddAsync(user);
@@ -52,7 +52,6 @@ namespace TipMolde.Infrastructure.Service
 
             existing.Nome = string.IsNullOrWhiteSpace(user.Nome) ? existing.Nome : user.Nome.Trim();
             existing.Email = string.IsNullOrWhiteSpace(user.Email) ? existing.Email : user.Email.Trim().ToLowerInvariant();
-            existing.Password = string.IsNullOrWhiteSpace(user.Password) ? existing.Password : _passwordHasher.Hash(user.Password.Trim());
 
             await _userRepository.UpdateAsync(existing);
         }

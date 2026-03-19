@@ -46,7 +46,7 @@ namespace TipMolde.Infrastructure.Service
                 throw new KeyNotFoundException($"Peca com ID {peca.Peca_id} nao encontrado.");
 
             existing.Numero_peca = peca.Numero_peca > 0 ? peca.Numero_peca : existing.Numero_peca;
-            existing.Prioridade = peca.Prioridade > 1 ? peca.Prioridade : existing.Prioridade;
+            existing.Prioridade = peca.Prioridade > 0 ? peca.Prioridade : existing.Prioridade;
             existing.Descricao = !string.IsNullOrWhiteSpace(peca.Descricao) ? peca.Descricao : existing.Descricao;
 
             await _pecaRepository.UpdateAsync(existing);

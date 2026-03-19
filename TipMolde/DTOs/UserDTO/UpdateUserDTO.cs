@@ -9,8 +9,5 @@ namespace TipMolde.API.DTOs.UserDTO
 
         [EmailAddress, MaxLength(150)]
         public string? Email { get; set; }
-
-        [MinLength(8), MaxLength(255)]
-        public string? Password { get; set; }
     }
 }

@@ -30,8 +30,8 @@ namespace TipMolde.Tests.Unitario
             var user = new User
             {
                 User_id = 1,
-                Nome = "Teste",
-                Email = "teste@email.com",
+                Nome = "Gonçalo Barbosa",
+                Email = "goncalo@tipmolde.pt",
                 Password = "hash_da_password",
                 Role = UserRole.OPERADOR
             };
@@ -75,8 +75,8 @@ namespace TipMolde.Tests.Unitario
             var user = new User
             {
                 User_id = 1,
-                Nome = "Teste",
-                Email = "teste@email.com",
+                Nome = "Gonçalo Barbosa",
+                Email = "goncalo@tipmolde.pt",
                 Password = "hash_da_password",
                 Role = UserRole.OPERADOR
             };

@@ -70,7 +70,6 @@ namespace TipMolde.API.Controllers
 
             user.Nome = dto.Nome?.Trim() ?? user.Nome;
             user.Email = dto.Email?.Trim() ?? user.Email;
-            user.Password = dto.Password ?? user.Password;
 
             await _userService.UpdateUserAsync(user);
             return NoContent();

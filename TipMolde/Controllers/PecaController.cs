@@ -55,7 +55,7 @@ namespace TipMolde.API.Controllers
             if (peca == null) return NotFound();
 
             peca.Numero_peca = dto.Numero_peca > 0 ? dto.Numero_peca : peca.Numero_peca;
-            peca.Prioridade = dto.Prioridade > 1 ? dto.Prioridade : peca.Prioridade;
+            peca.Prioridade = dto.Prioridade > 0 ? dto.Prioridade : peca.Prioridade;
             peca.Descricao = dto.Descricao?.Trim() ?? peca.Descricao;
 
             await _pecaService.UpdatePecaAsync(peca);
