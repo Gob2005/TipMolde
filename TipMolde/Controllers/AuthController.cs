@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TipMolde.API.DTOs.AuthDTO;
+using TipMolde.API.DTOs.UserDTO;
 using TipMolde.Core.Interface.IAuth;
 
 namespace TipMolde.API.Controllers
@@ -36,13 +37,6 @@ namespace TipMolde.API.Controllers
             var authHeader = Request.Headers.Authorization.ToString();
             await _authService.LogoutAsync(authHeader);
             return Ok(new { message = "Sessao terminada com sucesso." });
-        }
-
-        [HttpPost("change-password")]
-        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDTO dto)
-        {
-            await _authService.ChangePasswordAsync(dto.Email, dto.CurrentPassword, dto.NewPassword);
-            return Ok();
         }
     }
 }

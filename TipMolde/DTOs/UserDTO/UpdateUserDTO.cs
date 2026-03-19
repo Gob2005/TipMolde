@@ -1,5 +1,4 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using TipMolde.Core.Enums;
 
 namespace TipMolde.API.DTOs.UserDTO
 {

@@ -94,5 +94,21 @@ namespace TipMolde.API.Controllers
             await _userService.ChangeRoleAsync(id, dto.Role);
             return Ok(user);
         }
+
+        [Authorize]
+        [HttpPut("change-password")]
+        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDTO dto)
+        {
+            await _userService.ChangePasswordAsync(dto.Email, dto.CurrentPassword, dto.NewPassword);
+            return NoContent();
+        }
+
+        [Authorize(Roles = "ADMIN")]
+        [HttpPut("reset-password/{id:int}")]
+        public async Task<IActionResult> ResetPassword(int id, [FromBody] ResetPasswordDTO dto)
+        {
+            await _userService.ResetPasswordAsync(id, dto.NewPassword);
+            return NoContent();
+        }
     }
 }

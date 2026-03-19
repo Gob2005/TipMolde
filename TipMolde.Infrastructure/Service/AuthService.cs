@@ -49,22 +49,5 @@ namespace TipMolde.Infrastructure.Service
         {
             return Task.CompletedTask;
         }
-
-        public async Task ChangePasswordAsync(string email, string currentPassword, string newPassword)
-        {
-            var user = await _authRepository.GetByEmailAsync(email);
-            if (user == null)
-            {
-                throw new KeyNotFoundException("Utilizador nao encontrado.");
-            }
-
-            if (user.Password != currentPassword)
-            {
-                throw new UnauthorizedAccessException("Password atual invalida.");
-            }
-
-            user.Password = newPassword;
-            await _authRepository.UpdateAsync(user);
-        }
     }
 }

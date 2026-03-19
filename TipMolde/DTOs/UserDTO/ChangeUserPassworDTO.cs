@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace TipMolde.API.DTOs.AuthDTO
+namespace TipMolde.API.DTOs.UserDTO
 {
     public class ChangePasswordDTO
     {

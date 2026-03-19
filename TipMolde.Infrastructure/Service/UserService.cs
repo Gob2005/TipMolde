@@ -67,6 +67,35 @@ namespace TipMolde.Infrastructure.Service
             await _userRepository.UpdateAsync(user);
         }
 
+        public async Task ChangePasswordAsync(string email, string currentPassword, string newPassword)
+        {
+            var user = await _userRepository.GetByEmailAsync(email);
+            if (user == null)
+                throw new KeyNotFoundException("Utilizador nao encontrado.");
+
+            bool valid;
+            if (_passwordHasher.IsHash(user.Password))
+                valid = _passwordHasher.Verify(currentPassword, user.Password);
+            else
+                valid = user.Password == currentPassword;
+
+            if (!valid)
+                throw new UnauthorizedAccessException("Password atual invalida.");
+
+            user.Password = _passwordHasher.Hash(newPassword);
+            await _userRepository.UpdateAsync(user);
+        }
+
+        public async Task ResetPasswordAsync(int userId, string newPassword)
+        {
+            var user = await _userRepository.GetByIdAsync(userId);
+            if (user == null)
+                throw new KeyNotFoundException($"Utilizador com ID {userId} nao encontrado.");
+
+            user.Password = _passwordHasher.Hash(newPassword);
+            await _userRepository.UpdateAsync(user);
+        }
+
         public async Task DeleteUserAsync(int id)
         {
             var user = await _userRepository.GetByIdAsync(id);
