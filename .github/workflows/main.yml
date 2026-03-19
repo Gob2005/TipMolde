@@ -111,55 +111,9 @@ jobs:
           if-no-files-found: warn
         if: always()
 
-  docs:
-    runs-on: self-hosted
-    needs: build
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
-    continue-on-error: true
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Download build artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: build-output
-          path: build-output
-
-      - name: Install Swashbuckle CLI
-        run: dotnet tool update -g Swashbuckle.AspNetCore.Cli --version 6.9.0
-
-      - name: Create docs folder
-        shell: powershell
-        run: New-Item -ItemType Directory -Force -Path docs
-
-      - name: Generate Swagger JSON
-        shell: powershell
-        env:
-          DOTNET_ROLL_FORWARD: LatestMajor
-          ASPNETCORE_ENVIRONMENT: Development
-          ConnectionStrings__DefaultConnection: ${{ secrets.DB_CONNECTION_STRING }}
-          Jwt__Issuer: "TipMolde.Api"
-          Jwt__Audience: "TipMolde.Client"
-          Jwt__SecretKey: ${{ secrets.JWT_SECRET_KEY }}
-          Jwt__ExpirationMinutes: "720"
-        run: |
-          $dll = Get-ChildItem -Path "build-output" -Recurse -Filter "TipMolde.API.dll" |
-                 Select-Object -First 1 -ExpandProperty FullName
-          if (-not $dll) { throw "TipMolde.API.dll nao encontrado em build-output" }
-          Write-Host "DLL encontrada: $dll"
-          swagger tofile --output docs/swagger.json "$dll" v1
-
-      - name: Upload docs
-        uses: actions/upload-artifact@v4
-        with:
-          name: documentation
-          path: docs
-          if-no-files-found: warn
-        if: always()
-
   docker-build:
     runs-on: self-hosted
-    needs: [ build, test, coverage-report, docs ]
+    needs: [ build, test, coverage-report ]
     if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
     steps:
       - uses: actions/checkout@v4
