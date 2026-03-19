@@ -21,19 +21,26 @@ namespace TipMolde.Tests.Unitario
             _sut = new UserService(_userRepository.Object, _passwordHasher.Object);
         }
 
+        private static User UserFake(
+            int id = 1,
+            string nome = "Gonçalo Barbosa",
+            string email = "goncalo@tipmolde.pt",
+            string password = "hash_da_password",
+            UserRole role = UserRole.OPERADOR) => new()
+            {
+                User_id = id,
+                Nome = nome,
+                Email = email,
+                Password = password,
+                Role = role
+            };
+
         // ────────────────────────── CreateUserAsync ────────────────────────────────────//
 
         [Fact]
         public async Task CreateUserAsync_ComDadosValidos_CriaUtilizador()
         {
-            var user = new User
-            {
-                User_id = 0,
-                Nome = "Gonçalo Barbosa",
-                Email = "goncalo@tipmolde.pt",
-                Password = "password123",
-                Role = UserRole.OPERADOR
-            };
+            var user = UserFake(id: 0, password: "password123");
 
             _userRepository
                 .Setup(r => r.GetByEmailAsync(user.Email))
@@ -60,29 +67,169 @@ namespace TipMolde.Tests.Unitario
         [Fact]
         public async Task CreateUserAsync_ComEmailDuplicado_LancaExcecao()
         {
-            var existente = new User
-            {
-                User_id = 1,
-                Nome = "Utilizador Existente",
-                Email = "duplicado@tipmolde.pt",
-                Password = "hash",
-                Role = UserRole.OPERADOR
-            };
+            var existente = UserFake(id: 1, email: "duplicado@tipmolde.pt");
 
             _userRepository
                 .Setup(r => r.GetByEmailAsync(existente.Email))
                 .ReturnsAsync(existente);
 
-            var novoUser = new User
-            {
-                Nome = "Novo Utilizador",
-                Email = "duplicado@tipmolde.pt",
-                Password = "password123",
-                Role = UserRole.OPERADOR
-            };
+            var novoUser = UserFake(id: 0, nome: "Novo Utilizador", email: "duplicado@tipmolde.pt", password: "password123");
 
             await Assert.ThrowsAsync<ArgumentException>(() =>
                 _sut.CreateUserAsync(novoUser));
+        }
+
+        [Fact]
+        public async Task CreateUserAsync_ComNomeVazio_LancaExcecao()
+        {
+            var user = UserFake(id: 0, nome: "", password: "password123");
+
+            _userRepository
+                .Setup(r => r.GetByEmailAsync(user.Email))
+                .ReturnsAsync((User?)null);
+
+            await Assert.ThrowsAsync<ArgumentException>(() =>
+                _sut.CreateUserAsync(user));
+        }
+
+        [Fact]
+        public async Task CreateUserAsync_ComEmailVazio_LancaExcecao()
+        {
+            var user = UserFake(id: 0, email: "", password: "password123");
+
+            _userRepository
+                .Setup(r => r.GetByEmailAsync(user.Email))
+                .ReturnsAsync((User?)null);
+
+            await Assert.ThrowsAsync<ArgumentException>(() =>
+                _sut.CreateUserAsync(user));
+        }
+
+        [Fact]
+        public async Task CreateUserAsync_ComPasswordVazia_LancaExcecao()
+        {
+            var user = UserFake(id: 0, password: "");
+
+            _userRepository
+                .Setup(r => r.GetByEmailAsync(user.Email))
+                .ReturnsAsync((User?)null);
+
+            await Assert.ThrowsAsync<ArgumentException>(() =>
+                _sut.CreateUserAsync(user));
+        }
+
+        // ────────────────────────── UpdateUserAsync ────────────────────────────────────//
+
+        [Fact]
+        public async Task UpdateUserAsync_AlterarSoNome_EmailMantemSe()
+        {
+            var user = UserFake(id: 1, nome: "Nome Antigo", email: "antigo@tipmolde.pt");
+
+            _userRepository
+                .Setup(r => r.GetByIdAsync(1))
+                .ReturnsAsync(user);
+
+            _userRepository
+                .Setup(r => r.UpdateAsync(It.IsAny<User>()))
+                .Returns(Task.CompletedTask);
+
+            user.Nome = "Nome Novo";
+
+            await _sut.UpdateUserAsync(user);
+
+            _userRepository.Verify(
+                r => r.UpdateAsync(It.Is<User>(u =>
+                    u.Nome == "Nome Novo" &&
+                    u.Email == "antigo@tipmolde.pt")),
+                Times.Once
+            );
+        }
+
+        [Fact]
+        public async Task UpdateUserAsync_AlterarSoEmail_NomeMantemSe()
+        {
+            var user = UserFake(id: 1, nome: "Nome Antigo", email: "antigo@tipmolde.pt");
+
+            _userRepository
+                .Setup(r => r.GetByIdAsync(1))
+                .ReturnsAsync(user);
+
+            _userRepository
+                .Setup(r => r.UpdateAsync(It.IsAny<User>()))
+                .Returns(Task.CompletedTask);
+
+            user.Email = "novo@tipmolde.pt";
+
+            await _sut.UpdateUserAsync(user);
+
+            _userRepository.Verify(
+                r => r.UpdateAsync(It.Is<User>(u =>
+                    u.Nome == "Nome Antigo" &&
+                    u.Email == "novo@tipmolde.pt")),
+                Times.Once
+            );
+        }
+
+        [Fact]
+        public async Task UpdateUserAsync_AlterarNomeEEmail_AmbosMudam()
+        {
+            var user = UserFake(id: 1, nome: "Nome Antigo", email: "antigo@tipmolde.pt");
+
+            _userRepository
+                .Setup(r => r.GetByIdAsync(1))
+                .ReturnsAsync(user);
+
+            _userRepository
+                .Setup(r => r.UpdateAsync(It.IsAny<User>()))
+                .Returns(Task.CompletedTask);
+
+            user.Nome = "Nome Novo";
+            user.Email = "novo@tipmolde.pt";
+
+            await _sut.UpdateUserAsync(user);
+
+            _userRepository.Verify(
+                r => r.UpdateAsync(It.Is<User>(u =>
+                    u.Nome == "Nome Novo" &&
+                    u.Email == "novo@tipmolde.pt")),
+                Times.Once
+            );
+        }
+
+        [Fact]
+        public async Task UpdateUserAsync_ComIdInexistente_LancaExcecao()
+        {
+            _userRepository
+                .Setup(r => r.GetByIdAsync(999))
+                .ReturnsAsync((User?)null);
+
+            var user = UserFake(id: 999, nome: "Nao Existe", email: "naoexiste@tipmolde.pt");
+
+            await Assert.ThrowsAsync<KeyNotFoundException>(() =>
+                _sut.UpdateUserAsync(user));
+        }
+
+        [Fact]
+        public async Task UpdateUserAsync_ComCamposNull_MantemValoresOriginais()
+        {
+            var user = UserFake(id: 1, nome: "Nome Original", email: "original@tipmolde.pt");
+
+            _userRepository
+                .Setup(r => r.GetByIdAsync(1))
+                .ReturnsAsync(user);
+
+            _userRepository
+                .Setup(r => r.UpdateAsync(It.IsAny<User>()))
+                .Returns(Task.CompletedTask);
+
+            await _sut.UpdateUserAsync(user);
+
+            _userRepository.Verify(
+                r => r.UpdateAsync(It.Is<User>(u =>
+                    u.Nome == "Nome Original" &&
+                    u.Email == "original@tipmolde.pt")),
+                Times.Once
+            );
         }
 
         // ────────────────────────── ChangePasswordAsync ────────────────────────────────────//
@@ -90,17 +237,10 @@ namespace TipMolde.Tests.Unitario
         [Fact]
         public async Task ChangePasswordAsync_ComCredenciaisValidas_AtualizaPassword()
         {
-            var user = new User
-            {
-                User_id = 1,
-                Nome = "Gonçalo Barbosa",
-                Email = "goncalo@tipmolde.pt",
-                Password = "hash_da_password_atual",
-                Role = UserRole.OPERADOR
-            };
+            var user = UserFake(password: "hash_da_password_atual");
 
             _userRepository
-                .Setup(r => r.GetByEmailAsync("goncalo@tipmolde.pt"))
+                .Setup(r => r.GetByEmailAsync(user.Email))
                 .ReturnsAsync(user);
 
             _passwordHasher
@@ -115,7 +255,7 @@ namespace TipMolde.Tests.Unitario
                 .Setup(h => h.Hash("nova_password"))
                 .Returns("hash_da_nova_password");
 
-            await _sut.ChangePasswordAsync("goncalo@tipmolde.pt", "password_atual", "nova_password");
+            await _sut.ChangePasswordAsync(user.Email, "password_atual", "nova_password");
 
             Assert.Equal("hash_da_nova_password", user.Password);
 
@@ -139,17 +279,10 @@ namespace TipMolde.Tests.Unitario
         [Fact]
         public async Task ChangePasswordAsync_ComPasswordAtualIncorreta_LancaExcecao()
         {
-            var user = new User
-            {
-                User_id = 1,
-                Nome = "Teste",
-                Email = "teste@email.com",
-                Password = "hash_correto",
-                Role = UserRole.OPERADOR
-            };
+            var user = UserFake(password: "hash_correto");
 
             _userRepository
-                .Setup(r => r.GetByEmailAsync("teste@email.com"))
+                .Setup(r => r.GetByEmailAsync(user.Email))
                 .ReturnsAsync(user);
 
             _passwordHasher
@@ -161,7 +294,7 @@ namespace TipMolde.Tests.Unitario
                 .Returns(false);
 
             await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
-                _sut.ChangePasswordAsync("teste@email.com", "password_errada", "nova_password"));
+                _sut.ChangePasswordAsync(user.Email, "password_errada", "nova_password"));
         }
 
         // ────────────────────────── ResetPasswordAsync ────────────────────────────────────//
@@ -169,14 +302,7 @@ namespace TipMolde.Tests.Unitario
         [Fact]
         public async Task ResetPasswordAsync_ComIdValido_ResetaPassword()
         {
-            var user = new User
-            {
-                User_id = 5,
-                Nome = "Utilizador Reset",
-                Email = "reset@tipmolde.pt",
-                Password = "hash_antigo",
-                Role = UserRole.OPERADOR
-            };
+            var user = UserFake(id: 5, email: "reset@tipmolde.pt", password: "hash_antigo");
 
             _userRepository
                 .Setup(r => r.GetByIdAsync(5))
@@ -216,14 +342,7 @@ namespace TipMolde.Tests.Unitario
         [Fact]
         public async Task ChangeRoleAsync_ComIdValido_AlteraRole()
         {
-            var user = new User
-            {
-                User_id = 3,
-                Nome = "Operador",
-                Email = "op@tipmolde.pt",
-                Password = "hash",
-                Role = UserRole.OPERADOR
-            };
+            var user = UserFake(id: 3, email: "op@tipmolde.pt");
 
             _userRepository
                 .Setup(r => r.GetByIdAsync(3))
@@ -259,14 +378,7 @@ namespace TipMolde.Tests.Unitario
         [Fact]
         public async Task DeleteUserAsync_ComIdValido_EliminaUtilizador()
         {
-            var user = new User
-            {
-                User_id = 7,
-                Nome = "A Eliminar",
-                Email = "del@tipmolde.pt",
-                Password = "hash",
-                Role = UserRole.OPERADOR
-            };
+            var user = UserFake(id: 7, email: "del@tipmolde.pt");
 
             _userRepository
                 .Setup(r => r.GetByIdAsync(7))
@@ -299,8 +411,8 @@ namespace TipMolde.Tests.Unitario
         {
             var lista = new List<User>
             {
-                new() { User_id = 1, Nome = "A", Email = "a@a.pt", Password = "h", Role = UserRole.ADMIN },
-                new() { User_id = 2, Nome = "B", Email = "b@b.pt", Password = "h", Role = UserRole.OPERADOR }
+                UserFake(id: 1, email: "a@a.pt", role: UserRole.ADMIN),
+                UserFake(id: 2, nome: "B", email: "b@b.pt")
             };
 
             _userRepository
@@ -310,6 +422,33 @@ namespace TipMolde.Tests.Unitario
             var resultado = await _sut.GetAllUsersAsync();
 
             Assert.Equal(2, resultado.Count());
+        }
+
+        [Fact]
+        public async Task GetAllUsersAsync_SemUtilizadores_RetornaListaVazia()
+        {
+            _userRepository
+                .Setup(r => r.GetAllAsync())
+                .ReturnsAsync(new List<User>());
+
+            var resultado = await _sut.GetAllUsersAsync();
+
+            Assert.Empty(resultado);
+        }
+
+        [Fact]
+        public async Task GetUserByIdAsync_ComIdValido_RetornaUtilizador()
+        {
+            var user = UserFake(id: 1);
+
+            _userRepository
+                .Setup(r => r.GetByIdAsync(1))
+                .ReturnsAsync(user);
+
+            var resultado = await _sut.GetUserByIdAsync(1);
+
+            Assert.NotNull(resultado);
+            Assert.Equal(1, resultado!.User_id);
         }
 
         [Fact]
@@ -325,169 +464,32 @@ namespace TipMolde.Tests.Unitario
         }
 
         [Fact]
+        public async Task SearchByNameAsync_ComTermoSemResultados_RetornaListaVazia()
+        {
+            _userRepository
+                .Setup(r => r.SearchByNameAsync("TermoInexistente"))
+                .ReturnsAsync(new List<User>());
+
+            var resultado = await _sut.SearchByNameAsync("TermoInexistente");
+
+            Assert.Empty(resultado);
+        }
+
+        [Fact]
         public async Task SearchByNameAsync_ComTermoValido_RetornaResultados()
         {
             var lista = new List<User>
             {
-                new() { User_id = 1, Nome = "Gonçalo", Email = "g@g.pt", Password = "h", Role = UserRole.ENGENHEIRO }
+                UserFake(id: 1, email: "g@g.pt", role: UserRole.ENGENHEIRO)
             };
 
             _userRepository
-                .Setup(r => r.SearchByNameAsync("Gonçalo"))
+                .Setup(r => r.SearchByNameAsync("Gonçalo Barbosa"))
                 .ReturnsAsync(lista);
 
-            var resultado = await _sut.SearchByNameAsync("Gonçalo");
+            var resultado = await _sut.SearchByNameAsync("Gonçalo Barbosa");
 
             Assert.Single(resultado);
-        }
-
-        // ────────────────────────── UpdateUserAsync ────────────────────────────────────//
-
-        [Fact]
-        public async Task UpdateUserAsync_AlterarSoNome_EmailMantemSe()
-        {
-            var user = new User
-            {
-                User_id = 1,
-                Nome = "Nome Antigo",
-                Email = "antigo@tipmolde.pt",
-                Password = "hash",
-                Role = UserRole.OPERADOR
-            };
-
-            _userRepository
-                .Setup(r => r.GetByIdAsync(1))
-                .ReturnsAsync(user);
-
-            _userRepository
-                .Setup(r => r.UpdateAsync(It.IsAny<User>()))
-                .Returns(Task.CompletedTask);
-
-            user.Nome = "Nome Novo";
-
-            await _sut.UpdateUserAsync(user);
-
-            _userRepository.Verify(
-                r => r.UpdateAsync(It.Is<User>(u =>
-                    u.Nome == "Nome Novo" &&
-                    u.Email == "antigo@tipmolde.pt")),
-                Times.Once
-            );
-        }
-
-        [Fact]
-        public async Task UpdateUserAsync_AlterarSoEmail_NomeMantemSe()
-        {
-            var user = new User
-            {
-                User_id = 1,
-                Nome = "Nome Antigo",
-                Email = "antigo@tipmolde.pt",
-                Password = "hash",
-                Role = UserRole.OPERADOR
-            };
-
-            _userRepository
-                .Setup(r => r.GetByIdAsync(1))
-                .ReturnsAsync(user);
-
-            _userRepository
-                .Setup(r => r.UpdateAsync(It.IsAny<User>()))
-                .Returns(Task.CompletedTask);
-
-            user.Email = "novo@tipmolde.pt";
-
-            await _sut.UpdateUserAsync(user);
-
-            _userRepository.Verify(
-                r => r.UpdateAsync(It.Is<User>(u =>
-                    u.Nome == "Nome Antigo" &&
-                    u.Email == "novo@tipmolde.pt")),
-                Times.Once
-            );
-        }
-
-        [Fact]
-        public async Task UpdateUserAsync_AlterarNomeEEmail_AmbosMudam()
-        {
-            var user = new User
-            {
-                User_id = 1,
-                Nome = "Nome Antigo",
-                Email = "antigo@tipmolde.pt",
-                Password = "hash",
-                Role = UserRole.OPERADOR
-            };
-
-            _userRepository
-                .Setup(r => r.GetByIdAsync(1))
-                .ReturnsAsync(user);
-
-            _userRepository
-                .Setup(r => r.UpdateAsync(It.IsAny<User>()))
-                .Returns(Task.CompletedTask);
-
-            user.Nome = "Nome Novo";
-            user.Email = "novo@tipmolde.pt";
-
-            await _sut.UpdateUserAsync(user);
-
-            _userRepository.Verify(
-                r => r.UpdateAsync(It.Is<User>(u =>
-                    u.Nome == "Nome Novo" &&
-                    u.Email == "novo@tipmolde.pt")),
-                Times.Once
-            );
-        }
-
-        [Fact]
-        public async Task UpdateUserAsync_ComIdInexistente_LancaExcecao()
-        {
-            _userRepository
-                .Setup(r => r.GetByIdAsync(999))
-                .ReturnsAsync((User?)null);
-
-            var user = new User
-            {
-                User_id = 999,
-                Nome = "Nao Existe",
-                Email = "naoexiste@tipmolde.pt",
-                Password = "hash",
-                Role = UserRole.OPERADOR
-            };
-
-            await Assert.ThrowsAsync<KeyNotFoundException>(() =>
-                _sut.UpdateUserAsync(user));
-        }
-
-        [Fact]
-        public async Task UpdateUserAsync_ComCamposNull_MantemValoresOriginais()
-        {
-            var user = new User
-            {
-                User_id = 1,
-                Nome = "Nome Original",
-                Email = "original@tipmolde.pt",
-                Password = "hash",
-                Role = UserRole.OPERADOR
-            };
-
-            _userRepository
-                .Setup(r => r.GetByIdAsync(1))
-                .ReturnsAsync(user);
-
-            _userRepository
-                .Setup(r => r.UpdateAsync(It.IsAny<User>()))
-                .Returns(Task.CompletedTask);
-
-            await _sut.UpdateUserAsync(user);
-
-            _userRepository.Verify(
-                r => r.UpdateAsync(It.Is<User>(u =>
-                    u.Nome == "Nome Original" &&
-                    u.Email == "original@tipmolde.pt")),
-                Times.Once
-            );
         }
     }
 }
