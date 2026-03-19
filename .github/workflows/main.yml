@@ -43,7 +43,6 @@ jobs:
   test:
     runs-on: self-hosted
     needs: build
-    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
 
@@ -56,8 +55,12 @@ jobs:
       - name: Restore dependencies
         run: dotnet restore
 
-      - name: Run tests with coverage (non-blocking for now)
-        run: dotnet test --configuration Release --collect:"XPlat Code Coverage"
+      - name: Run tests with coverage
+        run: dotnet test --configuration Release
+             --collect:"XPlat Code Coverage"
+             --results-directory:"TestResults"
+             --
+             DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=cobertura
 
       - name: Upload test results
         uses: actions/upload-artifact@v4
@@ -69,9 +72,8 @@ jobs:
 
   coverage-report:
     runs-on: self-hosted
-    needs: [build, test]
+    needs: [ build, test ]
     if: always()
-    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
 
@@ -80,14 +82,26 @@ jobs:
         with:
           name: test-results
           path: TestResults
-        continue-on-error: true
 
       - name: Install ReportGenerator
         run: dotnet tool update -g dotnet-reportgenerator-globaltool
 
       - name: Generate coverage report
-        run: reportgenerator -reports:"TestResults/**/coverage.cobertura.xml" -targetdir:"coveragereport" -reporttypes:Html
+        run: reportgenerator
+             -reports:"TestResults/**/coverage.cobertura.xml"
+             -targetdir:"coveragereport"
+             -reporttypes:"Html;TextSummary"
         continue-on-error: true
+
+      - name: Print coverage summary
+        shell: powershell
+        run: |
+          $summary = "coveragereport/Summary.txt"
+          if (Test-Path $summary) {
+            Get-Content $summary
+          } else {
+            Write-Host "Resumo de cobertura nao encontrado."
+          }
 
       - name: Upload coverage report
         uses: actions/upload-artifact@v4
@@ -105,8 +119,27 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Generate API documentation (placeholder)
-        run: echo "Documentation generation not yet implemented"
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-output
+          path: build-output
+
+      - name: Install Swashbuckle CLI
+        run: dotnet tool update -g Swashbuckle.AspNetCore.Cli
+
+      - name: Create docs folder
+        shell: powershell
+        run: New-Item -ItemType Directory -Force -Path docs
+
+      - name: Generate Swagger JSON
+        shell: powershell
+        run: |
+          $dll = Get-ChildItem -Path "build-output" -Recurse -Filter "TipMolde.API.dll" |
+                 Select-Object -First 1 -ExpandProperty FullName
+          if (-not $dll) { throw "TipMolde.API.dll nao encontrado em build-output" }
+          Write-Host "DLL encontrada: $dll"
+          swagger tofile --output docs/swagger.json "$dll" v1
 
       - name: Upload docs
         uses: actions/upload-artifact@v4
@@ -118,7 +151,7 @@ jobs:
 
   docker-build:
     runs-on: self-hosted
-    needs: [build, test, coverage-report, docs]
+    needs: [ build, test, coverage-report, docs ]
     if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
     steps:
       - uses: actions/checkout@v4
@@ -126,7 +159,8 @@ jobs:
       - name: Build Docker image
         shell: powershell
         run: |
-          $dockerfile = Get-ChildItem -Path $env:GITHUB_WORKSPACE -Recurse -Filter Dockerfile | Select-Object -First 1 -ExpandProperty FullName
+          $dockerfile = Get-ChildItem -Path $env:GITHUB_WORKSPACE -Recurse -Filter Dockerfile |
+                        Select-Object -First 1 -ExpandProperty FullName
           if (-not $dockerfile) { throw "Dockerfile nao encontrado em $env:GITHUB_WORKSPACE" }
 
           $context = Split-Path -Path $dockerfile -Parent
