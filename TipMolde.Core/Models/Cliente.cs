@@ -10,5 +10,7 @@
         public required string NIF { get; set; }
         public required string Sigla { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.Now;
+        public ICollection<Encomenda> Encomendas { get; set; } = new List<Encomenda>();
+
     }
 }

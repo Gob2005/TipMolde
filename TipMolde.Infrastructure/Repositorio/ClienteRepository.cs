@@ -7,16 +7,18 @@ namespace TipMolde.Infrastructure.Repositorio
 {
     public class ClienteRepository : GenericRepository<Cliente>, IClienteRepository
     {
-        public ClienteRepository(ApplicationDbContext context) : base(context)
+        public ClienteRepository(ApplicationDbContext context) : base(context) { }
+
+        public async Task<Cliente?> GetClienteWithEncomendasAsync(int clienteId)
         {
+            return await _context.Clientes
+                .AsNoTracking()
+                .Include(c => c.Encomendas)
+                .FirstOrDefaultAsync(c => c.Cliente_id == clienteId);
         }
+
         public async Task<IEnumerable<Cliente>> SearchByNameAsync(string searchTerm)
         {
-            if (string.IsNullOrWhiteSpace(searchTerm))
-            {
-                return Enumerable.Empty<Cliente>();
-            }
-
             var term = $"%{searchTerm.Trim()}%";
             return await _context.Clientes
                 .AsNoTracking()
@@ -26,10 +28,6 @@ namespace TipMolde.Infrastructure.Repositorio
         }
         public async Task<IEnumerable<Cliente>> SearchBySiglaAsync(string searchTerm)
         {
-            if (string.IsNullOrWhiteSpace(searchTerm))
-            {
-                return Enumerable.Empty<Cliente>();
-            }
             var term = $"%{searchTerm.Trim()}%";
             return await _context.Clientes
                 .AsNoTracking()

@@ -34,6 +34,13 @@ namespace TipMolde.API.Controllers
             return Ok(peca);
         }
 
+        [HttpGet("search-number")]
+        public async Task<IActionResult> SearchByNumber([FromQuery] int peca_id, [FromQuery] int molde_id)
+        {
+            var pecas = await _pecaService.GetPecaByNumberAsync(peca_id, molde_id);
+            return Ok(pecas);
+        }
+
         [HttpPost("create-peca")]
         public async Task<IActionResult> CreatePeca([FromBody] CreatePecaDTO dto)
         {
@@ -69,13 +76,6 @@ namespace TipMolde.API.Controllers
             if (peca == null) return NotFound();
             await _pecaService.DeletePecaAsync(id);
             return NoContent();
-        }
-
-        [HttpGet("search-number")]
-        public async Task<IActionResult> SearchByNumber([FromQuery] int peca_id, [FromQuery] int molde_id)
-        {
-            var pecas = await _pecaService.GetPecaByNumberAsync(peca_id, molde_id);
-            return Ok(pecas);
         }
     }
 }

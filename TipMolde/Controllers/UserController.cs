@@ -76,14 +76,6 @@ namespace TipMolde.API.Controllers
         }
 
         [Authorize(Roles = "ADMIN")]
-        [HttpDelete("delete-user")]
-        public async Task<IActionResult> DeleteUser(int id)
-        {
-            await _userService.DeleteUserAsync(id);
-            return NoContent();
-        }
-
-        [Authorize(Roles = "ADMIN")]
         [HttpPut("change-role/{id:int}")]
         public async Task<IActionResult> ChangeRole(int id, [FromBody] ChangeUserRoleDTO dto)
         {
@@ -107,6 +99,14 @@ namespace TipMolde.API.Controllers
         public async Task<IActionResult> ResetPassword(int id, [FromBody] ResetPasswordDTO dto)
         {
             await _userService.ResetPasswordAsync(id, dto.NewPassword);
+            return NoContent();
+        }
+
+        [Authorize(Roles = "ADMIN")]
+        [HttpDelete("delete-user")]
+        public async Task<IActionResult> DeleteUser(int id)
+        {
+            await _userService.DeleteUserAsync(id);
             return NoContent();
         }
     }

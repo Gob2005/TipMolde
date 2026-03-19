@@ -108,6 +108,9 @@ namespace TipMolde.Infrastructure.Service
 
         public Task<IEnumerable<User>> SearchByNameAsync(string searchTerm)
         {
+            if (string.IsNullOrWhiteSpace(searchTerm))
+                return Task.FromResult(Enumerable.Empty<User>());
+
             return _userRepository.SearchByNameAsync(searchTerm);
         }
 

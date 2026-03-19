@@ -15,6 +15,7 @@ using TipMolde.Infrastructure.Service;
 using TipMolde.Core.Interface.IFases_producao;
 using TipMolde.Core.Interface.IPeca;
 using TipMolde.Core.Interface.IRegistosProducao;
+using TipMolde.Core.Interface.IEncomenda;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -60,6 +61,7 @@ builder.Services.AddAuthorization();
 builder.Services.AddScoped<IAuthRepository, AuthRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IClienteRepository, ClienteRepository>();
+builder.Services.AddScoped<IEncomendaRepository, EncomendaRepository>();
 builder.Services.AddScoped<IMoldeRepository, MoldeRepository>();
 builder.Services.AddScoped<IFasesProducaoRepository, FasesProducaoRepository>();
 builder.Services.AddScoped<IPecaRepository, PecaRepository>();
@@ -68,6 +70,7 @@ builder.Services.AddScoped<IRegistosProducaoRepository, RegistosProducaoReposito
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IClienteService, ClienteService>();
+builder.Services.AddScoped<IEncomendaService, EncomendaService>();
 builder.Services.AddScoped<IMoldeService, MoldeService>();
 builder.Services.AddScoped<IFasesProducaoService, FasesProducaoService>();
 builder.Services.AddScoped<IPecaService, PecaService>();

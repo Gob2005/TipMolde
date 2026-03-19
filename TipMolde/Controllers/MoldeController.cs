@@ -55,7 +55,6 @@ namespace TipMolde.API.Controllers
 
             var molde = new Molde
             {
-                Cliente = cliente,
                 Material = dto.Material,
                 Dimensoes_molde = dto.Dimensoes_molde,
                 Peso_estimado = dto.Peso_estimado,
@@ -94,7 +93,6 @@ namespace TipMolde.API.Controllers
         private static ResponseMoldeDTO ToResponse(Molde m) => new()
         {
             MoldeId = m.Molde_id,
-            ClienteId = m.Cliente?.Cliente_id ?? 0,
             Material = m.Material,
             Dimensoes_molde = m.Dimensoes_molde,
             Peso_estimado = m.Peso_estimado,

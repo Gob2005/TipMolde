@@ -31,6 +31,16 @@ namespace TipMolde.API.Controllers
             return Ok(registoProducao);
         }
 
+        [HttpGet("historico")]
+        public async Task<IActionResult> GetHistorico(
+            [FromQuery] int moldeId,
+            [FromQuery] int faseId,
+            [FromQuery] int pecaId)
+        {
+            var historico = await _registosProducaoService.GetHistoricoAsync(moldeId, faseId, pecaId);
+            return Ok(historico);
+        }
+
         [HttpPost("add-registos_producao")]
         public async Task<IActionResult> AddRegistos_producao([FromBody] CreateRegistosProducaoDTO dto)
         {
@@ -53,16 +63,6 @@ namespace TipMolde.API.Controllers
         {
             await _registosProducaoService.DeleteRegistoProducaoAsync(id);
             return NoContent();
-        }
-
-        [HttpGet("historico")]
-        public async Task<IActionResult> GetHistorico(
-            [FromQuery] int moldeId,
-            [FromQuery] int faseId,
-            [FromQuery] int pecaId)
-        {
-            var historico = await _registosProducaoService.GetHistoricoAsync(moldeId, faseId, pecaId);
-            return Ok(historico);
         }
     }
 

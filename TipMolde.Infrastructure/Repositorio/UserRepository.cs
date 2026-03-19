@@ -11,11 +11,6 @@ namespace TipMolde.Infrastructure.Repositorio
 
         public async Task<IEnumerable<User>> SearchByNameAsync(string searchTerm)
         {
-            if (string.IsNullOrWhiteSpace(searchTerm))
-            {
-                return Enumerable.Empty<User>();
-            }
-
             var term = $"%{searchTerm.Trim()}%";
             return await _context.Users
                 .AsNoTracking()

@@ -56,12 +56,21 @@ namespace TipMolde.Infrastructure.Service
 
         public Task<IEnumerable<Cliente>> SearchByNameAsync(string searchTerm)
         {
+            if (string.IsNullOrWhiteSpace(searchTerm))
+                return Task.FromResult(Enumerable.Empty<Cliente>());
             return _clienteRepository.SearchByNameAsync(searchTerm);
         }
 
         public Task<IEnumerable<Cliente>> SearchBySiglaAsync(string searchTerm)
         {
+            if (string.IsNullOrWhiteSpace(searchTerm))
+                return Task.FromResult(Enumerable.Empty<Cliente>());
             return _clienteRepository.SearchBySiglaAsync(searchTerm);
+        }
+
+        public Task<Cliente?> GetClienteWithEncomendasAsync(int clienteId)
+        {
+            return _clienteRepository.GetClienteWithEncomendasAsync(clienteId);
         }
     }
 }

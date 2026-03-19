@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TipMolde.API.DTOs.ClienteDTO;
+using TipMolde.API.DTOs.EncomendaDTO;
 using TipMolde.Core.Interface.ICliente;
 using TipMolde.Core.Models;
 
@@ -30,6 +31,28 @@ namespace TipMolde.API.Controllers
             var cliente = await _clienteService.GetClienteByIdAsync(id);
             if (cliente == null) return NotFound();
             return Ok(cliente);
+        }
+
+        [HttpGet("cliente-with-encomendas")]
+        public async Task<IActionResult> GetClienteWithEncomendas(int id)
+        {
+            var cliente = await _clienteService.GetClienteWithEncomendasAsync(id);
+            if (cliente == null) return NotFound();
+            return Ok(ToResponseWithEncomendas(cliente));
+        }
+
+        [HttpGet("search-name")]
+        public async Task<IActionResult> SearchByName([FromQuery] string searchTerm)
+        {
+            var clientes = await _clienteService.SearchByNameAsync(searchTerm);
+            return Ok(clientes);
+        }
+
+        [HttpGet("search-sigla")]
+        public async Task<IActionResult> SearchBySigla([FromQuery] string searchTerm)
+        {
+            var clientes = await _clienteService.SearchBySiglaAsync(searchTerm);
+            return Ok(clientes);
         }
 
         [HttpPost("create-cliente")]
@@ -79,18 +102,23 @@ namespace TipMolde.API.Controllers
             return NoContent();
         }
 
-        [HttpGet("search-name")]
-        public async Task<IActionResult> SearchByName([FromQuery] string searchTerm)
+        private static ResponseClienteWithEncomendasDTO ToResponseWithEncomendas(Cliente c) => new()
         {
-            var clientes = await _clienteService.SearchByNameAsync(searchTerm);
-            return Ok(clientes);
-        }
-
-        [HttpGet("search-sigla")]
-        public async Task<IActionResult> SearchBySigla([FromQuery] string searchTerm)
-        {
-            var clientes = await _clienteService.SearchBySiglaAsync(searchTerm);
-            return Ok(clientes);
-        }
+            ClienteId = c.Cliente_id,
+            Nome = c.Nome,
+            Sigla = c.Sigla,
+            Pais = c.Pais,
+            Email = c.Email,
+            Telefone = c.Telefone,
+            NIF = c.NIF,
+            Encomendas = c.Encomendas.Select(e => new ResponseEncomendaDTO
+            {
+                Encomenda_id = e.Encomenda_id,
+                NumeroEncomendaCliente = e.NumeroEncomendaCliente,
+                Estado = e.Estado,
+                Cliente_id = e.Cliente_id,
+                NomeCliente = c.Nome,
+            })
+        };
     }
 }

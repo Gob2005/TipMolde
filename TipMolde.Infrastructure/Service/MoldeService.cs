@@ -24,13 +24,6 @@ namespace TipMolde.Infrastructure.Service
 
         public async Task<Molde> CreateMoldeAsync(Molde molde)
         {
-            if (molde.Cliente == null)
-            {
-                throw new ArgumentException("Cliente do molde e obrigatorio.");
-            }
-
-            var cliente = await _moldeRepository.GetClienteByIdAsync(molde.Cliente.Cliente_id);
-            if (cliente == null) throw new KeyNotFoundException($"Cliente com ID {molde.Cliente.Cliente_id} nao encontrado.");
             if (string.IsNullOrWhiteSpace(molde.Dimensoes_molde)) throw new ArgumentException("Dimensoes do molde sao obrigatorias.");
             if (molde.Peso_estimado <= 0) throw new ArgumentException("Peso estimado deve ser maior que zero.");
             if (molde.Numero_cavidades <= 0) throw new ArgumentException("Numero de cavidades deve ser maior que zero.");
