@@ -16,9 +16,18 @@ namespace TipMolde.Infrastructure.Service
         private readonly IUserRepository _userRepository;
         private readonly IPecaRepository _pecaRepository;
 
-        public RegistosProducaoService(IRegistosProducaoRepository rpRepository)
+        public RegistosProducaoService(
+            IRegistosProducaoRepository rpRepository,
+            IMoldeRepository moldeRepository,
+            IFasesProducaoRepository fpRepository,
+            IUserRepository userRepository,
+            IPecaRepository pecaRepository)
         {
             _rpRepository = rpRepository;
+            _moldeRepository = moldeRepository;
+            _fpRepository = fpRepository;
+            _userRepository = userRepository;
+            _pecaRepository = pecaRepository;
         }
 
         public async Task<RegistosProducao> CreateRegistoProducaoAsync(RegistosProducao registo)
@@ -60,11 +69,6 @@ namespace TipMolde.Infrastructure.Service
             await _rpRepository.DeleteAsync(id);
         }
 
-        public Task UpdateRegistoProducaoAsync(RegistosProducao registo)
-        {
-            throw new NotImplementedException();
-        }
-
         public Task<IEnumerable<RegistosProducao>> GetAllRegistosProducaoAsync()
         {
             return _rpRepository.GetAllAsync();
@@ -75,9 +79,29 @@ namespace TipMolde.Infrastructure.Service
             return _rpRepository.GetByIdAsync(id);
         }
 
-        public Task GetHistoricoAsync(int moldeId, int faseId, int pecaId, int operadorId)
+        public Task<IEnumerable<RegistosProducao>> GetHistoricoAsync(int moldeId, int faseId, int pecaId)
         {
-            throw new NotImplementedException();
+            return _rpRepository.GetHistoricoAsync(moldeId, faseId, pecaId);
+        }
+
+        private static void ValidarTransicaoEstado(EstadoProducao estadoActual, EstadoProducao novoEstado)
+        {
+            var transicoesValidas = new Dictionary<EstadoProducao, List<EstadoProducao>>
+            {
+                { EstadoProducao.PREPARACAO, new() { EstadoProducao.EM_CURSO } },
+                { EstadoProducao.EM_CURSO,   new() { EstadoProducao.PAUSADO, EstadoProducao.CONCLUIDO } },
+                { EstadoProducao.PAUSADO,    new() { EstadoProducao.EM_CURSO } },
+                { EstadoProducao.CONCLUIDO,  new() }
+            };
+
+            if (!transicoesValidas[estadoActual].Contains(novoEstado))
+                throw new ArgumentException(
+                    $"Transicao de estado invalida: nao e possivel passar de {estadoActual} para {novoEstado}.");
+        }
+
+        public Task<RegistosProducao?> GetUltimoRegistoAsync(int moldeId, int faseId, int pecaId)
+        {
+            return _rpRepository.GetUltimoRegistoAsync(moldeId, faseId, pecaId);
         }
     }
 }

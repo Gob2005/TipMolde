@@ -13,5 +13,6 @@ namespace TipMolde.Infrastructure.DB
         public virtual DbSet<Peca> Pecas { get; set; }
         public virtual DbSet<Fornecedor> Fornecedores { get; set; }
         public virtual DbSet<FasesProducao> Fases_Producaos { get; set; }
+        public virtual DbSet<RegistosProducao> RegistosProducao { get; set; }
     }
 }

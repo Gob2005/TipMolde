@@ -5,7 +5,7 @@ namespace TipMolde.Core.Models
     public class RegistosProducao
     {
         public int Registo_Producao_id { get; set; }
-        public string Maquina { get; set; } = string.Empty;
+        public string? Maquina { get; set; }
         public EstadoProducao Estado_producao { get; set; }
         public DateTime Data_hora { get; set; }
 

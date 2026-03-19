@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using TipMolde.API.DTOs.RegistoProducaoDTO;
 using TipMolde.Core.Interface.IRegistosProducao;
 using TipMolde.Core.Models;
 
@@ -47,18 +48,6 @@ namespace TipMolde.API.Controllers
             return CreatedAtAction(nameof(GetRegistos_producaoById), new { id = createdRegistoProducao.Registo_Producao_id }, createdRegistoProducao);
         }
 
-        [HttpPut("update-registos_producao/{id:int}")]
-        public async Task<IActionResult> UpdateRegistos_producao(int id, [FromBody] UpdateRegistosProducaoDTO dto)
-        {
-            var registoProducao = await _registosProducaoService.GetRegistoProducaoByIdAsync(id);
-            if (registoProducao == null) return NotFound();
-
-            registoProducao.Maquina = dto.Maquina?.Trim() ?? registoProducao.Maquina;
-
-            await _registosProducaoService.UpdateRegistoProducaoAsync(registoProducao);
-            return NoContent();
-        }
-
         [HttpDelete("delete-registos_producao")]
         public async Task<IActionResult> DeleteRegistos_producao(int id)
         {
@@ -70,10 +59,9 @@ namespace TipMolde.API.Controllers
         public async Task<IActionResult> GetHistorico(
             [FromQuery] int moldeId,
             [FromQuery] int faseId,
-            [FromQuery] int pecaId,
-            [FromQuery] int operadorId)
+            [FromQuery] int pecaId)
         {
-            var historico = await _registosProducaoService.GetHistoricoAsync(moldeId, faseId, pecaId, operadorId);
+            var historico = await _registosProducaoService.GetHistoricoAsync(moldeId, faseId, pecaId);
             return Ok(historico);
         }
     }

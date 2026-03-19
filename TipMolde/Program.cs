@@ -13,6 +13,8 @@ using TipMolde.Infrastructure.DB;
 using TipMolde.Infrastructure.Repositorio;
 using TipMolde.Infrastructure.Service;
 using TipMolde.Core.Interface.IFases_producao;
+using TipMolde.Core.Interface.IPeca;
+using TipMolde.Core.Interface.IRegistosProducao;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -60,12 +62,16 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IClienteRepository, ClienteRepository>();
 builder.Services.AddScoped<IMoldeRepository, MoldeRepository>();
 builder.Services.AddScoped<IFasesProducaoRepository, FasesProducaoRepository>();
+builder.Services.AddScoped<IPecaRepository, PecaRepository>();
+builder.Services.AddScoped<IRegistosProducaoRepository, RegistosProducaoRepository>();
 
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IClienteService, ClienteService>();
 builder.Services.AddScoped<IMoldeService, MoldeService>();
 builder.Services.AddScoped<IFasesProducaoService, FasesProducaoService>();
+builder.Services.AddScoped<IPecaService, PecaService>();
+builder.Services.AddScoped<IRegistosProducaoService, RegistosProducaoService>();
 
 builder.Services.AddScoped<IPasswordHasherService, PasswordHasherService>();
 builder.Services.AddScoped<ITokenService, JwtTokenService>();

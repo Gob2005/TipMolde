@@ -7,8 +7,8 @@ namespace TipMolde.Core.Interface.IRegistosProducao
         Task<IEnumerable<RegistosProducao>> GetAllRegistosProducaoAsync();
         Task<RegistosProducao?> GetRegistoProducaoByIdAsync(int id);
         Task<RegistosProducao> CreateRegistoProducaoAsync(RegistosProducao registo);
-        Task UpdateRegistoProducaoAsync(RegistosProducao registo);
         Task DeleteRegistoProducaoAsync(int id);
-        Task GetHistoricoAsync(int moldeId, int faseId, int pecaId, int operadorId);
+        Task<IEnumerable<RegistosProducao>> GetHistoricoAsync(int moldeId, int faseId, int pecaId);
+        Task<RegistosProducao?> GetUltimoRegistoAsync(int moldeId, int faseId, int pecaId);
     }
 }
