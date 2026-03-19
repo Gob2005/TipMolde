@@ -134,6 +134,14 @@ jobs:
 
       - name: Generate Swagger JSON
         shell: powershell
+        env:
+          DOTNET_ROLL_FORWARD: LatestMajor
+          ASPNETCORE_ENVIRONMENT: Development
+          ConnectionStrings__DefaultConnection: ${{ secrets.DB_CONNECTION_STRING }}
+          Jwt__Issuer: "TipMolde.Api"
+          Jwt__Audience: "TipMolde.Client"
+          Jwt__SecretKey: ${{ secrets.JWT_SECRET_KEY }}
+          Jwt__ExpirationMinutes: "720"
         run: |
           $dll = Get-ChildItem -Path "build-output" -Recurse -Filter "TipMolde.API.dll" |
                  Select-Object -First 1 -ExpandProperty FullName
