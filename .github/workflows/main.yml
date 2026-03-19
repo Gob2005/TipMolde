@@ -126,7 +126,7 @@ jobs:
           path: build-output
 
       - name: Install Swashbuckle CLI
-        run: dotnet tool update -g Swashbuckle.AspNetCore.Cli
+        run: dotnet tool update -g Swashbuckle.AspNetCore.Cli --version 6.9.0
 
       - name: Create docs folder
         shell: powershell
