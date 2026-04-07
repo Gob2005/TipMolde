@@ -1,12 +1,29 @@
+using TipMolde.Core.Enums;
+
 namespace TipMolde.API.DTOs.MoldeDTO
 {
     public class ResponseMoldeDTO
     {
         public int MoldeId { get; set; }
-        public int ClienteId { get; set; }
-        public required string Material { get; set; }
-        public string? Dimensoes_molde { get; set; }
-        public decimal Peso_estimado { get; set; }
+        public string? Numero { get; set; }
+        public string? Nome { get; set; }
+        public string? Descricao { get; set; }
         public int Numero_cavidades { get; set; }
+        public TipoPedido TipoPedido { get; set; }
+
+        public decimal? Largura { get; set; }
+        public decimal? Comprimento { get; set; }
+        public decimal? Altura { get; set; }
+        public decimal? PesoEstimado { get; set; }
+        public string? TipoInjecao { get; set; }
+        public string? SistemaInjecao { get; set; }
+        public decimal? Contracao { get; set; }
+        public string? AcabamentoPeca { get; set; }
+        public string? Cor { get; set; }
+        public string? MaterialMacho { get; set; }
+        public string? MaterialCavidade { get; set; }
+        public string? MaterialMovimentos { get; set; }
+        public string? MaterialInjecao { get; set; }
     }
 }
+

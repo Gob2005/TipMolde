@@ -4,7 +4,7 @@
     {
         ADMIN,
         GESTOR_COMERCIAL,
-        ENGENHEIRO,
-        OPERADOR
+        GESTOR_DESENHO,
+       GESTOR_PRODUCAO
     }
 }

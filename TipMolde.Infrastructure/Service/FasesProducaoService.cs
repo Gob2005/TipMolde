@@ -12,6 +12,10 @@ namespace TipMolde.Infrastructure.Service
             _fpRepository = fpRepository;
         }
 
+        public Task<IEnumerable<FasesProducao>> GetAllFases_producaoAsync() => _fpRepository.GetAllAsync();
+
+        public Task<FasesProducao?> GetFase_producaoByIdAsync(int id) => _fpRepository.GetByIdAsync(id);
+
         public async Task<FasesProducao> CreateFase_producaoAsync(FasesProducao fp)
         {
             var existing = await _fpRepository.GetByNomeAsync(fp.Nome);
@@ -50,16 +54,6 @@ namespace TipMolde.Infrastructure.Service
             }
 
             await _fpRepository.DeleteAsync(id);
-        }
-
-        public Task<IEnumerable<FasesProducao>> GetAllFases_producaoAsync()
-        {
-            return _fpRepository.GetAllAsync();
-        }
-
-        public Task<FasesProducao?> GetFase_producaoByIdAsync(int id)
-        {
-            return _fpRepository.GetByIdAsync(id);
         }
     }
 }

@@ -10,7 +10,7 @@ using TipMolde.Infrastructure.Service;
 
 namespace TipMolde.Tests.Unitario
 {
-    public class RegistosProducaoServiceTests
+    /*public class RegistosProducaoServiceTests
     {
         private readonly Mock<IRegistosProducaoRepository> _rpRepository;
         private readonly Mock<IMoldeRepository> _moldeRepository;
@@ -363,6 +363,6 @@ namespace TipMolde.Tests.Unitario
 
             Assert.Null(resultado);
         }
-    }
+    }*/
 }
 

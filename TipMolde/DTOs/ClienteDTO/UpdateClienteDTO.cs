@@ -4,22 +4,26 @@ namespace TipMolde.API.DTOs.ClienteDTO
 {
     public class UpdateClienteDTO
     {
-        [MinLength(5), MaxLength(100)]
+        [MinLength(3)]
+        [MaxLength(100)]
         public string? Nome { get; set; }
 
-        [MinLength(5), MaxLength(50)]
-        public string? Pais { get; set; }
-
-        [EmailAddress, MaxLength(150)]
-        public string? Email { get; set; }
-
-        [Phone, MaxLength(20)]
-        public string? Telefone { get; set; }
-
-        [Required, MinLength(9), MaxLength(20)]
+        [MinLength(9)]
+        [MaxLength(9)]
         public string? NIF { get; set; }
 
-        [Required, MaxLength(5)]
+        [MinLength(2)]
+        [MaxLength(10)]
         public string? Sigla { get; set; }
+
+        [MaxLength(50)]
+        public string? Pais { get; set; }
+
+        [EmailAddress]
+        [MaxLength(100)]
+        public string? Email { get; set; }
+
+        [MaxLength(20)]
+        public string? Telefone { get; set; }
     }
 }

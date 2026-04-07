@@ -26,7 +26,7 @@ namespace TipMolde.Tests.Unitario
             string nome = "Gonçalo Barbosa",
             string email = "goncalo@tipmolde.pt",
             string password = "hash_da_password",
-            UserRole role = UserRole.OPERADOR) => new()
+            UserRole role = UserRole.GESTOR_PRODUCAO) => new()
             {
                 User_id = id,
                 Nome = nome,
@@ -352,12 +352,12 @@ namespace TipMolde.Tests.Unitario
                 .Setup(r => r.UpdateAsync(It.IsAny<User>()))
                 .Returns(Task.CompletedTask);
 
-            await _sut.ChangeRoleAsync(3, UserRole.ENGENHEIRO);
+            await _sut.ChangeRoleAsync(3, UserRole.GESTOR_DESENHO);
 
-            Assert.Equal(UserRole.ENGENHEIRO, user.Role);
+            Assert.Equal(UserRole.GESTOR_DESENHO, user.Role);
 
             _userRepository.Verify(
-                r => r.UpdateAsync(It.Is<User>(u => u.Role == UserRole.ENGENHEIRO)),
+                r => r.UpdateAsync(It.Is<User>(u => u.Role == UserRole.GESTOR_DESENHO)),
                 Times.Once
             );
         }
@@ -480,7 +480,7 @@ namespace TipMolde.Tests.Unitario
         {
             var lista = new List<User>
             {
-                UserFake(id: 1, email: "g@g.pt", role: UserRole.ENGENHEIRO)
+                UserFake(id: 1, email: "g@g.pt", role: UserRole.GESTOR_DESENHO)
             };
 
             _userRepository

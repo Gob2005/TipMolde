@@ -17,6 +17,16 @@ namespace TipMolde.Infrastructure.Repositorio
                 .FirstOrDefaultAsync(c => c.Cliente_id == clienteId);
         }
 
+        public Task<Cliente?> GetByNifAsync(string nif) =>
+            _context.Clientes
+            .AsNoTracking()
+            .FirstOrDefaultAsync(c => c.NIF == nif);
+
+        public Task<Cliente?> GetBySiglaAsync(string sigla) =>
+            _context.Clientes
+            .AsNoTracking()
+            .FirstOrDefaultAsync(c => c.Sigla == sigla);
+
         public async Task<IEnumerable<Cliente>> SearchByNameAsync(string searchTerm)
         {
             var term = $"%{searchTerm.Trim()}%";

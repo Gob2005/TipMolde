@@ -18,21 +18,24 @@ namespace TipMolde.API.Controllers
             _clienteService = clienteService;
         }
 
+        [Authorize(Roles = "ADMIN,GESTOR_COMERCIAL")]
         [HttpGet("all-clientes")]
         public async Task<IActionResult> GetAllClientes()
         {
             var clientes = await _clienteService.GetAllClientesAsync();
-            return Ok(clientes);
+            return Ok(clientes.Select(ToResponse));
         }
 
+        [Authorize(Roles = "ADMIN,GESTOR_COMERCIAL")]
         [HttpGet("cliente-byID")]
         public async Task<IActionResult> GetClienteById(int id)
         {
             var cliente = await _clienteService.GetClienteByIdAsync(id);
             if (cliente == null) return NotFound();
-            return Ok(cliente);
+            return Ok(ToResponse(cliente));
         }
 
+        [Authorize(Roles = "ADMIN,GESTOR_COMERCIAL")]
         [HttpGet("cliente-with-encomendas")]
         public async Task<IActionResult> GetClienteWithEncomendas(int id)
         {
@@ -41,27 +44,26 @@ namespace TipMolde.API.Controllers
             return Ok(ToResponseWithEncomendas(cliente));
         }
 
+        [Authorize(Roles = "ADMIN,GESTOR_COMERCIAL")]
         [HttpGet("search-name")]
         public async Task<IActionResult> SearchByName([FromQuery] string searchTerm)
         {
             var clientes = await _clienteService.SearchByNameAsync(searchTerm);
-            return Ok(clientes);
+            return Ok(clientes.Select(ToResponse));
         }
 
+        [Authorize(Roles = "ADMIN,GESTOR_COMERCIAL")]
         [HttpGet("search-sigla")]
         public async Task<IActionResult> SearchBySigla([FromQuery] string searchTerm)
         {
             var clientes = await _clienteService.SearchBySiglaAsync(searchTerm);
-            return Ok(clientes);
+            return Ok(clientes.Select(ToResponse));
         }
 
+        [Authorize(Roles = "ADMIN,GESTOR_COMERCIAL")]
         [HttpPost("create-cliente")]
         public async Task<IActionResult> CreateCliente([FromBody] CreateClienteDTO dto)
         {
-            if (string.IsNullOrWhiteSpace(dto.Nome)) return BadRequest("Nome e obrigatorio.");
-            if (string.IsNullOrWhiteSpace(dto.NIF)) return BadRequest("NIF e obrigatorio.");
-            if (string.IsNullOrWhiteSpace(dto.Sigla)) return BadRequest("Sigla e obrigatorio.");
-
             var cliente = new Cliente
             {
                 Nome = dto.Nome.Trim(),
@@ -81,20 +83,22 @@ namespace TipMolde.API.Controllers
         [HttpPut("update-cliente/{id:int}")]
         public async Task<IActionResult> UpdateCliente(int id, [FromBody] UpdateClienteDTO dto)
         {
-            var cliente = await _clienteService.GetClienteByIdAsync(id);
-            if (cliente == null) return NotFound();
-
-            cliente.Nome = dto.Nome?.Trim() ?? cliente.Nome;
-            cliente.Pais = dto.Pais?.Trim() ?? cliente.Pais;
-            cliente.Email = dto.Email?.Trim() ?? cliente.Email;
-            cliente.Telefone = dto.Telefone?.Trim() ?? cliente.Telefone;
-            cliente.NIF = dto.NIF?.Trim() ?? cliente.NIF;
-            cliente.Sigla = dto.Sigla?.Trim() ?? cliente.Sigla;
+            var cliente = new Cliente
+            {
+                Cliente_id = id,
+                Nome = dto.Nome ?? string.Empty,
+                NIF = dto.NIF ?? string.Empty,
+                Sigla = dto.Sigla ?? string.Empty,
+                Pais = dto.Pais,
+                Email = dto.Email,
+                Telefone = dto.Telefone
+            };
 
             await _clienteService.UpdateClienteAsync(cliente);
             return NoContent();
         }
 
+        [Authorize(Roles = "ADMIN,GESTOR_COMERCIAL")]
         [HttpDelete("delete-cliente")]
         public async Task<IActionResult> DeleteCliente(int id)
         {
@@ -119,6 +123,17 @@ namespace TipMolde.API.Controllers
                 Cliente_id = e.Cliente_id,
                 NomeCliente = c.Nome,
             })
+        };
+
+        private static ResponseClienteDTO ToResponse(Cliente c) => new()
+        {
+            ClienteId = c.Cliente_id,
+            Nome = c.Nome,
+            Sigla = c.Sigla,
+            Pais = c.Pais,
+            Email = c.Email,
+            Telefone = c.Telefone,
+            NIF = c.NIF
         };
     }
 }

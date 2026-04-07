@@ -10,7 +10,8 @@ namespace TipMolde.Core.Interface.IEncomenda
         Task<Encomenda?> GetEncomendaWithMoldesAsync(int id);
         Task<IEnumerable<Encomenda>> GetByEstadoAsync(EstadoEncomenda estado);
         Task<IEnumerable<Encomenda>> GetEncomendasPorConcluirAsync();
-        Task<Encomenda?> GetByNumeroEncomendaClienteAsync(string numeroEncomendaCliente);
+        Task<Encomenda?> GetByNumeroEncomendaClienteAsync(string numero);
+
         Task<Encomenda> CreateEncomendaAsync(Encomenda encomenda);
         Task UpdateEncomendaAsync(Encomenda encomenda);
         Task UpdateEstadoEncomendaAsync(int id, EstadoEncomenda novoEstado);

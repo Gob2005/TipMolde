@@ -4,6 +4,7 @@ namespace TipMolde.Core.Interface.IPeca
 {
     public interface IPecaRepository : IGenericRepository<Peca>
     {
-        Task<Peca?> GetByNumberAsync(int peca_id, int molde_id);
+        Task<IEnumerable<Peca>> GetByMoldeIdAsync(int moldeId);
+        Task<Peca?> GetByDesignacaoAsync(string designacao, int moldeId);
     }
 }

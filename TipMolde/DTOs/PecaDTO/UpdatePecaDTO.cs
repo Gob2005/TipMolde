@@ -1,13 +1,19 @@
-﻿using TipMolde.Core.Models;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace TipMolde.API.DTOs.PecaDTO
 {
     public class UpdatePecaDTO
     {
-        public int Numero_peca { get; set; }
-        public int Prioridade { get; set; }
-        public string? Descricao { get; set; }
-        public int Molde_id { get; set; }
+        [MinLength(2)]
+        [MaxLength(100)]
+        public string? Designacao { get; set; }
 
+        [Range(1, 9999)]
+        public int? Prioridade { get; set; }
+
+        [MaxLength(100)]
+        public string? MaterialDesignacao { get; set; }
+
+        public bool? MaterialRecebido { get; set; }
     }
 }

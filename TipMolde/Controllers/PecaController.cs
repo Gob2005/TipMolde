@@ -1,6 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using TipMolde.API.DTOs.PecaDTO;
-using TipMolde.Core.Interface.IMolde;
 using TipMolde.Core.Interface.IPeca;
 using TipMolde.Core.Models;
 
@@ -11,71 +11,98 @@ namespace TipMolde.API.Controllers
     public class PecaController : ControllerBase
     {
         private readonly IPecaService _pecaService;
-        private readonly IMoldeService _moldeService;
 
-        public PecaController(IPecaService pecaService, IMoldeService moldeService)
+        public PecaController(IPecaService pecaService)
         {
             _pecaService = pecaService;
-            _moldeService = moldeService;
         }
 
-         [HttpGet("all-pecas")]
+        [Authorize(Roles = "ADMIN,GESTOR_DESENHO")]
+        [HttpGet("all-pecas")]
          public async Task<IActionResult> GetAllPecas()
             {
                 var pecas = await _pecaService.GetAllPecasAsync();
-                return Ok(pecas);
+                return Ok(pecas.Select(ToResponse));
         }
 
+        [Authorize(Roles = "ADMIN,GESTOR_DESENHO")]
         [HttpGet("peca-byID")]
         public async Task<IActionResult> GetPecaById(int id)
         {
             var peca = await _pecaService.GetPecaByIdAsync(id);
             if (peca == null) return NotFound();
-            return Ok(peca);
+            return Ok(ToResponse(peca));
         }
 
-        [HttpGet("search-number")]
-        public async Task<IActionResult> SearchByNumber([FromQuery] int peca_id, [FromQuery] int molde_id)
+        [Authorize(Roles = "ADMIN,GESTOR_DESENHO")]
+        [HttpGet("by-molde")]
+        public async Task<IActionResult> GetByMoldeId([FromQuery] int moldeId)
         {
-            var pecas = await _pecaService.GetPecaByNumberAsync(peca_id, molde_id);
-            return Ok(pecas);
+            var pecas = await _pecaService.GetByMoldeIdAsync(moldeId);
+            return Ok(pecas.Select(ToResponse));
         }
 
+        [Authorize(Roles = "ADMIN,GESTOR_DESENHO")]
+        [HttpGet("by-designacao")]
+        public async Task<IActionResult> GetByDesignacao([FromQuery] string designacao, [FromQuery] int moldeId)
+        {
+            if (string.IsNullOrWhiteSpace(designacao))
+                return BadRequest("Designacao e obrigatoria.");
+
+            var peca = await _pecaService.GetByDesignacaoAsync(designacao.Trim(), moldeId);
+            if (peca == null) return NotFound();
+            return Ok(ToResponse(peca));
+        }
+
+        [Authorize(Roles = "ADMIN,GESTOR_DESENHO")]
         [HttpPost("create-peca")]
         public async Task<IActionResult> CreatePeca([FromBody] CreatePecaDTO dto)
         {
             var peca = new Peca
             {
-                Numero_peca = dto.Numero_peca,
+                Designacao = dto.Designacao.Trim(),
                 Prioridade = dto.Prioridade,
-                Descricao = dto.Descricao,
+                MaterialDesignacao = dto.MaterialDesignacao,
+                MaterialRecebido = dto.MaterialRecebido,
                 Molde_id = dto.Molde_id
             };
-            var createdPeca = await _pecaService.CreatePecaAsync(peca);
-            return CreatedAtAction(nameof(GetPecaById), new { id = createdPeca.Peca_id }, createdPeca);
+
+            var created = await _pecaService.CreatePecaAsync(peca);
+            return CreatedAtAction(nameof(GetPecaById), new { id = created.Peca_id }, created);
         }
 
+        [Authorize(Roles = "ADMIN,GESTOR_DESENHO")]
         [HttpPut("update-peca/{id:int}")]
         public async Task<IActionResult> UpdatePeca(int id, [FromBody] UpdatePecaDTO dto)
         {
-            var peca = await _pecaService.GetPecaByIdAsync(id);
-            if (peca == null) return NotFound();
-
-            peca.Numero_peca = dto.Numero_peca > 0 ? dto.Numero_peca : peca.Numero_peca;
-            peca.Prioridade = dto.Prioridade > 0 ? dto.Prioridade : peca.Prioridade;
-            peca.Descricao = dto.Descricao?.Trim() ?? peca.Descricao;
+            var peca = new Peca
+            {
+                Peca_id = id,
+                Designacao = dto.Designacao ?? string.Empty,
+                Prioridade = dto.Prioridade ?? 0,
+                MaterialDesignacao = dto.MaterialDesignacao,
+                MaterialRecebido = dto.MaterialRecebido ?? false
+            };
 
             await _pecaService.UpdatePecaAsync(peca);
             return NoContent();
         }
 
+        [Authorize(Roles = "ADMIN,GESTOR_DESENHO")]
         [HttpDelete("delete-peca/{id:int}")]
         public async Task<IActionResult> DeletePeca(int id)
         {
-            var peca = await _pecaService.GetPecaByIdAsync(id);
-            if (peca == null) return NotFound();
             await _pecaService.DeletePecaAsync(id);
             return NoContent();
         }
+
+        private static ResponsePecaDTO ToResponse(Peca p) => new()
+        {
+            Designacao = p.Designacao,
+            Prioridade = p.Prioridade,
+            MaterialDesignacao = p.MaterialDesignacao,
+            MaterialRecebido = p.MaterialRecebido,
+            MoldeId = p.Molde_id
+        };
     }
 }

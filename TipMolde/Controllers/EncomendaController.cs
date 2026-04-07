@@ -79,8 +79,11 @@ namespace TipMolde.API.Controllers
         {
             var encomenda = new Encomenda
             {
-                Cliente_id = dto.Cliente_id,
-                NumeroEncomendaCliente = dto.NumeroEncomendaCliente.Trim()
+                NumeroEncomendaCliente = dto.NumeroEncomendaCliente.Trim(),
+                NumeroProjetoCliente = dto.NumeroProjetoCliente,
+                NomeServicoCliente = dto.NomeServicoCliente,
+                NomeResponsavelCliente = dto.NomeResponsavelCliente,
+                Cliente_id = dto.Cliente_id
             };
 
             var created = await _encomendaService.CreateEncomendaAsync(encomenda);
@@ -94,12 +97,14 @@ namespace TipMolde.API.Controllers
         [HttpPut("update-encomenda")]
         public async Task<IActionResult> UpdateEncomenda(int id, [FromBody] UpdateEncomendaDTO dto)
         {
-            var encomenda = await _encomendaService.GetEncomendaByIdAsync(id);
-            if (encomenda == null) return NotFound();
-
-            encomenda.NumeroEncomendaCliente = !string.IsNullOrWhiteSpace(dto.NumeroEncomendaCliente)
-                ? dto.NumeroEncomendaCliente.Trim()
-                : encomenda.NumeroEncomendaCliente;
+            var encomenda = new Encomenda
+            {
+                Encomenda_id = id,
+                NumeroEncomendaCliente = dto.NumeroEncomendaCliente ?? string.Empty,
+                NumeroProjetoCliente = dto.NumeroProjetoCliente,
+                NomeServicoCliente = dto.NomeServicoCliente,
+                NomeResponsavelCliente = dto.NomeResponsavelCliente
+            };
 
             await _encomendaService.UpdateEncomendaAsync(encomenda);
             return NoContent();
@@ -127,10 +132,13 @@ namespace TipMolde.API.Controllers
         {
             Encomenda_id = e.Encomenda_id,
             NumeroEncomendaCliente = e.NumeroEncomendaCliente,
+            NumeroProjetoCliente = e.NumeroProjetoCliente,
+            NomeServicoCliente = e.NomeServicoCliente,
+            NomeResponsavelCliente = e.NomeResponsavelCliente,
+            DataRegisto = e.DataRegisto,
             Estado = e.Estado,
             Cliente_id = e.Cliente_id,
-            NomeCliente = e.Cliente?.Nome,
+            NomeCliente = e.Cliente?.Nome
         };
-
     }
 }

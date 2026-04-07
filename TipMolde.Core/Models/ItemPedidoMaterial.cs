@@ -2,6 +2,7 @@
 {
     public class ItemPedidoMaterial
     {
+        public int ItemPedidoMaterial_id { get; set; }
         public int PedidoMaterial_id { get; set; }
         public PedidoMaterial? PedidoMaterial { get; set; }
 

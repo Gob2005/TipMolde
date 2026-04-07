@@ -1,14 +1,26 @@
-﻿using TipMolde.Core.Enums;
+﻿using System.ComponentModel.DataAnnotations;
+using TipMolde.Core.Enums;
 
 namespace TipMolde.API.DTOs.RegistoProducaoDTO
 {
     public class CreateRegistosProducaoDTO
     {
-        public int Molde_id { get; set; }
-        public int Fase_id { get; set; }
-        public int Operador_id { get; set; }
+        [Required]
+        [Range(1, int.MaxValue)]
         public int Peca_id { get; set; }
-        public string? Maquina { get; set; }
+
+        [Required]
+        [Range(1, int.MaxValue)]
+        public int Fase_id { get; set; }
+
+        [Range(1, int.MaxValue)]
+        public int Maquina_id { get; set; }
+
+        [Required]
+        [Range(1, int.MaxValue)]
+        public int Operador_id { get; set; }
+
+        [Required]
         public EstadoProducao Estado_producao { get; set; }
     }
 }

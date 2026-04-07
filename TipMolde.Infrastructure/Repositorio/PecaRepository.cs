@@ -9,9 +9,17 @@ namespace TipMolde.Infrastructure.Repositorio
     {
         public PecaRepository(ApplicationDbContext context) : base(context) { }
 
-        public Task<Peca?> GetByNumberAsync(int peca_id, int molde_id)
+        public async Task<IEnumerable<Peca>> GetByMoldeIdAsync(int moldeId)
         {
-            return _context.Pecas.FirstOrDefaultAsync(p => p.Numero_peca == peca_id && p.Molde_id == molde_id);
+            return await _context.Pecas
+                .Where(p => p.Molde_id == moldeId)
+                .ToListAsync();
+        }
+
+        public Task<Peca?> GetByDesignacaoAsync(string designacao, int moldeId)
+        {
+            return _context.Pecas
+                .FirstOrDefaultAsync(p => p.Designacao == designacao && p.Molde_id == moldeId);
         }
     }
 }

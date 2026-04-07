@@ -15,15 +15,15 @@ namespace TipMolde.Infrastructure.Repositorio
             return await _context.Encomendas
                 .AsNoTracking()
                 .Where(e => e.Estado == estado)
-                .OrderByDescending(e => e.CreatedAt)
+                .OrderByDescending(e => e.DataRegisto)
                 .ToListAsync();
         }
 
-        public async Task<Encomenda?> GetByNumeroEncomendaClienteAsync(string numeroEncomendaCliente)
+        public async Task<Encomenda?> GetByNumeroEncomendaClienteAsync(string numero)
         {
             return await _context.Encomendas
                 .AsNoTracking()
-                .FirstOrDefaultAsync(e => e.NumeroEncomendaCliente == numeroEncomendaCliente.Trim());
+                .FirstOrDefaultAsync(e => e.NumeroEncomendaCliente == numero.Trim());
         }
 
         public async Task<IEnumerable<Encomenda>> GetEncomendasPorConcluirAsync()
@@ -32,16 +32,14 @@ namespace TipMolde.Infrastructure.Repositorio
                 .AsNoTracking()
                 .Where(e => e.Estado != EstadoEncomenda.CONCLUIDA
                          && e.Estado != EstadoEncomenda.CANCELADA)
-                .OrderByDescending(e => e.CreatedAt)
+                .OrderByDescending(e => e.DataRegisto)
                 .ToListAsync();
         }
 
-        public async Task<Encomenda?> GetWithMoldesAsync(int id)
-        {
-            return await _context.Encomendas
-                .AsNoTracking()
-                .Include(e => e.Moldes)
+        public Task<Encomenda?> GetWithMoldesAsync(int id) =>
+            _context.Encomendas
+                .Include(e => e.EncomendasMoldes)
+                    .ThenInclude(em => em.Molde)
                 .FirstOrDefaultAsync(e => e.Encomenda_id == id);
-        }
     }
 }

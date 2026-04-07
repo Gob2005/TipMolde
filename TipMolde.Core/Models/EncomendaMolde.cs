@@ -2,7 +2,7 @@
 {
     public class EncomendaMolde
     {
-        public int Id { get; set; }
+        public int EncomendaMolde_id { get; set; }
         public int Quantidade { get; set; }
         public int Prioridade { get; set; }
         public DateTime DataEntregaPrevista { get; set; }

@@ -41,9 +41,9 @@ namespace TipMolde.Infrastructure.Service
             return _encomendaRepository.GetEncomendasPorConcluirAsync();
         }
 
-        public Task<Encomenda?> GetByNumeroEncomendaClienteAsync(string numeroEncomendaCliente)
+        public Task<Encomenda?> GetByNumeroEncomendaClienteAsync(string numero)
         {
-            return _encomendaRepository.GetByNumeroEncomendaClienteAsync(numeroEncomendaCliente);
+            return _encomendaRepository.GetByNumeroEncomendaClienteAsync(numero);
         }
 
         public async Task<Encomenda> CreateEncomendaAsync(Encomenda encomenda)
@@ -61,7 +61,7 @@ namespace TipMolde.Infrastructure.Service
                 throw new ArgumentException($"Ja existe uma encomenda com o numero '{encomenda.NumeroEncomendaCliente}'.");
 
             encomenda.Estado = EstadoEncomenda.CONFIRMADA;
-            encomenda.CreatedAt = DateTime.UtcNow;
+            encomenda.DataRegisto = DateTime.UtcNow;
 
             await _encomendaRepository.AddAsync(encomenda);
             return encomenda;
@@ -73,14 +73,13 @@ namespace TipMolde.Infrastructure.Service
             if (existente == null)
                 throw new KeyNotFoundException($"Encomenda com ID {encomenda.Encomenda_id} nao encontrada.");
 
-            if (!string.IsNullOrWhiteSpace(encomenda.NumeroEncomendaCliente) &&
-                encomenda.NumeroEncomendaCliente != existente.NumeroEncomendaCliente)
-            {
-                var duplicado = await _encomendaRepository
-                    .GetByNumeroEncomendaClienteAsync(encomenda.NumeroEncomendaCliente);
-                if (duplicado != null && duplicado.Encomenda_id != existente.Encomenda_id)
-                    throw new ArgumentException($"Ja existe uma encomenda com o numero '{encomenda.NumeroEncomendaCliente}'.");
-            }
+            existente.NumeroEncomendaCliente = string.IsNullOrWhiteSpace(encomenda.NumeroEncomendaCliente)
+                ? existente.NumeroEncomendaCliente
+                : encomenda.NumeroEncomendaCliente.Trim();
+
+            existente.NumeroProjetoCliente = encomenda.NumeroProjetoCliente ?? existente.NumeroProjetoCliente;
+            existente.NomeServicoCliente = encomenda.NomeServicoCliente ?? existente.NomeServicoCliente;
+            existente.NomeResponsavelCliente = encomenda.NomeResponsavelCliente ?? existente.NomeResponsavelCliente;
 
             await _encomendaRepository.UpdateAsync(encomenda);
         }
@@ -90,6 +89,7 @@ namespace TipMolde.Infrastructure.Service
             var encomenda = await _encomendaRepository.GetByIdAsync(id);
             if (encomenda == null)
                 throw new KeyNotFoundException($"Encomenda com ID {id} nao encontrada.");
+
             ValidarTransicaoEstado(encomenda.Estado, novoEstado);
             encomenda.Estado = novoEstado;
             await _encomendaRepository.UpdateAsync(encomenda);

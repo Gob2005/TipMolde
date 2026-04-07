@@ -4,6 +4,9 @@ namespace TipMolde.Core.Interface.IMolde
 {
     public interface IMoldeRepository : IGenericRepository<Molde>
     {
-        Task<Cliente?> GetClienteByIdAsync(int clienteId);
+        Task<Molde?> GetByIdWithSpecsAsync(int id);
+        Task<Molde?> GetByNumeroAsync(string numero);
+        Task<IEnumerable<Molde>> GetByEncomendaIdAsync(int encomendaId);
+        Task AddMoldeWithSpecsAndLinkAsync(Molde molde, EspecificacoesTecnicas specs, EncomendaMolde link);
     }
 }

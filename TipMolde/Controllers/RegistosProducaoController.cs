@@ -33,11 +33,10 @@ namespace TipMolde.API.Controllers
 
         [HttpGet("historico")]
         public async Task<IActionResult> GetHistorico(
-            [FromQuery] int moldeId,
             [FromQuery] int faseId,
             [FromQuery] int pecaId)
         {
-            var historico = await _registosProducaoService.GetHistoricoAsync(moldeId, faseId, pecaId);
+            var historico = await _registosProducaoService.GetHistoricoAsync(faseId, pecaId);
             return Ok(historico);
         }
 
@@ -46,11 +45,10 @@ namespace TipMolde.API.Controllers
         {
             var rp = new RegistosProducao
             {
-                Molde_id = dto.Molde_id,
                 Fase_id = dto.Fase_id,
                 Operador_id = dto.Operador_id,
                 Peca_id = dto.Peca_id,
-                Maquina = dto.Maquina,
+                Maquina_id = dto.Maquina_id,
                 Estado_producao = dto.Estado_producao
             };
 

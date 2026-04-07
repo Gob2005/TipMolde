@@ -13,6 +13,8 @@ namespace TipMolde.API.DTOs.UserDTO
 
         [Required, MinLength(8), MaxLength(255)]
         public required string Password { get; set; }
-        public required UserRole Role { get; set; }
+
+        [Required]
+        public UserRole Role { get; set; }
     }
 }

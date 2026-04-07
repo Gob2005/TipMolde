@@ -16,6 +16,7 @@ namespace TipMolde.API.Controllers
             _fasesProducaoService = fasesProducaoService;
         }
 
+        [Authorize(Roles = "ADMIN,GESTOR_PRODUCAO")]
         [HttpGet("all-fases_producao")]
         public async Task<IActionResult> GetAllFases_producao()
         {
@@ -23,6 +24,7 @@ namespace TipMolde.API.Controllers
             return Ok(fasesProducao);
         }
 
+        [Authorize(Roles = "ADMIN,GESTOR_PRODUCAO")]
         [HttpGet("fases_producao-byID")]
         public async Task<IActionResult> GetFases_producaoById(int id)
         {

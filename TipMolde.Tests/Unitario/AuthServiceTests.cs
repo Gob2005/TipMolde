@@ -33,7 +33,7 @@ namespace TipMolde.Tests.Unitario
                 Nome = "Gonçalo Barbosa",
                 Email = "goncalo@tipmolde.pt",
                 Password = "hash_da_password",
-                Role = UserRole.OPERADOR
+                Role = UserRole.GESTOR_PRODUCAO
             };
 
             _authRepository
@@ -78,7 +78,7 @@ namespace TipMolde.Tests.Unitario
                 Nome = "Gonçalo Barbosa",
                 Email = "goncalo@tipmolde.pt",
                 Password = "hash_da_password",
-                Role = UserRole.OPERADOR
+                Role = UserRole.GESTOR_PRODUCAO
             };
 
             _authRepository

@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TipMolde.API.DTOs.MoldeDTO;
 using TipMolde.Core.Interface.IMolde;
@@ -16,76 +17,126 @@ namespace TipMolde.API.Controllers
             _moldeService = moldeService;
         }
 
+        [Authorize(Roles = "ADMIN")]
         [HttpGet("all-moldes")]
         public async Task<IActionResult> GetAllMoldes()
         {
             var moldes = await _moldeService.GetAllMoldesAsync();
-            return Ok(moldes);
+            return Ok(moldes.Select(ToResponse));
         }
 
         [HttpGet("molde-byID")]
         public async Task<IActionResult> GetMoldeById(int id)
         {
-            var molde = await _moldeService.GetMoldeByIdAsync(id);
+            var molde = await _moldeService.GetMoldeWithSpecsAsync(id);
             if (molde == null) return NotFound();
-            return Ok(molde);
+            return Ok(ToResponse(molde));
         }
 
-        [HttpGet("cliente-molde-byID")]
-        public async Task<IActionResult> GetByClienteId(int clienteId)
+        [Authorize(Roles = "ADMIN,GESTOR_COMERCIAL")]
+        [HttpGet("by-encomenda")]
+        public async Task<IActionResult> GetByEncomendaId(int encomendaId)
         {
-            var cliente = await _moldeService.GetClienteByIdAsync(clienteId);
-            if (cliente == null)
-            {
-                return NotFound();
-            }
-
-            return Ok(cliente);
+            var moldes = await _moldeService.GetByEncomendaIdAsync(encomendaId);
+            return Ok(moldes.Select(ToResponse));
         }
 
+        [HttpGet("by-numero")]
+        public async Task<IActionResult> GetByNumero([FromQuery] string numero)
+        {
+            if (string.IsNullOrWhiteSpace(numero))
+                return BadRequest("Numero do molde e obrigatorio.");
+
+            var molde = await _moldeService.GetByNumeroAsync(numero.Trim());
+            if (molde == null) return NotFound();
+            return Ok(ToResponse(molde));
+        }
+
+        [Authorize(Roles = "ADMIN,GESTOR_COMERCIAL")]
         [HttpPost("create-molde")]
         public async Task<IActionResult> CreateMolde([FromBody] CreateMoldeDTO dto)
         {
-            if (dto == null) return BadRequest("Dados do molde sao obrigatorios.");
-            if (dto.ClienteId <= 0) return BadRequest("O ID do cliente deve ser um numero positivo.");
-            var cliente = await _moldeService.GetClienteByIdAsync(dto.ClienteId);
-            if (cliente == null) return BadRequest("O cliente informado nao existe.");
-            if (string.IsNullOrWhiteSpace(dto.Dimensoes_molde)) return BadRequest("As dimensoes do molde sao obrigatorias.");
-            if (dto.Numero_cavidades <= 0) return BadRequest("O numero de cavidades deve ser um numero positivo.");
+            if (string.IsNullOrWhiteSpace(dto.Numero))
+                return BadRequest("Numero do molde e obrigatorio.");
 
             var molde = new Molde
             {
-                Material = dto.Material,
-                Dimensoes_molde = dto.Dimensoes_molde,
-                Peso_estimado = dto.Peso_estimado,
-                Numero_cavidades = dto.Numero_cavidades
+                Numero = dto.Numero.Trim(),
+                NumeroMoldeCliente = dto.NumeroMoldeCliente,
+                Nome = dto.Nome,
+                Descricao = dto.Descricao,
+                Numero_cavidades = dto.Numero_cavidades,
+                TipoPedido = dto.TipoPedido
             };
-            var createdMolde = await _moldeService.CreateMoldeAsync(molde);
 
-            var res = ToResponse(createdMolde);
-            return CreatedAtAction(nameof(GetMoldeById), new { id = createdMolde.Molde_id }, res);
+            var specs = new EspecificacoesTecnicas
+            {
+                Largura = dto.Largura,
+                Comprimento = dto.Comprimento,
+                Altura = dto.Altura,
+                PesoEstimado = dto.PesoEstimado,
+                TipoInjecao = dto.TipoInjecao,
+                SistemaInjecao = dto.SistemaInjecao,
+                Contracao = dto.Contracao,
+                AcabamentoPeca = dto.AcabamentoPeca,
+                Cor = dto.Cor,
+                MaterialMacho = dto.MaterialMacho,
+                MaterialCavidade = dto.MaterialCavidade,
+                MaterialMovimentos = dto.MaterialMovimentos,
+                MaterialInjecao = dto.MaterialInjecao
+            };
+
+            var link = new EncomendaMolde
+            {
+                Encomenda_id = dto.EncomendaId,
+                Quantidade = dto.Quantidade,
+                Prioridade = dto.Prioridade,
+                DataEntregaPrevista = dto.DataEntregaPrevista
+            };
+
+            var created = await _moldeService.CreateMoldeAsync(molde, specs, link);
+            return CreatedAtAction(nameof(GetMoldeById), new { id = created.Molde_id }, ToResponse(created));
         }
 
-        [HttpPut("update-molde")]
+        [Authorize(Roles = "ADMIN,GESTOR_DESENHO")]
+        [HttpPut("update-molde/{id:int}")]
         public async Task<IActionResult> UpdateMolde(int id, [FromBody] UpdateMoldeDTO dto)
         {
-            var molde = await _moldeService.GetMoldeByIdAsync(id);
-            if (molde == null) return NotFound();
+            var molde = new Molde
+            {
+                Molde_id = id,
+                Numero = dto.Numero ?? string.Empty,
+                Nome = dto.Nome,
+                Descricao = dto.Descricao,
+                Numero_cavidades = dto.Numero_cavidades ?? 0,
+                TipoPedido = dto.TipoPedido ?? default
+            };
 
-            molde.Material = !string.IsNullOrWhiteSpace(dto.Material) ? dto.Material.Trim() : molde.Material;
-            molde.Dimensoes_molde = !string.IsNullOrWhiteSpace(dto.Dimensoes_molde) ? dto.Dimensoes_molde.Trim() : molde.Dimensoes_molde;
-            molde.Peso_estimado = dto.Peso_estimado.HasValue && dto.Peso_estimado.Value > 0 ? dto.Peso_estimado.Value : molde.Peso_estimado;
-            molde.Numero_cavidades = dto.Numero_cavidades.HasValue && dto.Numero_cavidades.Value > 0 ? dto.Numero_cavidades.Value : molde.Numero_cavidades;
+            var specs = new EspecificacoesTecnicas
+            {
+                Largura = dto.Largura,
+                Comprimento = dto.Comprimento,
+                Altura = dto.Altura,
+                PesoEstimado = dto.PesoEstimado,
+                TipoInjecao = dto.TipoInjecao,
+                SistemaInjecao = dto.SistemaInjecao,
+                Contracao = dto.Contracao,
+                AcabamentoPeca = dto.AcabamentoPeca,
+                Cor = dto.Cor,
+                MaterialMacho = dto.MaterialMacho,
+                MaterialCavidade = dto.MaterialCavidade,
+                MaterialMovimentos = dto.MaterialMovimentos,
+                MaterialInjecao = dto.MaterialInjecao
+            };
 
-            await _moldeService.UpdateMoldeAsync(molde);
+            await _moldeService.UpdateMoldeAsync(molde, specs);
             return NoContent();
         }
 
-        [HttpDelete("delete-molde")]
+        [Authorize(Roles = "ADMIN")]
+        [HttpDelete("delete-molde/{id:int}")]
         public async Task<IActionResult> DeleteMolde(int id)
         {
-            var molde = await _moldeService.GetMoldeByIdAsync(id);
-            if (molde == null) return NotFound();
             await _moldeService.DeleteMoldeAsync(id);
             return NoContent();
         }
@@ -93,10 +144,24 @@ namespace TipMolde.API.Controllers
         private static ResponseMoldeDTO ToResponse(Molde m) => new()
         {
             MoldeId = m.Molde_id,
-            Material = m.Material,
-            Dimensoes_molde = m.Dimensoes_molde,
-            Peso_estimado = m.Peso_estimado,
-            Numero_cavidades = m.Numero_cavidades
+            Numero = m.Numero,
+            Nome = m.Nome,
+            Descricao = m.Descricao,
+            Numero_cavidades = m.Numero_cavidades,
+            TipoPedido = m.TipoPedido,
+            Largura = m.Especificacoes?.Largura,
+            Comprimento = m.Especificacoes?.Comprimento,
+            Altura = m.Especificacoes?.Altura,
+            PesoEstimado = m.Especificacoes?.PesoEstimado,
+            TipoInjecao = m.Especificacoes?.TipoInjecao,
+            SistemaInjecao = m.Especificacoes?.SistemaInjecao,
+            Contracao = m.Especificacoes?.Contracao,
+            AcabamentoPeca = m.Especificacoes?.AcabamentoPeca,
+            Cor = m.Especificacoes?.Cor,
+            MaterialMacho = m.Especificacoes?.MaterialMacho,
+            MaterialCavidade = m.Especificacoes?.MaterialCavidade,
+            MaterialMovimentos = m.Especificacoes?.MaterialMovimentos,
+            MaterialInjecao = m.Especificacoes?.MaterialInjecao
         };
     }
 }

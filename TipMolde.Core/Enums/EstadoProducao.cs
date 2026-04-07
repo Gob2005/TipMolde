@@ -2,6 +2,7 @@
 {
     public enum EstadoProducao
     {
+        PENDENTE,
         PREPARACAO,
         EM_CURSO,
         PAUSADO,
