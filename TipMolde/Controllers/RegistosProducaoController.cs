@@ -43,6 +43,8 @@ namespace TipMolde.API.Controllers
         [HttpPost("add-registos_producao")]
         public async Task<IActionResult> AddRegistos_producao([FromBody] CreateRegistosProducaoDTO dto)
         {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+
             var rp = new RegistosProducao
             {
                 Fase_id = dto.Fase_id,

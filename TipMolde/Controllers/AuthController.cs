@@ -21,6 +21,8 @@ namespace TipMolde.API.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> Login([FromBody] LoginDTO dto)
         {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+
             var token = await _authService.LoginAsync(dto.Email, dto.Password);
             if (string.IsNullOrWhiteSpace(token))
             {

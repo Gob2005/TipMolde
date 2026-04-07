@@ -25,6 +25,18 @@ namespace TipMolde.Infrastructure.DB
         {
             base.OnModelCreating(modelBuilder);
 
+            modelBuilder.Entity<Cliente>()
+                .HasIndex(c => c.NIF)
+                .IsUnique();
+
+            modelBuilder.Entity<Cliente>()
+                .HasIndex(c => c.Sigla)
+                .IsUnique();
+
+            modelBuilder.Entity<User>()
+                .HasIndex(u => u.Email)
+                .IsUnique();
+
             modelBuilder.Entity<Molde>()
                 .HasIndex(m => m.Numero)
                 .IsUnique();

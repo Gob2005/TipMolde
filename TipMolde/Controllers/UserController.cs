@@ -43,6 +43,8 @@ namespace TipMolde.API.Controllers
         [HttpPost("create-user")]
         public async Task<IActionResult> CreateUser([FromBody] CreateUserDTO dto)
         {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+
             if (string.IsNullOrWhiteSpace(dto.Nome)) return BadRequest("Nome e obrigatorio.");
             if (string.IsNullOrWhiteSpace(dto.Email)) return BadRequest("Email e obrigatorio.");
             if (string.IsNullOrWhiteSpace(dto.Password)) return BadRequest("Password e obrigatoria.");
@@ -65,6 +67,8 @@ namespace TipMolde.API.Controllers
         [HttpPut("update-user/{id:int}")]
         public async Task<IActionResult> UpdateUser(int id, [FromBody] UpdateUserDTO dto)
         {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+
             var user = await _userService.GetUserByIdAsync(id);
             if (user == null) return NotFound();
 
@@ -79,6 +83,8 @@ namespace TipMolde.API.Controllers
         [HttpPut("change-role/{id:int}")]
         public async Task<IActionResult> ChangeRole(int id, [FromBody] ChangeUserRoleDTO dto)
         {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+
             var user = await _userService.GetUserByIdAsync(id);
             if (user == null) return NotFound();
 
@@ -90,6 +96,8 @@ namespace TipMolde.API.Controllers
         [HttpPut("change-password")]
         public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDTO dto)
         {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+
             await _userService.ChangePasswordAsync(dto.Email, dto.CurrentPassword, dto.NewPassword);
             return NoContent();
         }
@@ -98,6 +106,8 @@ namespace TipMolde.API.Controllers
         [HttpPut("reset-password/{id:int}")]
         public async Task<IActionResult> ResetPassword(int id, [FromBody] ResetPasswordDTO dto)
         {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+
             await _userService.ResetPasswordAsync(id, dto.NewPassword);
             return NoContent();
         }

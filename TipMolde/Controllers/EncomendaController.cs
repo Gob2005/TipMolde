@@ -77,6 +77,8 @@ namespace TipMolde.API.Controllers
         [HttpPost("create-encomenda")]
         public async Task<IActionResult> CreateEncomenda([FromBody] CreateEncomendaDTO dto)
         {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+
             var encomenda = new Encomenda
             {
                 NumeroEncomendaCliente = dto.NumeroEncomendaCliente.Trim(),
@@ -97,6 +99,8 @@ namespace TipMolde.API.Controllers
         [HttpPut("update-encomenda")]
         public async Task<IActionResult> UpdateEncomenda(int id, [FromBody] UpdateEncomendaDTO dto)
         {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+
             var encomenda = new Encomenda
             {
                 Encomenda_id = id,
@@ -114,6 +118,8 @@ namespace TipMolde.API.Controllers
         [HttpPut("update-estado/{id:int}")]
         public async Task<IActionResult> UpdateEstado(int id, [FromBody] UpdateEstadoEncomendaDTO dto)
         {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+
             await _encomendaService.UpdateEstadoEncomendaAsync(id, dto.Estado);
             return NoContent();
         }

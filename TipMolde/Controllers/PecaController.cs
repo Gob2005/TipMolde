@@ -58,6 +58,8 @@ namespace TipMolde.API.Controllers
         [HttpPost("create-peca")]
         public async Task<IActionResult> CreatePeca([FromBody] CreatePecaDTO dto)
         {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+
             var peca = new Peca
             {
                 Designacao = dto.Designacao.Trim(),
@@ -75,6 +77,8 @@ namespace TipMolde.API.Controllers
         [HttpPut("update-peca/{id:int}")]
         public async Task<IActionResult> UpdatePeca(int id, [FromBody] UpdatePecaDTO dto)
         {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+
             var peca = new Peca
             {
                 Peca_id = id,

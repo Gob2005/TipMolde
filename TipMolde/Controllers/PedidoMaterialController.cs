@@ -72,6 +72,7 @@ namespace TipMolde.API.Controllers
             return CreatedAtAction(nameof(GetById), new { id = created.PedidoMaterial_id }, ToResponse(created));
         }
 
+        [Authorize]
         [HttpPut("registar-rececao/{id:int}")]
         public async Task<IActionResult> RegistarRececao(int id, [FromBody] RegistarRececaoDTO dto)
         {

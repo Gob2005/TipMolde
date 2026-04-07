@@ -56,6 +56,8 @@ namespace TipMolde.API.Controllers
         [HttpPost("create-molde")]
         public async Task<IActionResult> CreateMolde([FromBody] CreateMoldeDTO dto)
         {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+
             if (string.IsNullOrWhiteSpace(dto.Numero))
                 return BadRequest("Numero do molde e obrigatorio.");
 
@@ -102,6 +104,8 @@ namespace TipMolde.API.Controllers
         [HttpPut("update-molde/{id:int}")]
         public async Task<IActionResult> UpdateMolde(int id, [FromBody] UpdateMoldeDTO dto)
         {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+
             var molde = new Molde
             {
                 Molde_id = id,

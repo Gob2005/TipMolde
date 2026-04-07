@@ -11,6 +11,7 @@ namespace TipMolde.API.Controllers
     public class FasesProducaoController : ControllerBase
     {
         private readonly IFasesProducaoService _fasesProducaoService;
+
         public FasesProducaoController(IFasesProducaoService fasesProducaoService)
         {
             _fasesProducaoService = fasesProducaoService;
@@ -37,34 +38,41 @@ namespace TipMolde.API.Controllers
         [HttpPost("create-fases_producao")]
         public async Task<IActionResult> CreateFases_producao([FromBody] CreateFasesProducaoDTO dto)
         {
-            if (string.IsNullOrWhiteSpace(dto.Nome.ToString())) return BadRequest("Nome e obrigatorio.");
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+
             var fasesProducao = new FasesProducao
             {
                 Nome = dto.Nome,
-                Descricao = dto.Descricao,
+                Descricao = dto.Descricao
             };
-            var createdFases_producao = await _fasesProducaoService.CreateFase_producaoAsync(fasesProducao);
-            return CreatedAtAction(nameof(GetFases_producaoById), new { id = createdFases_producao.Fases_producao_id }, createdFases_producao);
+
+            var created = await _fasesProducaoService.CreateFase_producaoAsync(fasesProducao);
+            return CreatedAtAction(nameof(GetFases_producaoById), new { id = created.Fases_producao_id }, created);
         }
 
         [Authorize(Roles = "ADMIN")]
-        [HttpPut("update-fases_producao")]
+        [HttpPut("update-fases_producao/{id:int}")]
         public async Task<IActionResult> UpdateFases_producao(int id, [FromBody] UpdateFasesProducaoDTO dto)
         {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+
             var fase = await _fasesProducaoService.GetFase_producaoByIdAsync(id);
             if (fase == null) return NotFound();
-            if (!string.IsNullOrWhiteSpace(dto.Nome.ToString())) fase.Nome = dto.Nome.Value;
+
+            if (dto.Nome.HasValue) fase.Nome = dto.Nome.Value;
             if (!string.IsNullOrWhiteSpace(dto.Descricao)) fase.Descricao = dto.Descricao;
+
             await _fasesProducaoService.UpdateFase_producaoAsync(fase);
             return NoContent();
         }
 
         [Authorize(Roles = "ADMIN")]
-        [HttpDelete("delete-fases_producao")]
+        [HttpDelete("delete-fases_producao/{id:int}")]
         public async Task<IActionResult> DeleteFases_producao(int id)
         {
             var fasesProducao = await _fasesProducaoService.GetFase_producaoByIdAsync(id);
             if (fasesProducao == null) return NotFound();
+
             await _fasesProducaoService.DeleteFase_producaoAsync(id);
             return NoContent();
         }

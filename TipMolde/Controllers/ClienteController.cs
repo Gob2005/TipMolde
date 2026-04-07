@@ -64,6 +64,8 @@ namespace TipMolde.API.Controllers
         [HttpPost("create-cliente")]
         public async Task<IActionResult> CreateCliente([FromBody] CreateClienteDTO dto)
         {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+
             var cliente = new Cliente
             {
                 Nome = dto.Nome.Trim(),
@@ -83,6 +85,8 @@ namespace TipMolde.API.Controllers
         [HttpPut("update-cliente/{id:int}")]
         public async Task<IActionResult> UpdateCliente(int id, [FromBody] UpdateClienteDTO dto)
         {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+
             var cliente = new Cliente
             {
                 Cliente_id = id,

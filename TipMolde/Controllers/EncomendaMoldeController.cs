@@ -37,6 +37,8 @@ namespace TipMolde.API.Controllers
         [HttpPost("create")]
         public async Task<IActionResult> Create([FromBody] CreateEncomendaMoldeDTO dto)
         {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+
             var link = new EncomendaMolde
             {
                 Encomenda_id = dto.Encomenda_id,
@@ -54,6 +56,8 @@ namespace TipMolde.API.Controllers
         [HttpPut("update/{id:int}")]
         public async Task<IActionResult> Update(int id, [FromBody] UpdateEncomendaMoldeDTO dto)
         {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+            
             var link = new EncomendaMolde
             {
                 EncomendaMolde_id = id,
