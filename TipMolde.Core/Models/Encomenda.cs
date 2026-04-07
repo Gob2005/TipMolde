@@ -6,12 +6,16 @@ namespace TipMolde.Core.Models
     {
         public int Encomenda_id { get; set; }
         public required string NumeroEncomendaCliente { get; set; }
+        public string? NumeroProjetoCliente { get; set; }
+        public string? NomeServicoCliente { get; set; }
+        public string? NomeResponsavelCliente { get; set; }
+        public DateTime DataRegisto { get; set; } = DateTime.UtcNow;
         public EstadoEncomenda Estado { get; set; } = EstadoEncomenda.CONFIRMADA;
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         public int Cliente_id { get; set; }
         public Cliente? Cliente { get; set; }
 
-        public ICollection<Molde> Moldes { get; set; } = new List<Molde>();
+        public ICollection<EncomendaMolde> EncomendasMoldes { get; set; } = new List<EncomendaMolde>();
     }
+
 }

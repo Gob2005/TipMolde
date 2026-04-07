@@ -9,6 +9,7 @@ namespace TipMolde.Core.Models
         public required string Email { get; set; }
         public required string Password { get; set; }
         public required UserRole Role { get; set; }
-        public DateTime CreatedAt { get; set; } = DateTime.Now;
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
+
 }

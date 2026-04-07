@@ -11,12 +11,12 @@ rem  UPDATELOG = _diag/SelfUpdate-UTC.log
 rem  RESTARTINTERACTIVERUNNER = 0/1
 
 setlocal
-set runnerpid=31312
+set runnerpid=1540
 set runnerprocessname=Runner.Listener.exe
 set rootfolder=C:\Users\HP\Documents\TipMolde\Aplicacao\TipMolde\actions-runner
-set existrunnerversion=2.331.0
-set downloadrunnerversion=2.332.0
-set logfile=C:\Users\HP\Documents\TipMolde\Aplicacao\TipMolde\actions-runner\_diag\SelfUpdate-20260312-103409.log
+set existrunnerversion=2.332.0
+set downloadrunnerversion=2.333.1
+set logfile=C:\Users\HP\Documents\TipMolde\Aplicacao\TipMolde\actions-runner\_diag\SelfUpdate-20260407-094004.log
 set restartinteractiverunner=0
 
 rem log user who run the script
