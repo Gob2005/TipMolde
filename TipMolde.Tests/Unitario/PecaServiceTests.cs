@@ -1,4 +1,5 @@
-﻿using Moq;
+using Moq;
+using TipMolde.Core.Enums;
 using TipMolde.Core.Interface.IMolde;
 using TipMolde.Core.Interface.IPeca;
 using TipMolde.Core.Models;
@@ -6,186 +7,140 @@ using TipMolde.Infrastructure.Service;
 
 namespace TipMolde.Tests.Unitario
 {
-    /*public class PecaServiceTests
+    public class PecaServiceTests
     {
-        private readonly Mock<IPecaRepository> _pecaRepository;
-        private readonly Mock<IMoldeRepository> _moldeRepository;
+        private readonly Mock<IPecaRepository> _pecaRepository = new();
+        private readonly Mock<IMoldeRepository> _moldeRepository = new();
         private readonly PecaService _sut;
+
+        public PecaServiceTests()
+        {
+            _sut = new PecaService(_pecaRepository.Object, _moldeRepository.Object);
+        }
 
         private static Molde MoldeFake(int id = 1) => new()
         {
             Molde_id = id,
-            Material = "Aço P20",
-            Dimensoes_molde = "300x200x150"
+            Numero = $"M-{id}",
+            Numero_cavidades = 1,
+            TipoPedido = TipoPedido.NOVO
         };
-        private static Peca PecaFake(int id = 1, int numeroPeca = 10, int moldeId = 1) => new()
+
+        private static Peca PecaFake(int id = 1, int moldeId = 1, string designacao = "Extrator") => new()
         {
             Peca_id = id,
-            Numero_peca = numeroPeca,
+            Designacao = designacao,
             Prioridade = 1,
-            Descricao = "Peca de teste",
+            MaterialDesignacao = "Aco",
+            MaterialRecebido = false,
             Molde_id = moldeId
         };
 
-        public PecaServiceTests()
-        {
-            _pecaRepository = new Mock<IPecaRepository>();
-            _moldeRepository = new Mock<IMoldeRepository>();
-            _sut = new PecaService(_pecaRepository.Object, _moldeRepository.Object);
-        }
-
-        // ────────────────────────── CreatePecaAsync ────────────────────────────────────//
-
         [Fact]
-        public async Task CreatePecaAsync_ComDadosValidos_CriaPeca()
+        public async Task CreatePecaAsync_ValidData_AddsPeca()
         {
-            var molde = MoldeFake();
             var peca = PecaFake();
+            _moldeRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(MoldeFake());
+            _pecaRepository.Setup(r => r.GetByDesignacaoAsync("Extrator", 1)).ReturnsAsync((Peca?)null);
+            _pecaRepository.Setup(r => r.AddAsync(It.IsAny<Peca>())).Returns(Task.CompletedTask);
 
-            _moldeRepository
-                .Setup(r => r.GetByIdAsync(1))
-                .ReturnsAsync(molde);
+            var result = await _sut.CreatePecaAsync(peca);
 
-            _pecaRepository
-                .Setup(r => r.GetByNumberAsync(10, 1))
-                .ReturnsAsync((Peca?)null);
-
-            _pecaRepository
-                .Setup(r => r.AddAsync(It.IsAny<Peca>()))
-                .Returns(Task.CompletedTask);
-
-            var resultado = await _sut.CreatePecaAsync(peca);
-
-            Assert.NotNull(resultado);
-            Assert.Equal(10, resultado.Numero_peca);
+            Assert.Equal("Extrator", result.Designacao);
             _pecaRepository.Verify(r => r.AddAsync(It.IsAny<Peca>()), Times.Once);
         }
 
         [Fact]
-        public async Task CreatePecaAsync_ComMoldeInexistente_LancaExcecao()
+        public async Task CreatePecaAsync_MoldeNotFound_Throws()
         {
-            _moldeRepository
-                .Setup(r => r.GetByIdAsync(99))
-                .ReturnsAsync((Molde?)null);
+            _moldeRepository.Setup(r => r.GetByIdAsync(7)).ReturnsAsync((Molde?)null);
+            var peca = PecaFake(moldeId: 7);
 
-            var peca = PecaFake(moldeId: 99);
-
-            await Assert.ThrowsAsync<KeyNotFoundException>(() =>
-                _sut.CreatePecaAsync(peca));
+            await Assert.ThrowsAsync<KeyNotFoundException>(() => _sut.CreatePecaAsync(peca));
         }
 
         [Fact]
-        public async Task CreatePecaAsync_ComNumeroPecaDuplicado_LancaExcecao()
+        public async Task CreatePecaAsync_EmptyDesignacao_Throws()
         {
-            var molde = MoldeFake();
-            var existente = PecaFake(id: 1, numeroPeca: 10, moldeId: 1);
+            _moldeRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(MoldeFake());
+            var peca = PecaFake(designacao: " ");
 
-            _moldeRepository
-                .Setup(r => r.GetByIdAsync(1))
-                .ReturnsAsync(molde);
-
-            _pecaRepository
-                .Setup(r => r.GetByNumberAsync(10, 1))
-                .ReturnsAsync(existente);
-
-            var nova = PecaFake(id: 0, numeroPeca: 10, moldeId: 1);
-
-            await Assert.ThrowsAsync<ArgumentException>(() =>
-                _sut.CreatePecaAsync(nova));
-        }
-
-        // ────────────────────────── UpdatePecaAsync ────────────────────────────────────//
-
-        [Fact]
-        public async Task UpdatePecaAsync_ComDadosValidos_AtualizaPeca()
-        {
-            var existente = PecaFake(id: 1, numeroPeca: 10, moldeId: 1);
-
-            _pecaRepository
-                .Setup(r => r.GetByIdAsync(1))
-                .ReturnsAsync(existente);
-
-            _pecaRepository
-                .Setup(r => r.UpdateAsync(It.IsAny<Peca>()))
-                .Returns(Task.CompletedTask);
-
-            var atualizada = new Peca
-            {
-                Peca_id = 1,
-                Numero_peca = 20,
-                Prioridade = 3,
-                Descricao = "Descricao atualizada",
-                Molde_id = 1
-            };
-
-            await _sut.UpdatePecaAsync(atualizada);
-
-            _pecaRepository.Verify(
-                r => r.UpdateAsync(It.Is<Peca>(p =>
-                    p.Numero_peca == 20 &&
-                    p.Prioridade == 3 &&
-                    p.Descricao == "Descricao atualizada")),
-                Times.Once
-            );
+            await Assert.ThrowsAsync<ArgumentException>(() => _sut.CreatePecaAsync(peca));
         }
 
         [Fact]
-        public async Task UpdatePecaAsync_ComIdInexistente_LancaExcecao()
+        public async Task CreatePecaAsync_DuplicateDesignacao_Throws()
         {
-            _pecaRepository
-                .Setup(r => r.GetByIdAsync(999))
-                .ReturnsAsync((Peca?)null);
-
-            var peca = PecaFake(id: 999);
-
-            await Assert.ThrowsAsync<KeyNotFoundException>(() =>
-                _sut.UpdatePecaAsync(peca));
-        }
-
-        [Fact]
-        public async Task UpdatePecaAsync_ComNumeroPecaZero_MantemValorOriginal()
-        {
-            var existente = PecaFake(id: 1, numeroPeca: 1, moldeId: 1);
-
-            _pecaRepository
-                .Setup(r => r.GetByIdAsync(1))
-                .ReturnsAsync(existente);
-
-            _pecaRepository
-                .Setup(r => r.UpdateAsync(It.IsAny<Peca>()))
-                .Returns(Task.CompletedTask);
-
-            var atualizada = new Peca
-            {
-                Peca_id = 1,
-                Numero_peca = 0,
-                Prioridade = 0,
-                Descricao = null,
-                Molde_id = 1
-            };
-
-            await _sut.UpdatePecaAsync(atualizada);
-
-            _pecaRepository.Verify(
-                r => r.UpdateAsync(It.Is<Peca>(p => p.Numero_peca == 1)),
-                Times.Once
-            );
-        }
-
-        // ────────────────────────── DeletePecaAsync ────────────────────────────────────//
-
-        [Fact]
-        public async Task DeletePecaAsync_ComIdValido_EliminaPeca()
-        {
+            _moldeRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(MoldeFake());
+            _pecaRepository.Setup(r => r.GetByDesignacaoAsync("Extrator", 1)).ReturnsAsync(PecaFake(id: 2));
             var peca = PecaFake();
 
-            _pecaRepository
-                .Setup(r => r.GetByIdAsync(1))
-                .ReturnsAsync(peca);
+            await Assert.ThrowsAsync<ArgumentException>(() => _sut.CreatePecaAsync(peca));
+        }
 
-            _pecaRepository
-                .Setup(r => r.DeleteAsync(1))
-                .Returns(Task.CompletedTask);
+        [Fact]
+        public async Task UpdatePecaAsync_NotFound_Throws()
+        {
+            _pecaRepository.Setup(r => r.GetByIdAsync(99)).ReturnsAsync((Peca?)null);
+            await Assert.ThrowsAsync<KeyNotFoundException>(() => _sut.UpdatePecaAsync(PecaFake(id: 99)));
+        }
+
+        [Fact]
+        public async Task UpdatePecaAsync_ValidData_Updates()
+        {
+            var existing = PecaFake(id: 1, designacao: "A");
+            _pecaRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(existing);
+            _pecaRepository.Setup(r => r.UpdateAsync(It.IsAny<Peca>())).Returns(Task.CompletedTask);
+
+            var update = PecaFake(id: 1, designacao: "  B  ");
+            update.Prioridade = 5;
+            update.MaterialDesignacao = "Inox";
+            update.MaterialRecebido = true;
+
+            await _sut.UpdatePecaAsync(update);
+
+            _pecaRepository.Verify(r => r.UpdateAsync(It.Is<Peca>(p =>
+                p.Peca_id == 1 &&
+                p.Designacao == "B" &&
+                p.Prioridade == 5 &&
+                p.MaterialDesignacao == "Inox" &&
+                p.MaterialRecebido)), Times.Once);
+        }
+
+        [Fact]
+        public async Task UpdatePecaAsync_InvalidIncomingValues_KeepsPrevious()
+        {
+            var existing = PecaFake(id: 1, designacao: "Original");
+            existing.Prioridade = 3;
+            existing.MaterialDesignacao = "Aco";
+            _pecaRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(existing);
+            _pecaRepository.Setup(r => r.UpdateAsync(It.IsAny<Peca>())).Returns(Task.CompletedTask);
+
+            var update = PecaFake(id: 1, designacao: " ");
+            update.Prioridade = 0;
+            update.MaterialDesignacao = null;
+            update.MaterialRecebido = false;
+
+            await _sut.UpdatePecaAsync(update);
+
+            _pecaRepository.Verify(r => r.UpdateAsync(It.Is<Peca>(p =>
+                p.Designacao == "Original" &&
+                p.Prioridade == 3 &&
+                p.MaterialDesignacao == "Aco")), Times.Once);
+        }
+
+        [Fact]
+        public async Task DeletePecaAsync_NotFound_Throws()
+        {
+            _pecaRepository.Setup(r => r.GetByIdAsync(10)).ReturnsAsync((Peca?)null);
+            await Assert.ThrowsAsync<KeyNotFoundException>(() => _sut.DeletePecaAsync(10));
+        }
+
+        [Fact]
+        public async Task DeletePecaAsync_Found_Deletes()
+        {
+            _pecaRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(PecaFake());
+            _pecaRepository.Setup(r => r.DeleteAsync(1)).Returns(Task.CompletedTask);
 
             await _sut.DeletePecaAsync(1);
 
@@ -193,101 +148,14 @@ namespace TipMolde.Tests.Unitario
         }
 
         [Fact]
-        public async Task DeletePecaAsync_ComIdInexistente_LancaExcecao()
+        public async Task GetByDesignacaoAsync_DelegatesToRepository()
         {
-            _pecaRepository
-                .Setup(r => r.GetByIdAsync(999))
-                .ReturnsAsync((Peca?)null);
+            _pecaRepository.Setup(r => r.GetByDesignacaoAsync("Extrator", 2)).ReturnsAsync(PecaFake(id: 5, moldeId: 2));
 
-            await Assert.ThrowsAsync<KeyNotFoundException>(() =>
-                _sut.DeletePecaAsync(999));
+            var result = await _sut.GetByDesignacaoAsync("Extrator", 2);
+
+            Assert.NotNull(result);
+            Assert.Equal(5, result!.Peca_id);
         }
-
-        // ──────── GetAllPecasAsync / GetPecaByIdAsync / GetPecaByNumberAsync ───────────────//
-
-
-        [Fact]
-        public async Task GetAllPecasAsync_RetornaTodasAsPecas()
-        {
-            var lista = new List<Peca>
-            {
-                PecaFake(id: 1, numeroPeca: 1),
-                PecaFake(id: 2, numeroPeca: 2)
-            };
-
-            _pecaRepository
-                .Setup(r => r.GetAllAsync())
-                .ReturnsAsync(lista);
-
-            var resultado = await _sut.GetAllPecasAsync();
-
-            Assert.Equal(2, resultado.Count());
-        }
-
-        [Fact]
-        public async Task GetAllPecasAsync_SemPecas_RetornaListaVazia()
-        {
-            _pecaRepository
-                .Setup(r => r.GetAllAsync())
-                .ReturnsAsync(new List<Peca>());
-
-            var resultado = await _sut.GetAllPecasAsync();
-
-            Assert.Empty(resultado);
-        }
-
-        [Fact]
-        public async Task GetPecaByIdAsync_ComIdValido_RetornaPeca()
-        {
-            var peca = PecaFake(id: 1, numeroPeca: 5, moldeId: 1);
-
-            _pecaRepository
-                .Setup(r => r.GetByIdAsync(1))
-                .ReturnsAsync(peca);
-
-            var resultado = await _sut.GetPecaByIdAsync(1);
-
-            Assert.NotNull(resultado);
-            Assert.Equal(1, resultado!.Peca_id);
-        }
-
-        [Fact]
-        public async Task GetPecaByIdAsync_ComIdInexistente_RetornaNull()
-        {
-            _pecaRepository
-                .Setup(r => r.GetByIdAsync(999))
-                .ReturnsAsync((Peca?)null);
-
-            var resultado = await _sut.GetPecaByIdAsync(999);
-
-            Assert.Null(resultado);
-        }
-
-        [Fact]
-        public async Task GetPecaByNumberAsync_ComNumerosValidos_RetornaPeca()
-        {
-            var peca = PecaFake(id: 1, numeroPeca: 5, moldeId: 2);
-
-            _pecaRepository
-                .Setup(r => r.GetByNumberAsync(5, 2))
-                .ReturnsAsync(peca);
-
-            var resultado = await _sut.GetPecaByNumberAsync(5, 2);
-
-            Assert.NotNull(resultado);
-            Assert.Equal(5, resultado!.Numero_peca);
-        }
-
-        [Fact]
-        public async Task GetPecaByNumberAsync_ComNumerosInexistentes_RetornaNull()
-        {
-            _pecaRepository
-                .Setup(r => r.GetByNumberAsync(999, 999))
-                .ReturnsAsync((Peca?)null);
-
-            var resultado = await _sut.GetPecaByNumberAsync(999, 999);
-
-            Assert.Null(resultado);
-        }
-    }*/
+    }
 }
