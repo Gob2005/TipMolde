@@ -39,6 +39,28 @@ namespace TipMolde.Infrastructure.DB
         {
             base.OnModelCreating(modelBuilder);
 
+
+            modelBuilder.Entity<User>().HasKey(x => x.User_id);
+            modelBuilder.Entity<Cliente>().HasKey(x => x.Cliente_id);
+            modelBuilder.Entity<Encomenda>().HasKey(x => x.Encomenda_id);
+            modelBuilder.Entity<Molde>().HasKey(x => x.Molde_id);
+            modelBuilder.Entity<EspecificacoesTecnicas>().HasKey(x => x.Molde_id);
+            modelBuilder.Entity<EncomendaMolde>().HasKey(x => x.EncomendaMolde_id);
+            modelBuilder.Entity<Peca>().HasKey(x => x.Peca_id);
+            modelBuilder.Entity<Fornecedor>().HasKey(x => x.Fornecedor_id);
+            modelBuilder.Entity<PedidoMaterial>().HasKey(x => x.PedidoMaterial_id);
+            modelBuilder.Entity<FasesProducao>().HasKey(x => x.Fases_producao_id);
+            modelBuilder.Entity<RegistosProducao>().HasKey(x => x.Registo_Producao_id);
+            modelBuilder.Entity<Projeto>().HasKey(x => x.Projeto_id);
+            modelBuilder.Entity<Revisao>().HasKey(x => x.Revisao_id);
+            modelBuilder.Entity<RegistoTempoProjeto>().HasKey(x => x.Registo_Tempo_Projeto_id);
+            modelBuilder.Entity<FichaProducao>().HasKey(x => x.FichaProducao_id);
+            modelBuilder.Entity<RegistoOcorrencia>().HasKey(x => x.RegistoOcorrencia_id);
+            modelBuilder.Entity<RegistoMelhoriaAlteracao>().HasKey(x => x.RegistoMelhoriaAlteracao_id);
+            modelBuilder.Entity<RegistoEnsaio>().HasKey(x => x.RegistoEnsaio_id);
+            modelBuilder.Entity<RevokedToken>().HasKey(x => x.RevokedToken_id);
+
+
             modelBuilder.Entity<RevokedToken>()
                 .HasIndex(x => x.Jti)
                 .IsUnique();
