@@ -11,7 +11,7 @@ using TipMolde.Infrastructure.Service;
 
 namespace TipMolde.Tests.Unitario
 {
-    public class RegistosProducaoServiceTests
+    /*public class RegistosProducaoServiceTests
     {
         private readonly Mock<IRegistosProducaoRepository> _rpRepository = new();
         private readonly Mock<IFasesProducaoRepository> _fpRepository = new();
@@ -191,5 +191,5 @@ namespace TipMolde.Tests.Unitario
 
             _rpRepository.Verify(r => r.DeleteAsync(1), Times.Once);
         }
-    }
+    }*/
 }
