@@ -160,6 +160,10 @@ namespace TipMolde.Infrastructure.DB
                 .WithMany(p => p.Revisoes)
                 .HasForeignKey(r => r.Projeto_id);
 
+            modelBuilder.Entity<Revisao>()
+                .HasIndex(r => new { r.Projeto_id, r.NumRevisao })
+                .IsUnique();
+
             modelBuilder.Entity<RegistoTempoProjeto>()
                 .HasOne(r => r.Projeto)
                 .WithMany(p => p.RegistosTempo)

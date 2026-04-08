@@ -1,12 +1,12 @@
-﻿namespace TipMolde.Core.Models.Desenho
+﻿using TipMolde.Core.Enums;
+
+namespace TipMolde.Core.Models.Desenho
 {
     public class RegistoTempoProjeto
     {
-        public int RegistoTempoProjeto_id { get; set; }
-        public DateTime DataHora { get; set; }
-        public int Duracao { get; set; }
-        public string? Descricao { get; set; }
-        public string? EstadoTrabalho { get; set; }
+        public int Registo_Tempo_Projeto_id { get; set; }
+        public EstadoTempoProjeto Estado_tempo { get; set; } = EstadoTempoProjeto.INICIADO;
+        public DateTime Data_hora { get; set; }
 
         public int Projeto_id { get; set; }
         public Projeto? Projeto { get; set; }

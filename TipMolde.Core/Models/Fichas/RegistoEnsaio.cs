@@ -18,7 +18,7 @@ namespace TipMolde.Core.Models.Fichas
         public int FichaProducao_id { get; set; }
         public FichaProducao? FichaProducao { get; set; }
 
-        public int ResponsavelTip_id { get; set; }
-        public User? ResponsavelTip { get; set; }
+        public int Responsavel_id { get; set; }
+        public User? Responsavel { get; set; }
     }
 }

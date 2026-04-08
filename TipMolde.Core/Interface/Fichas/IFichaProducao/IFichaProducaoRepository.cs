@@ -5,6 +5,7 @@ namespace TipMolde.Core.Interface.Fichas.IFichaProducao
     public interface IFichaProducaoRepository : IGenericRepository<FichaProducao>
     {
         Task<IEnumerable<FichaProducao>> GetByEncomendaMoldeIdAsync(int encomendaMoldeId);
-        Task<FichaProducao?> GetCompletaByIdAsync(int id);
+        Task<FichaProducao?> GetByIdWithHeaderAsync(int id);
+        Task<FichaProducao?> GetFLTByIdAsync(int id);
     }
 }

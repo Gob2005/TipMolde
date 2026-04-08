@@ -18,6 +18,10 @@ using TipMolde.Core.Interface.Producao.IRegistosProducao;
 using TipMolde.Core.Interface.Utilizador.IAuth;
 using TipMolde.Core.Interface.Utilizador.ISecurity;
 using TipMolde.Core.Interface.Utilizador.IUser;
+using TipMolde.Core.Interface.Desenho.IProjeto;
+using TipMolde.Core.Interface.Desenho.IRevisao;
+using TipMolde.Core.Interface.Desenho.IRegistoTempoProjeto;
+using TipMolde.Core.Interface.Fichas.IFichaProducao;
 using TipMolde.Infrastructure.DB;
 using TipMolde.Infrastructure.Repositorio;
 using TipMolde.Infrastructure.Service;
@@ -90,6 +94,10 @@ builder.Services.AddScoped<IItemPedidoMaterialRepository, ItemPedidoMaterialRepo
 builder.Services.AddScoped<IEncomendaMoldeRepository, EncomendaMoldeRepository>();
 builder.Services.AddScoped<IMaquinaRepository, MaquinaRepository>();
 builder.Services.AddScoped<IRevokedTokenRepository, RevokedTokenRepository>();
+builder.Services.AddScoped<IProjetoRepository, ProjetoRepository>();
+builder.Services.AddScoped<IRevisaoRepository, RevisaoRepository>();
+builder.Services.AddScoped<IRegistoTempoProjetoRepository, RegistoTempoProjetoRepository>();
+builder.Services.AddScoped<IFichaProducaoRepository, FichaProducaoRepository>();
 
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserService, UserService>();
@@ -103,6 +111,10 @@ builder.Services.AddScoped<IFornecedorService, FornecedorService>();
 builder.Services.AddScoped<IPedidoMaterialService, PedidoMaterialService>();
 builder.Services.AddScoped<IEncomendaMoldeService, EncomendaMoldeService>();
 builder.Services.AddScoped<IMaquinaService, MaquinaService>();
+builder.Services.AddScoped<IProjetoService, ProjetoService>();
+builder.Services.AddScoped<IRevisaoService, RevisaoService>();
+builder.Services.AddScoped<IRegistoTempoProjetoService, RegistoTempoProjetoService>();
+builder.Services.AddScoped<IFichaProducaoService, FichaProducaoService>();
 
 builder.Services.AddScoped<IPasswordHasherService, PasswordHasherService>();
 builder.Services.AddScoped<ITokenService, JwtTokenService>();

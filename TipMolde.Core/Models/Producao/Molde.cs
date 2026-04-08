@@ -12,6 +12,7 @@ namespace TipMolde.Core.Models.Producao
         public string? Descricao { get; set; }
         public int Numero_cavidades { get; set; }
         public TipoPedido TipoPedido { get; set; }
+        public string? ImagemCapaPath { get; set; }
 
         public EspecificacoesTecnicas? Especificacoes { get; set; }
         public ICollection<Peca> Pecas { get; set; } = new List<Peca>();
