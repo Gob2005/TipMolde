@@ -16,6 +16,9 @@ namespace TipMolde.API.DTOs.MoldeDTO
         [MaxLength(100)]
         public string? Nome { get; set; }
 
+        [MaxLength(255)]
+        public string? ImagemCapaPath { get; set; }
+
         [MaxLength(1000)]
         public string? Descricao { get; set; }
 

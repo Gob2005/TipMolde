@@ -4,6 +4,7 @@ using TipMolde.API.DTOs.MoldeDTO;
 using TipMolde.Core.Interface.Producao.IMolde;
 using TipMolde.Core.Models.Producao;
 using TipMolde.Core.Models.Comercio;
+using TipMolde.Core.Interface.Relatorios;
 
 namespace TipMolde.API.Controllers
 {
@@ -12,10 +13,12 @@ namespace TipMolde.API.Controllers
     public class MoldeController : ControllerBase
     {
         private readonly IMoldeService _moldeService;
+        private readonly IRelatorioService _relatorioService;
 
-        public MoldeController(IMoldeService moldeService)
+        public MoldeController(IMoldeService moldeService, IRelatorioService relatorioService)
         {
             _moldeService = moldeService;
+            _relatorioService = relatorioService;
         }
 
         [Authorize(Roles = "ADMIN")]
@@ -55,6 +58,14 @@ namespace TipMolde.API.Controllers
             return Ok(ToResponse(molde));
         }
 
+        [Authorize(Roles = "ADMIN")]
+        [HttpGet("{id:int}/ciclo-vida-pdf")]
+        public async Task<IActionResult> ExportCicloVidaPdf(int id)
+        {
+            var result = await _relatorioService.GerarCicloVidaMoldePdfAsync(id);
+            return File(result.Content, "application/pdf", result.FileName);
+        }
+
         [Authorize(Roles = "ADMIN,GESTOR_COMERCIAL")]
         [HttpPost("create-molde")]
         public async Task<IActionResult> CreateMolde([FromBody] CreateMoldeDTO dto)
@@ -69,6 +80,7 @@ namespace TipMolde.API.Controllers
                 Numero = dto.Numero.Trim(),
                 NumeroMoldeCliente = dto.NumeroMoldeCliente,
                 Nome = dto.Nome,
+                ImagemCapaPath = dto.ImagemCapaPath,
                 Descricao = dto.Descricao,
                 Numero_cavidades = dto.Numero_cavidades,
                 TipoPedido = dto.TipoPedido
@@ -114,6 +126,7 @@ namespace TipMolde.API.Controllers
                 Molde_id = id,
                 Numero = dto.Numero ?? string.Empty,
                 Nome = dto.Nome,
+                ImagemCapaPath = dto.ImagemCapaPath,
                 Descricao = dto.Descricao,
                 Numero_cavidades = dto.Numero_cavidades ?? 0,
                 TipoPedido = dto.TipoPedido ?? default
@@ -153,6 +166,7 @@ namespace TipMolde.API.Controllers
             MoldeId = m.Molde_id,
             Numero = m.Numero,
             Nome = m.Nome,
+            ImagemCapaPath = m.ImagemCapaPath,
             Descricao = m.Descricao,
             Numero_cavidades = m.Numero_cavidades,
             TipoPedido = m.TipoPedido,

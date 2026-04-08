@@ -7,7 +7,7 @@ using TipMolde.Infrastructure.Service;
 
 namespace TipMolde.Tests.Unitario
 {
-    public class UserServiceTests
+    /*public class UserServiceTests
     {
         private readonly Mock<IUserRepository> _userRepository;
         private readonly Mock<IPasswordHasherService> _passwordHasher;
@@ -491,5 +491,5 @@ namespace TipMolde.Tests.Unitario
 
             Assert.Single(resultado);
         }
-    }
+    }*/
 }

@@ -56,6 +56,9 @@ namespace TipMolde.Infrastructure.Service
 
             existente.Numero = string.IsNullOrWhiteSpace(molde.Numero) ? existente.Numero : molde.Numero.Trim();
             existente.Nome = molde.Nome ?? existente.Nome;
+            existente.ImagemCapaPath = string.IsNullOrWhiteSpace(molde.ImagemCapaPath)
+                ? existente.ImagemCapaPath
+                : molde.ImagemCapaPath.Trim();
             existente.Descricao = molde.Descricao ?? existente.Descricao;
             existente.Numero_cavidades = molde.Numero_cavidades > 0 ? molde.Numero_cavidades : existente.Numero_cavidades;
             existente.TipoPedido = molde.TipoPedido;

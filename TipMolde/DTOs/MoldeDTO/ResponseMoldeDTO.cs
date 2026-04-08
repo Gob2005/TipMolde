@@ -7,6 +7,8 @@ namespace TipMolde.API.DTOs.MoldeDTO
         public int MoldeId { get; set; }
         public string? Numero { get; set; }
         public string? Nome { get; set; }
+
+        public string? ImagemCapaPath { get; set; }
         public string? Descricao { get; set; }
         public int Numero_cavidades { get; set; }
         public TipoPedido TipoPedido { get; set; }

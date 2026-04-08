@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using TipMolde.API.DTOs.FichaProducaoDTO;
 using TipMolde.Core.Interface.Fichas.IFichaProducao;
+using TipMolde.Core.Interface.Relatorios;
 using TipMolde.Core.Models.Fichas;
 
 namespace TipMolde.API.Controllers
@@ -11,10 +12,12 @@ namespace TipMolde.API.Controllers
     public class FichaProducaoController : ControllerBase
     {
         private readonly IFichaProducaoService _service;
+        private readonly IRelatorioService _relatorioService;
 
-        public FichaProducaoController(IFichaProducaoService service)
+        public FichaProducaoController(IFichaProducaoService service, IRelatorioService relatorioService)
         {
             _service = service;
+            _relatorioService = relatorioService;
         }
 
         [Authorize(Roles = "ADMIN")]
@@ -38,6 +41,22 @@ namespace TipMolde.API.Controllers
             var ficha = await _service.GetFLTByIdAsync(id);
             if (ficha == null) return NotFound();
             return Ok(ficha);
+        }
+
+        [Authorize(Roles = "ADMIN")]
+        [HttpGet("{id:int}/export-pdf")]
+        public async Task<IActionResult> ExportPdf(int id)
+        {
+            var result = await _relatorioService.GerarFichaPdfFTLAsync(id);
+            return File(result.Content, "application/pdf", result.FileName);
+        }
+
+        [Authorize(Roles = "ADMIN")]
+        [HttpGet("{id:int}/export-excel")]
+        public async Task<IActionResult> ExportExcel(int id)
+        {
+            var result = await _relatorioService.GerarFichaExcelFTLAsync(id);
+            return File(result.Content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", result.FileName);
         }
 
         [Authorize(Roles = "ADMIN")]
