@@ -1,7 +1,7 @@
 ﻿using Moq;
 using TipMolde.Core.Enums;
-using TipMolde.Core.Interface.ISecurity;
-using TipMolde.Core.Interface.IUser;
+using TipMolde.Core.Interface.Utilizador.ISecurity;
+using TipMolde.Core.Interface.Utilizador.IUser;
 using TipMolde.Core.Models;
 using TipMolde.Infrastructure.Service;
 

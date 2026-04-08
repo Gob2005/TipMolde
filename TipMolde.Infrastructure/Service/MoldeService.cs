@@ -1,6 +1,7 @@
-using TipMolde.Core.Interface.IEncomenda;
-using TipMolde.Core.Interface.IMolde;
-using TipMolde.Core.Models;
+using TipMolde.Core.Interface.Comercio.IEncomenda;
+using TipMolde.Core.Interface.Producao.IMolde;
+using TipMolde.Core.Models.Comercio;
+using TipMolde.Core.Models.Producao;
 
 namespace TipMolde.Infrastructure.Service
 {

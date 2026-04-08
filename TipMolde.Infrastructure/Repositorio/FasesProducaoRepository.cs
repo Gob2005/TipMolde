@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using TipMolde.Core.Enums;
-using TipMolde.Core.Interface.IFases_producao;
-using TipMolde.Core.Models;
+using TipMolde.Core.Interface.Producao.IFasesProducao;
+using TipMolde.Core.Models.Producao;
 using TipMolde.Infrastructure.DB;
 
 namespace TipMolde.Infrastructure.Repositorio
@@ -12,7 +12,7 @@ namespace TipMolde.Infrastructure.Repositorio
 
         public Task<FasesProducao?> GetByNomeAsync(Nome_fases nome)
         {
-            return _context.Set<FasesProducao>()
+            return _context.Fases_Producao
                 .AsNoTracking()
                 .FirstOrDefaultAsync(f => f.Nome == nome);
         }

@@ -1,5 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using TipMolde.Core.Interface.IUser;
+using TipMolde.Core.Interface.Utilizador.IUser;
 using TipMolde.Core.Models;
 using TipMolde.Infrastructure.DB;
 

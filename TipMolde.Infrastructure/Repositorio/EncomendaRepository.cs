@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using TipMolde.Core.Enums;
-using TipMolde.Core.Interface.IEncomenda;
-using TipMolde.Core.Models;
+using TipMolde.Core.Interface.Comercio.IEncomenda;
+using TipMolde.Core.Models.Comercio;
 using TipMolde.Infrastructure.DB;
 
 namespace TipMolde.Infrastructure.Repositorio

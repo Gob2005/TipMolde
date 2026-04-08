@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using TipMolde.Core.Interface.IPedidoMaterial;
-using TipMolde.Core.Models;
+using TipMolde.Core.Interface.Comercio.IPedidoMaterial;
+using TipMolde.Core.Models.Comercio;
 using TipMolde.Infrastructure.DB;
 
 namespace TipMolde.Infrastructure.Repositorio

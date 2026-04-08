@@ -1,6 +1,6 @@
-﻿using TipMolde.Core.Interface.IMolde;
-using TipMolde.Core.Interface.IPeca;
-using TipMolde.Core.Models;
+﻿using TipMolde.Core.Interface.Producao.IMolde;
+using TipMolde.Core.Interface.Producao.IPeca;
+using TipMolde.Core.Models.Producao;
 
 namespace TipMolde.Infrastructure.Service
 {

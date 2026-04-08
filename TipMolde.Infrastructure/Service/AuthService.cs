@@ -1,5 +1,5 @@
-using TipMolde.Core.Interface.IAuth;
-using TipMolde.Core.Interface.ISecurity;
+using TipMolde.Core.Interface.Utilizador.IAuth;
+using TipMolde.Core.Interface.Utilizador.ISecurity;
 
 namespace TipMolde.Infrastructure.Service
 {

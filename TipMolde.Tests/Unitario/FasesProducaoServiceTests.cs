@@ -1,7 +1,7 @@
 ﻿using Moq;
 using TipMolde.Core.Enums;
-using TipMolde.Core.Interface.IFases_producao;
-using TipMolde.Core.Models;
+using TipMolde.Core.Interface.Producao.IFasesProducao;
+using TipMolde.Core.Models.Producao;
 using TipMolde.Infrastructure.Service;
 
 namespace TipMolde.Tests.Unitario

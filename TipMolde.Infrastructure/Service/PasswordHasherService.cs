@@ -1,5 +1,5 @@
 ﻿using System.Security.Cryptography;
-using TipMolde.Core.Interface.ISecurity;
+using TipMolde.Core.Interface.Utilizador.ISecurity;
 
 namespace TipMolde.Infrastructure.Service
 {

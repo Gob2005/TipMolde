@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
-using TipMolde.Core.Interface.IMolde;
-using TipMolde.Core.Models;
+using TipMolde.Core.Interface.Producao.IMolde;
+using TipMolde.Core.Models.Comercio;
+using TipMolde.Core.Models.Producao;
 using TipMolde.Infrastructure.DB;
 
 namespace TipMolde.Infrastructure.Repositorio

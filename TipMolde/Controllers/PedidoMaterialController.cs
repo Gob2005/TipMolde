@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TipMolde.API.DTOs.PedidoMaterialDTO;
-using TipMolde.Core.Interface.IPedidoMaterial;
-using TipMolde.Core.Models;
+using TipMolde.Core.Interface.Comercio.IPedidoMaterial;
+using TipMolde.Core.Models.Comercio;
 
 namespace TipMolde.API.Controllers
 {

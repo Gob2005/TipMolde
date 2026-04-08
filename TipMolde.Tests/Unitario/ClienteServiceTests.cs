@@ -1,6 +1,6 @@
 using Moq;
-using TipMolde.Core.Interface.ICliente;
-using TipMolde.Core.Models;
+using TipMolde.Core.Interface.Comercio.ICliente;
+using TipMolde.Core.Models.Comercio;
 using TipMolde.Infrastructure.Service;
 
 namespace TipMolde.Tests.Unitario

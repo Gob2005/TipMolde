@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TipMolde.API.DTOs.EncomendaMoldeDTO;
-using TipMolde.Core.Interface.IEncomendaMolde;
-using TipMolde.Core.Models;
+using TipMolde.Core.Interface.Comercio.IEncomendaMolde;
+using TipMolde.Core.Models.Comercio;
 
 namespace TipMolde.API.Controllers
 {

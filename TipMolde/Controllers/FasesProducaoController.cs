@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TipMolde.API.DTOs.Fases_producaoDTO;
-using TipMolde.Core.Interface.IFases_producao;
-using TipMolde.Core.Models;
+using TipMolde.Core.Interface.Producao.IFasesProducao;
+using TipMolde.Core.Models.Producao;
 
 namespace TipMolde.API.Controllers
 {

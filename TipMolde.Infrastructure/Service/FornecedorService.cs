@@ -1,5 +1,5 @@
-﻿using TipMolde.Core.Interface.IFornecedor;
-using TipMolde.Core.Models;
+﻿using TipMolde.Core.Interface.Comercio.IFornecedor;
+using TipMolde.Core.Models.Comercio;
 
 namespace TipMolde.Infrastructure.Service
 {

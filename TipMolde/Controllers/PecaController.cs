@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TipMolde.API.DTOs.PecaDTO;
-using TipMolde.Core.Interface.IPeca;
-using TipMolde.Core.Models;
+using TipMolde.Core.Interface.Producao.IPeca;
+using TipMolde.Core.Models.Producao;
 
 namespace TipMolde.API.Controllers
 {

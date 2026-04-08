@@ -1,5 +1,5 @@
-﻿using TipMolde.Core.Interface.IFases_producao;
-using TipMolde.Core.Models;
+﻿using TipMolde.Core.Interface.Producao.IFasesProducao;
+using TipMolde.Core.Models.Producao;
 
 namespace TipMolde.Infrastructure.Service
 {

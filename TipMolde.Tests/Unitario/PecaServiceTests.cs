@@ -1,8 +1,8 @@
 using Moq;
 using TipMolde.Core.Enums;
-using TipMolde.Core.Interface.IMolde;
-using TipMolde.Core.Interface.IPeca;
-using TipMolde.Core.Models;
+using TipMolde.Core.Interface.Producao.IMolde;
+using TipMolde.Core.Interface.Producao.IPeca;
+using TipMolde.Core.Models.Producao;
 using TipMolde.Infrastructure.Service;
 
 namespace TipMolde.Tests.Unitario
@@ -23,7 +23,7 @@ namespace TipMolde.Tests.Unitario
             Molde_id = id,
             Numero = $"M-{id}",
             Numero_cavidades = 1,
-            TipoPedido = TipoPedido.NOVO
+            TipoPedido = TipoPedido.NOVO_MOLDE
         };
 
         private static Peca PecaFake(int id = 1, int moldeId = 1, string designacao = "Extrator") => new()

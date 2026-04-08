@@ -1,10 +1,11 @@
 using Moq;
 using TipMolde.Core.Enums;
-using TipMolde.Core.Interface.IFases_producao;
-using TipMolde.Core.Interface.IPeca;
-using TipMolde.Core.Interface.IRegistosProducao;
-using TipMolde.Core.Interface.IUser;
+using TipMolde.Core.Interface.Producao.IFasesProducao;
+using TipMolde.Core.Interface.Producao.IPeca;
+using TipMolde.Core.Interface.Producao.IRegistosProducao;
+using TipMolde.Core.Interface.Utilizador.IUser;
 using TipMolde.Core.Models;
+using TipMolde.Core.Models.Producao;
 using TipMolde.Infrastructure.Service;
 
 namespace TipMolde.Tests.Unitario

@@ -1,9 +1,9 @@
-﻿using TipMolde.Core.Interface.IFornecedor;
-using TipMolde.Core.Interface.IPeca;
-using TipMolde.Core.Interface.IPedidoMaterial;
-using TipMolde.Core.Interface.IPedidoMaterial.IItemPedidoMaterial;
-using TipMolde.Core.Interface.IUser;
-using TipMolde.Core.Models;
+﻿using TipMolde.Core.Interface.Comercio.IFornecedor;
+using TipMolde.Core.Interface.Comercio.IPedidoMaterial;
+using TipMolde.Core.Interface.Comercio.IPedidoMaterial.IItemPedidoMaterial;
+using TipMolde.Core.Interface.Producao.IPeca;
+using TipMolde.Core.Interface.Utilizador.IUser;
+using TipMolde.Core.Models.Comercio;
 
 namespace TipMolde.Infrastructure.Service
 {

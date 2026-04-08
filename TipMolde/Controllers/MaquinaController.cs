@@ -2,8 +2,8 @@
 using Microsoft.AspNetCore.Mvc;
 using TipMolde.API.DTOs.MaquinaDTO;
 using TipMolde.Core.Enums;
-using TipMolde.Core.Interface.IMaquina;
-using TipMolde.Core.Models;
+using TipMolde.Core.Interface.Producao.IMaquina;
+using TipMolde.Core.Models.Producao;
 
 namespace TipMolde.API.Controllers
 {

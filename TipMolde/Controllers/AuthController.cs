@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using TipMolde.API.DTOs.AuthDTO;
 using TipMolde.API.DTOs.UserDTO;
-using TipMolde.Core.Interface.IAuth;
+using TipMolde.Core.Interface.Utilizador.IAuth;
 
 namespace TipMolde.API.Controllers
 {

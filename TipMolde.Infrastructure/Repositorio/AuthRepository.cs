@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using TipMolde.Core.Interface.IAuth;
+using TipMolde.Core.Interface.Utilizador.IAuth;
 using TipMolde.Core.Models;
 using TipMolde.Infrastructure.DB;
 

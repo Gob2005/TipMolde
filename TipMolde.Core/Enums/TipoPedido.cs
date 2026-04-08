@@ -2,7 +2,8 @@
 {
     public enum TipoPedido
     {
-        NOVO,
-        REPARACAO
+        NOVO_MOLDE,
+        REPARACAO,
+        ALTERACAO
     }
 }

@@ -2,9 +2,9 @@
 using Microsoft.AspNetCore.Mvc;
 using TipMolde.API.DTOs.EncomendaDTO;
 using TipMolde.Core.Enums;
-using TipMolde.Core.Interface.ICliente;
-using TipMolde.Core.Interface.IEncomenda;
-using TipMolde.Core.Models;
+using TipMolde.Core.Interface.Comercio.IEncomenda;
+using TipMolde.Core.Interface.Comercio.ICliente;
+using TipMolde.Core.Models.Comercio;
 
 namespace TipMolde.API.Controllers
 {

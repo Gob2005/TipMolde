@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using TipMolde.API.DTOs.RegistoProducaoDTO;
-using TipMolde.Core.Interface.IRegistosProducao;
-using TipMolde.Core.Models;
+using TipMolde.Core.Interface.Producao.IRegistosProducao;
+using TipMolde.Core.Models.Producao;
 
 namespace TipMolde.API.Controllers
 {

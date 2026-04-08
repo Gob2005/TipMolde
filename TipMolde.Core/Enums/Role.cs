@@ -5,6 +5,6 @@
         ADMIN,
         GESTOR_COMERCIAL,
         GESTOR_DESENHO,
-       GESTOR_PRODUCAO
+        GESTOR_PRODUCAO
     }
 }
