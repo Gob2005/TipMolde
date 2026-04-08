@@ -10,7 +10,7 @@ namespace TipMolde.Core.Interface.Utilizador.IUser
         Task<User> CreateUserAsync(User user);
         Task UpdateUserAsync(User user);
         Task ChangeRoleAsync(int id, UserRole newRole);
-        Task ChangePasswordAsync(string email, string currentPassword, string newPassword);
+        Task ChangePasswordAsync(int userId, string currentPassword, string newPassword);
         Task ResetPasswordAsync(int userId, string newPassword);
         Task DeleteUserAsync(int id);
         Task<IEnumerable<User>> SearchByNameAsync(string searchTerm);

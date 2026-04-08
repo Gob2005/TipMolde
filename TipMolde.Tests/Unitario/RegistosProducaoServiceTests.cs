@@ -1,6 +1,7 @@
 using Moq;
 using TipMolde.Core.Enums;
 using TipMolde.Core.Interface.Producao.IFasesProducao;
+using TipMolde.Core.Interface.Producao.IMaquina;
 using TipMolde.Core.Interface.Producao.IPeca;
 using TipMolde.Core.Interface.Producao.IRegistosProducao;
 using TipMolde.Core.Interface.Utilizador.IUser;
@@ -16,6 +17,7 @@ namespace TipMolde.Tests.Unitario
         private readonly Mock<IFasesProducaoRepository> _fpRepository = new();
         private readonly Mock<IUserRepository> _userRepository = new();
         private readonly Mock<IPecaRepository> _pecaRepository = new();
+        private readonly Mock<IMaquinaRepository> _maquinaRepository = new();
 
         private readonly RegistosProducaoService _sut;
 
@@ -25,6 +27,7 @@ namespace TipMolde.Tests.Unitario
                 _rpRepository.Object,
                 _fpRepository.Object,
                 _userRepository.Object,
+                _maquinaRepository.Object,
                 _pecaRepository.Object);
         }
 

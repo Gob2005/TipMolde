@@ -26,6 +26,19 @@ namespace TipMolde.Infrastructure.Service
             return _userRepository.GetByIdAsync(id);
         }
 
+        public Task<IEnumerable<User>> SearchByNameAsync(string searchTerm)
+        {
+            if (string.IsNullOrWhiteSpace(searchTerm))
+                return Task.FromResult(Enumerable.Empty<User>());
+
+            return _userRepository.SearchByNameAsync(searchTerm);
+        }
+
+        public Task<User?> GetUserByEmailAsync(string email)
+        {
+            return _userRepository.GetByEmailAsync(email);
+        }
+
         public async Task<User> CreateUserAsync(User user)
         {
             user.Email = user.Email.Trim().ToLowerInvariant();
@@ -38,6 +51,7 @@ namespace TipMolde.Infrastructure.Service
             if (string.IsNullOrWhiteSpace(user.Password)) throw new ArgumentException("Senha e obrigatoria.");
 
             user.Nome = user.Nome.Trim();
+            ValidatePasswordComplexity(user.Password);
             user.Password = _passwordHasher.Hash(user.Password);
 
             await _userRepository.AddAsync(user);
@@ -66,24 +80,24 @@ namespace TipMolde.Infrastructure.Service
             await _userRepository.UpdateAsync(user);
         }
 
-        public async Task ChangePasswordAsync(string email, string currentPassword, string newPassword)
+        public async Task ChangePasswordAsync(int userId, string currentPassword, string newPassword)
         {
-            var user = await _userRepository.GetByEmailAsync(email);
+            var user = await _userRepository.GetByIdAsync(userId);
             if (user == null)
                 throw new KeyNotFoundException("Utilizador nao encontrado.");
 
-            bool valid;
-            if (_passwordHasher.IsHash(user.Password))
-                valid = _passwordHasher.Verify(currentPassword, user.Password);
-            else
-                valid = user.Password == currentPassword;
+            bool valid = _passwordHasher.IsHash(user.Password)
+                ? _passwordHasher.Verify(currentPassword, user.Password)
+                : user.Password == currentPassword;
 
             if (!valid)
                 throw new UnauthorizedAccessException("Password atual invalida.");
 
+            ValidatePasswordComplexity(newPassword);
             user.Password = _passwordHasher.Hash(newPassword);
             await _userRepository.UpdateAsync(user);
         }
+
 
         public async Task ResetPasswordAsync(int userId, string newPassword)
         {
@@ -91,6 +105,7 @@ namespace TipMolde.Infrastructure.Service
             if (user == null)
                 throw new KeyNotFoundException($"Utilizador com ID {userId} nao encontrado.");
 
+            ValidatePasswordComplexity(newPassword);
             user.Password = _passwordHasher.Hash(newPassword);
             await _userRepository.UpdateAsync(user);
         }
@@ -105,18 +120,14 @@ namespace TipMolde.Infrastructure.Service
 
             await _userRepository.DeleteAsync(id);
         }
-
-        public Task<IEnumerable<User>> SearchByNameAsync(string searchTerm)
+        private static void ValidatePasswordComplexity(string password)
         {
-            if (string.IsNullOrWhiteSpace(searchTerm))
-                return Task.FromResult(Enumerable.Empty<User>());
-
-            return _userRepository.SearchByNameAsync(searchTerm);
-        }
-
-        public Task<User?> GetUserByEmailAsync(string email)
-        {
-            return _userRepository.GetByEmailAsync(email);
+            if (password.Length < 8 ||
+                !password.Any(char.IsUpper) ||
+                !password.Any(char.IsLower) ||
+                !password.Any(char.IsDigit) ||
+                !password.Any(ch => !char.IsLetterOrDigit(ch)))
+                throw new ArgumentException("A password deve ter pelo menos 8 caracteres, maiuscula, minuscula, numero e simbolo.");
         }
     }
 }

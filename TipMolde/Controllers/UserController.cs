@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using TipMolde.API.DTOs.UserDTO;
 using TipMolde.Core.Interface.Utilizador.IUser;
 using TipMolde.Core.Models;
@@ -17,6 +19,7 @@ namespace TipMolde.API.Controllers
             _userService = userService;
         }
 
+        [Authorize(Roles = "ADMIN")]
         [HttpGet("all-users")]
         public async Task<IActionResult> GetAllUsers()
         {
@@ -24,6 +27,7 @@ namespace TipMolde.API.Controllers
             return Ok(users);
         }
 
+        [Authorize(Roles = "ADMIN")]
         [HttpGet("user-byID")]
         public async Task<IActionResult> GetUserById(int id)
         {
@@ -32,6 +36,7 @@ namespace TipMolde.API.Controllers
             return Ok(user);
         }
 
+        [Authorize(Roles = "ADMIN")]
         [HttpGet("search-name")]
         public async Task<IActionResult> SearchByName([FromQuery] string searchTerm)
         {
@@ -98,7 +103,13 @@ namespace TipMolde.API.Controllers
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            await _userService.ChangePasswordAsync(dto.Email, dto.CurrentPassword, dto.NewPassword);
+            var sub = User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value
+              ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (!int.TryParse(sub, out var userId))
+                return Unauthorized("Token invalido.");
+
+            await _userService.ChangePasswordAsync(userId, dto.CurrentPassword, dto.NewPassword);
             return NoContent();
         }
 

@@ -26,6 +26,7 @@ namespace TipMolde.API.Controllers
             return Ok(moldes.Select(ToResponse));
         }
 
+        [Authorize]
         [HttpGet("molde-byID")]
         public async Task<IActionResult> GetMoldeById(int id)
         {
@@ -42,6 +43,7 @@ namespace TipMolde.API.Controllers
             return Ok(moldes.Select(ToResponse));
         }
 
+        [Authorize]
         [HttpGet("by-numero")]
         public async Task<IActionResult> GetByNumero([FromQuery] string numero)
         {

@@ -18,7 +18,7 @@ namespace TipMolde.API.Controllers
             _clienteService = clienteService;
         }
 
-        [Authorize(Roles = "ADMIN,GESTOR_COMERCIAL")]
+        [Authorize(Roles = "ADMIN,GESTOR_COMERCIAL,GESTOR_DESENHO")]
         [HttpGet("all-clientes")]
         public async Task<IActionResult> GetAllClientes()
         {
@@ -26,7 +26,7 @@ namespace TipMolde.API.Controllers
             return Ok(clientes.Select(ToResponse));
         }
 
-        [Authorize(Roles = "ADMIN,GESTOR_COMERCIAL")]
+        [Authorize(Roles = "ADMIN,GESTOR_COMERCIAL,GESTOR_DESENHO")]
         [HttpGet("cliente-byID")]
         public async Task<IActionResult> GetClienteById(int id)
         {
@@ -44,7 +44,7 @@ namespace TipMolde.API.Controllers
             return Ok(ToResponseWithEncomendas(cliente));
         }
 
-        [Authorize(Roles = "ADMIN,GESTOR_COMERCIAL")]
+        [Authorize(Roles = "ADMIN,GESTOR_COMERCIAL,GESTOR_DESENHO")]
         [HttpGet("search-name")]
         public async Task<IActionResult> SearchByName([FromQuery] string searchTerm)
         {
@@ -52,7 +52,7 @@ namespace TipMolde.API.Controllers
             return Ok(clientes.Select(ToResponse));
         }
 
-        [Authorize(Roles = "ADMIN,GESTOR_COMERCIAL")]
+        [Authorize(Roles = "ADMIN,GESTOR_COMERCIAL,GESTOR_DESENHO")]
         [HttpGet("search-sigla")]
         public async Task<IActionResult> SearchBySigla([FromQuery] string searchTerm)
         {

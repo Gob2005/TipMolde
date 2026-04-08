@@ -81,7 +81,7 @@ namespace TipMolde.Infrastructure.Service
             existente.NomeServicoCliente = encomenda.NomeServicoCliente ?? existente.NomeServicoCliente;
             existente.NomeResponsavelCliente = encomenda.NomeResponsavelCliente ?? existente.NomeResponsavelCliente;
 
-            await _encomendaRepository.UpdateAsync(encomenda);
+            await _encomendaRepository.UpdateAsync(existente);
         }
 
         public async Task UpdateEstadoEncomendaAsync(int id, EstadoEncomenda novoEstado)

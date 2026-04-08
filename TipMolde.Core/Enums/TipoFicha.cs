@@ -2,7 +2,7 @@
 {
     public enum TipoFicha
     {
-        FTL,
+        FLT,
         FRE,
         FRM,
         FRA,

@@ -4,10 +4,7 @@ namespace TipMolde.Core.Enums
 {
     public enum TipoProjeto
     {
-        [Description("2D")]
-        Dimension2,
-
-        [Description("3D")]
-        Dimension3
+        PROJETO_2D,
+        PROJETO_3D
     }
 }

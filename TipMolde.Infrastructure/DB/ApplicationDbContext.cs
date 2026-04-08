@@ -11,6 +11,8 @@ namespace TipMolde.Infrastructure.DB
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
 
+        public virtual DbSet<RevokedToken> RevokedTokens { get; set; }
+
         public virtual DbSet<User> Users { get; set; }
         public virtual DbSet<Cliente> Clientes { get; set; }
         public virtual DbSet<Molde> Moldes { get; set; }
@@ -36,6 +38,15 @@ namespace TipMolde.Infrastructure.DB
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<RevokedToken>()
+                .HasIndex(x => x.Jti)
+                .IsUnique();
+
+            modelBuilder.Entity<RevokedToken>()
+                .Property(x => x.Jti)
+                .HasMaxLength(200);
+
 
             modelBuilder.Entity<Cliente>()
                 .HasIndex(c => c.NIF)
@@ -90,6 +101,15 @@ namespace TipMolde.Infrastructure.DB
             modelBuilder.Entity<Maquina>()
                 .Property(m => m.Estado).HasConversion<string>().HasMaxLength(30);
 
+            modelBuilder.Entity<Maquina>()
+                .HasIndex(m => m.Numero)
+                .IsUnique();
+
+            modelBuilder.Entity<Maquina>()
+                .HasOne(m => m.FaseDedicada)
+                .WithMany()
+                .HasForeignKey(m => m.FaseDedicada_id);
+
             modelBuilder.Entity<FasesProducao>()
                 .HasIndex(f => f.Nome)
                 .IsUnique();
@@ -127,6 +147,13 @@ namespace TipMolde.Infrastructure.DB
                 .HasOne(p => p.Molde)
                 .WithMany()
                 .HasForeignKey(p => p.Molde_id);
+
+            modelBuilder.Entity<Projeto>()
+                .Property(p => p.TipoProjeto)
+                .HasConversion(
+                    v => v == TipMolde.Core.Enums.TipoProjeto.PROJETO_2D ? "2D" : "3D",
+                    v => v == "2D" ? TipMolde.Core.Enums.TipoProjeto.PROJETO_2D : TipMolde.Core.Enums.TipoProjeto.PROJETO_3D)
+                .HasMaxLength(10);
 
             modelBuilder.Entity<Revisao>()
                 .HasOne(r => r.Projeto)

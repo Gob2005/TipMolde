@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using TipMolde.API.DTOs.RegistoProducaoDTO;
 using TipMolde.Core.Interface.Producao.IRegistosProducao;
 using TipMolde.Core.Models.Producao;
@@ -16,6 +17,7 @@ namespace TipMolde.API.Controllers
             _registosProducaoService = registosProducaoService;
         }
 
+        [Authorize(Roles = "ADMIN")]
         [HttpGet("all-registos_producao")]
         public async Task<IActionResult> GetAllRegistos_producao()
         {
@@ -23,6 +25,7 @@ namespace TipMolde.API.Controllers
             return Ok(registosProducao);
         }
 
+        [Authorize(Roles = "ADMIN")]
         [HttpGet("registos_producao-byID")]
         public async Task<IActionResult> GetRegistos_producaoById(int id)
         {
@@ -31,6 +34,7 @@ namespace TipMolde.API.Controllers
             return Ok(registoProducao);
         }
 
+        [Authorize(Roles = "ADMIN")]
         [HttpGet("historico")]
         public async Task<IActionResult> GetHistorico(
             [FromQuery] int faseId,
@@ -40,6 +44,7 @@ namespace TipMolde.API.Controllers
             return Ok(historico);
         }
 
+        [Authorize(Roles = "ADMIN, GESTOR_PRODUCAO")]
         [HttpPost("add-registos_producao")]
         public async Task<IActionResult> AddRegistos_producao([FromBody] CreateRegistosProducaoDTO dto)
         {
@@ -58,6 +63,7 @@ namespace TipMolde.API.Controllers
             return CreatedAtAction(nameof(GetRegistos_producaoById), new { id = createdRegistoProducao.Registo_Producao_id }, createdRegistoProducao);
         }
 
+        [Authorize(Roles = "ADMIN")]
         [HttpDelete("delete-registos_producao")]
         public async Task<IActionResult> DeleteRegistos_producao(int id)
         {

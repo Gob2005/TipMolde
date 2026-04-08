@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using System.IdentityModel.Tokens.Jwt;
 using TipMolde.API.Middleware;
 using TipMolde.Core.Interface.Comercio.ICliente;
 using TipMolde.Core.Interface.Comercio.IEncomenda;
@@ -59,7 +60,19 @@ builder.Services
             ValidateLifetime = true,
             ClockSkew = TimeSpan.FromMinutes(1)
         };
+
+        options.Events = new JwtBearerEvents
+        {
+            OnTokenValidated = async context =>
+            {
+                var repo = context.HttpContext.RequestServices.GetRequiredService<IRevokedTokenRepository>();
+                var jti = context.Principal?.FindFirst(JwtRegisteredClaimNames.Jti)?.Value;
+                if (string.IsNullOrWhiteSpace(jti) || await repo.IsRevokedAsync(jti))
+                    context.Fail("Token revogado.");
+            }
+        };
     });
+
 
 builder.Services.AddAuthorization();
 
@@ -76,6 +89,7 @@ builder.Services.AddScoped<IPedidoMaterialRepository, PedidoMaterialRepository>(
 builder.Services.AddScoped<IItemPedidoMaterialRepository, ItemPedidoMaterialRepository>();
 builder.Services.AddScoped<IEncomendaMoldeRepository, EncomendaMoldeRepository>();
 builder.Services.AddScoped<IMaquinaRepository, MaquinaRepository>();
+builder.Services.AddScoped<IRevokedTokenRepository, RevokedTokenRepository>();
 
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserService, UserService>();

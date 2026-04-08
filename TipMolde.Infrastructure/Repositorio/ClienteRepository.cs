@@ -29,19 +29,19 @@ namespace TipMolde.Infrastructure.Repositorio
 
         public async Task<IEnumerable<Cliente>> SearchByNameAsync(string searchTerm)
         {
-            var term = $"%{searchTerm.Trim()}%";
+            var term = searchTerm.Trim().ToLower();
             return await _context.Clientes
                 .AsNoTracking()
-                .Where(c => EF.Functions.Like(c.Nome, term))
+                .Where(c => c.Nome.ToLower().Contains(term))
                 .OrderBy(c => c.Nome)
                 .ToListAsync();
         }
         public async Task<IEnumerable<Cliente>> SearchBySiglaAsync(string searchTerm)
         {
-            var term = $"%{searchTerm.Trim()}%";
+            var term = searchTerm.Trim().ToLower();
             return await _context.Clientes
                 .AsNoTracking()
-                .Where(c => EF.Functions.Like(c.Sigla, term))
+                .Where(c => c.Sigla.ToLower().Contains(term))
                 .OrderBy(c => c.Sigla)
                 .ToListAsync();
         }
