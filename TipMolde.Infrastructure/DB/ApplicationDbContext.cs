@@ -93,6 +93,12 @@ namespace TipMolde.Infrastructure.DB
             modelBuilder.Entity<Encomenda>()
                 .Property(e => e.Estado).HasConversion<string>().HasMaxLength(30);
 
+            modelBuilder.Entity<Encomenda>()
+                .HasOne(e => e.Cliente)
+                .WithMany(c => c.Encomendas)
+                .HasForeignKey(e => e.Cliente_id)
+                .OnDelete(DeleteBehavior.Restrict);
+
             modelBuilder.Entity<EspecificacoesTecnicas>()
                 .HasOne(e => e.Molde)
                 .WithOne(m => m.Especificacoes)
@@ -149,6 +155,12 @@ namespace TipMolde.Infrastructure.DB
 
             modelBuilder.Entity<FichaProducao>()
                 .Property(f => f.Tipo).HasConversion<string>().HasMaxLength(10);
+
+            modelBuilder.Entity<FichaProducao>()
+                .HasOne(f => f.EncomendaMolde)
+                .WithMany(em => em.Fichas)
+                .HasForeignKey(f => f.EncomendaMolde_id)
+                .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<RegistoOcorrencia>()
                 .HasOne(r => r.FichaProducao)
