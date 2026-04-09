@@ -1,11 +1,13 @@
-﻿namespace TipMolde.API.DTOs.PedidoMaterialDTO
+﻿using TipMolde.Core.Enums;
+
+namespace TipMolde.API.DTOs.PedidoMaterialDTO
 {
     public class ResponsePedidoMaterialDTO
     {
         public int PedidoMaterialId { get; set; }
         public DateTime DataPedido { get; set; }
         public DateTime? DataRececao { get; set; }
-        public string? Estado { get; set; }
+        public EstadoPedido Estado { get; set; }
         public int FornecedorId { get; set; }
         public int? UserConferenteId { get; set; }
 

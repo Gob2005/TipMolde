@@ -101,15 +101,6 @@ namespace TipMolde.Infrastructure.Service
             await _rpRepository.AddAsync(registo);
             return registo;
         }
-
-        public async Task DeleteRegistoProducaoAsync(int id)
-        {
-            var registo = await _rpRepository.GetByIdAsync(id);
-            if (registo == null)
-                throw new KeyNotFoundException($"Registo de Producao com ID {id} nao encontrado.");
-
-            await _rpRepository.DeleteAsync(id);
-        }
         private static void ValidarTransicaoEstado(EstadoProducao? estadoActual, EstadoProducao novoEstado)
         {
             if (estadoActual is null)

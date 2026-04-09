@@ -107,7 +107,7 @@ namespace TipMolde.Tests.Unitario
                 MaterialMovimentos = "AISI 420",
                 AcabamentoPeca = "Polido",
                 Contracao = 1.20m,
-                Cor = "BI",
+                Cor = CorMolde.BICOLOR,
                 LadoFixo = true,
                 LadoMovel = true
             };

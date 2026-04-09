@@ -21,7 +21,7 @@ namespace TipMolde.API.DTOs.MoldeDTO
         public string? SistemaInjecao { get; set; }
         public decimal? Contracao { get; set; }
         public string? AcabamentoPeca { get; set; }
-        public string? Cor { get; set; }
+        public CorMolde? Cor { get; set; }
         public string? MaterialMacho { get; set; }
         public string? MaterialCavidade { get; set; }
         public string? MaterialMovimentos { get; set; }

@@ -62,14 +62,6 @@ namespace TipMolde.API.Controllers
             var createdRegistoProducao = await _registosProducaoService.CreateRegistoProducaoAsync(rp);
             return CreatedAtAction(nameof(GetRegistos_producaoById), new { id = createdRegistoProducao.Registo_Producao_id }, createdRegistoProducao);
         }
-
-        [Authorize(Roles = "ADMIN")]
-        [HttpDelete("delete-registos_producao")]
-        public async Task<IActionResult> DeleteRegistos_producao(int id)
-        {
-            await _registosProducaoService.DeleteRegistoProducaoAsync(id);
-            return NoContent();
-        }
     }
 
 }

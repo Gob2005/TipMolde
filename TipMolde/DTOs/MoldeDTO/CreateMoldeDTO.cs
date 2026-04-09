@@ -53,8 +53,7 @@ namespace TipMolde.API.DTOs.MoldeDTO
         [MaxLength(50)]
         public string? AcabamentoPeca { get; set; }
 
-        [MaxLength(30)]
-        public string? Cor { get; set; }
+        public CorMolde? Cor { get; set; }
 
         [MaxLength(50)]
         public string? MaterialMacho { get; set; }

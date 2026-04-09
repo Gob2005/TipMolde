@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Configuration;
 using QuestPDF.Fluent;
 using QuestPDF.Infrastructure;
+using TipMolde.Core.Enums;
 using TipMolde.Core.Interface.Fichas.IFichaDocumento;
 using TipMolde.Core.Interface.Relatorios;
 using TipMolde.Core.Models.Comercio;
@@ -86,11 +87,11 @@ namespace TipMolde.Infrastructure.Service
             ws.Cell("D32").Value = context.Specs?.MaterialMovimentos;
             ws.Cell("E34").Value = context.Specs?.SistemaInjecao;
 
-            var cor = (context.Specs?.Cor ?? "").Trim().ToUpperInvariant();
+            var cor = context.Specs?.Cor;
 
-            SetX(ws, "F26", cor == "MONO");
-            SetX(ws, "H26", cor == "BI");
-            SetX(ws, "J26", cor != "MONO" && cor != "BI" && !string.IsNullOrWhiteSpace(cor));
+            SetX(ws, "F26", cor == CorMolde.MONOCOLOR);
+            SetX(ws, "H26", cor == CorMolde.BICOLOR);
+            SetX(ws, "J26", cor == CorMolde.OUTRO);
 
             SetX(ws, "G33", context.Specs?.LadoFixo == true);
             SetX(ws, "J33", context.Specs?.LadoMovel == true);
@@ -150,11 +151,11 @@ namespace TipMolde.Infrastructure.Service
             ws.Cell("J21").Value = context.Specs?.AcabamentoPeca;
             ws.Cell("E22").Value = context.Specs?.SistemaInjecao;
 
-            var cor = (context.Specs?.Cor ?? "").Trim().ToUpperInvariant();
+            var cor = context.Specs?.Cor;
 
-            SetX(ws, "F18", cor == "MONO");
-            SetX(ws, "H18", cor == "BI");
-            SetX(ws, "J18", cor != "MONO" && cor != "BI" && !string.IsNullOrWhiteSpace(cor));
+            SetX(ws, "F18", cor == CorMolde.MONOCOLOR);
+            SetX(ws, "H18", cor == CorMolde.BICOLOR);
+            SetX(ws, "J18", cor == CorMolde.OUTRO);
 
             ws.Cell("D26").Value = context.Cliente.Nome;
             ws.Cell("D27").Value = context.Encomenda.NomeServicoCliente;

@@ -1,4 +1,5 @@
-﻿using TipMolde.Core.Interface.Comercio.IFornecedor;
+﻿using TipMolde.Core.Enums;
+using TipMolde.Core.Interface.Comercio.IFornecedor;
 using TipMolde.Core.Interface.Comercio.IPedidoMaterial;
 using TipMolde.Core.Interface.Comercio.IPedidoMaterial.IItemPedidoMaterial;
 using TipMolde.Core.Interface.Producao.IPeca;
@@ -48,7 +49,7 @@ namespace TipMolde.Infrastructure.Service
                 throw new ArgumentException("Pedido deve conter itens.");
 
             pedido.DataPedido = DateTime.UtcNow;
-            pedido.Estado = "Pendente";
+            pedido.Estado = EstadoPedido.PENDENTE;
 
             await _pedidoRepository.AddAsync(pedido);
 
@@ -75,7 +76,7 @@ namespace TipMolde.Infrastructure.Service
             if (user == null)
                 throw new KeyNotFoundException($"Utilizador com ID {userId} nao encontrado.");
 
-            pedido.Estado = "Recebido";
+            pedido.Estado = EstadoPedido.RECEBIDO;
             pedido.DataRececao = DateTime.UtcNow;
             pedido.UserConferente_id = userId;
 
