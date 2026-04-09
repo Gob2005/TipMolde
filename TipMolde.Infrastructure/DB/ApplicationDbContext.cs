@@ -30,9 +30,7 @@ namespace TipMolde.Infrastructure.DB
         public virtual DbSet<Revisao> Revisoes { get; set; }
         public virtual DbSet<RegistoTempoProjeto> RegistosTempoProjeto { get; set; }
         public virtual DbSet<FichaProducao> FichasProducao { get; set; }
-        public virtual DbSet<RegistoEnsaio> RegistosEnsaio { get; set; }
-        public virtual DbSet<RegistoMelhoriaAlteracao> RegistosMelhoriaAlteracao { get; set; }
-        public virtual DbSet<RegistoOcorrencia> RegistosOcorrencia { get; set; }
+        public virtual DbSet<FichaDocumento> FichasDocumentos { get; set; }
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -55,9 +53,7 @@ namespace TipMolde.Infrastructure.DB
             modelBuilder.Entity<Revisao>().HasKey(x => x.Revisao_id);
             modelBuilder.Entity<RegistoTempoProjeto>().HasKey(x => x.Registo_Tempo_Projeto_id);
             modelBuilder.Entity<FichaProducao>().HasKey(x => x.FichaProducao_id);
-            modelBuilder.Entity<RegistoOcorrencia>().HasKey(x => x.RegistoOcorrencia_id);
-            modelBuilder.Entity<RegistoMelhoriaAlteracao>().HasKey(x => x.RegistoMelhoriaAlteracao_id);
-            modelBuilder.Entity<RegistoEnsaio>().HasKey(x => x.RegistoEnsaio_id);
+            modelBuilder.Entity<FichaDocumento>().HasKey(x => x.FichaDocumento_id);
             modelBuilder.Entity<RevokedToken>().HasKey(x => x.RevokedToken_id);
 
 
@@ -162,20 +158,20 @@ namespace TipMolde.Infrastructure.DB
                 .HasForeignKey(f => f.EncomendaMolde_id)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            modelBuilder.Entity<RegistoOcorrencia>()
-                .HasOne(r => r.FichaProducao)
-                .WithMany(f => f.RegistosOcorrencia)
-                .HasForeignKey(r => r.FichaProducao_id);
+            modelBuilder.Entity<FichaDocumento>()
+                .HasOne(x => x.FichaProducao)
+                .WithMany(f => f.Relatorios)
+                .HasForeignKey(x => x.FichaProducao_id);
 
-            modelBuilder.Entity<RegistoMelhoriaAlteracao>()
-                .HasOne(r => r.FichaProducao)
-                .WithMany(f => f.RegistosMelhoriaAlteracao)
-                .HasForeignKey(r => r.FichaProducao_id);
+            modelBuilder.Entity<FichaDocumento>()
+                .HasIndex(x => new { x.FichaProducao_id, x.Versao })
+                .IsUnique();
 
-            modelBuilder.Entity<RegistoEnsaio>()
-                .HasOne(r => r.FichaProducao)
-                .WithOne(f => f.RegistoEnsaio)
-                .HasForeignKey<RegistoEnsaio>(r => r.FichaProducao_id);
+            modelBuilder.Entity<FichaDocumento>()
+                .HasOne<User>()
+                .WithMany()
+                .HasForeignKey(x => x.CriadoPor_user_id)
+                .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<Projeto>()
                 .HasOne(p => p.Molde)

@@ -13,6 +13,7 @@ using TipMolde.Core.Interface.Comercio.IPedidoMaterial.IItemPedidoMaterial;
 using TipMolde.Core.Interface.Desenho.IProjeto;
 using TipMolde.Core.Interface.Desenho.IRegistoTempoProjeto;
 using TipMolde.Core.Interface.Desenho.IRevisao;
+using TipMolde.Core.Interface.Fichas.IFichaDocumento;
 using TipMolde.Core.Interface.Fichas.IFichaProducao;
 using TipMolde.Core.Interface.Producao.IFasesProducao;
 using TipMolde.Core.Interface.Producao.IMaquina;
@@ -100,6 +101,7 @@ builder.Services.AddScoped<IRevisaoRepository, RevisaoRepository>();
 builder.Services.AddScoped<IRegistoTempoProjetoRepository, RegistoTempoProjetoRepository>();
 builder.Services.AddScoped<IFichaProducaoRepository, FichaProducaoRepository>();
 builder.Services.AddScoped<IRelatorioRepository, RelatorioRepository>();
+builder.Services.AddScoped<IFichaDocumentoRepository, FichaDocumentoRepository>();
 
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserService, UserService>();
@@ -118,6 +120,7 @@ builder.Services.AddScoped<IRevisaoService, RevisaoService>();
 builder.Services.AddScoped<IRegistoTempoProjetoService, RegistoTempoProjetoService>();
 builder.Services.AddScoped<IFichaProducaoService, FichaProducaoService>();
 builder.Services.AddScoped<IRelatorioService, RelatorioService>();
+builder.Services.AddScoped<IFichaDocumentoService, FichaDocumentoService>();
 
 builder.Services.AddScoped<IPasswordHasherService, PasswordHasherService>();
 builder.Services.AddScoped<ITokenService, JwtTokenService>();

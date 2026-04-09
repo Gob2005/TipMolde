@@ -43,19 +43,58 @@ namespace TipMolde.API.Controllers
             return Ok(ficha);
         }
 
-        /*[Authorize(Roles = "ADMIN")]
-        [HttpGet("{id:int}/export-pdf")]
-        public async Task<IActionResult> ExportPdf(int id)
+        [Authorize(Roles = "ADMIN")]
+        [HttpGet("{id:int}/export-FLT")]
+        public async Task<IActionResult> ExportFLT(int id)
         {
-            var result = await _relatorioService.GerarFichaPdfFTLAsync(id);
-            return File(result.Content, "application/pdf", result.FileName);
-        }*/
+            var userIdClaim = User.FindFirst("id")?.Value ?? User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            if (!int.TryParse(userIdClaim, out var userId))
+                return Unauthorized("Utilizador invalido no token.");
+            var result = await _relatorioService.GerarFichaExcelFLTAsync(id, userId);
+            return File(result.Content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", result.FileName);
+        }
 
         [Authorize(Roles = "ADMIN")]
-        [HttpGet("{id:int}/export-excel")]
-        public async Task<IActionResult> ExportExcel(int id)
+        [HttpGet("{id:int}/export-FRE")]
+        public async Task<IActionResult> ExportFRE(int id)
         {
-            var result = await _relatorioService.GerarFichaExcelFLTAsync(id);
+            var userIdClaim = User.FindFirst("id")?.Value ?? User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            if (!int.TryParse(userIdClaim, out var userId))
+                return Unauthorized("Utilizador invalido no token.");
+            var result = await _relatorioService.GerarFichaExcelFREAsync(id, userId);
+            return File(result.Content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", result.FileName);
+        }
+
+        [Authorize(Roles = "ADMIN")]
+        [HttpGet("{id:int}/export-FRM")]
+        public async Task<IActionResult> ExportFRM(int id)
+        {
+            var userIdClaim = User.FindFirst("id")?.Value ?? User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            if (!int.TryParse(userIdClaim, out var userId))
+                return Unauthorized("Utilizador invalido no token.");
+            var result = await _relatorioService.GerarFichaExcelFRMAsync(id, userId);
+            return File(result.Content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", result.FileName);
+        }
+
+        [Authorize(Roles = "ADMIN")]
+        [HttpGet("{id:int}/export-FRA")]
+        public async Task<IActionResult> ExportFRA(int id)
+        {
+            var userIdClaim = User.FindFirst("id")?.Value ?? User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            if (!int.TryParse(userIdClaim, out var userId))
+                return Unauthorized("Utilizador invalido no token.");
+            var result = await _relatorioService.GerarFichaExcelFRAAsync(id, userId);
+            return File(result.Content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", result.FileName);
+        }
+
+        [Authorize(Roles = "ADMIN")]
+        [HttpGet("{id:int}/export-FOP")]
+        public async Task<IActionResult> ExportFOP(int id)
+        {
+            var userIdClaim = User.FindFirst("id")?.Value ?? User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            if (!int.TryParse(userIdClaim, out var userId))
+                return Unauthorized("Utilizador invalido no token.");
+            var result = await _relatorioService.GerarFichaExcelFOPAsync(id, userId);
             return File(result.Content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", result.FileName);
         }
 
@@ -73,62 +112,6 @@ namespace TipMolde.API.Controllers
 
             var created = await _service.CreateAsync(ficha);
             return CreatedAtAction(nameof(GetHeaderById), new { id = created.FichaProducao_id }, created);
-        }
-
-        [Authorize(Roles = "ADMIN")]
-        [HttpPost("{id:int}/ocorrencias")]
-        public async Task<IActionResult> AddOcorrencia(int id, [FromBody] CreateRegistoOcorrenciaDTO dto)
-        {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
-
-            var entidade = new RegistoOcorrencia
-            {
-                Descricao = dto.Descricao.Trim(),
-                Correcao = dto.Correcao,
-                Responsavel_id = dto.Responsavel_id
-            };
-
-            var created = await _service.AddOcorrenciaAsync(id, entidade);
-            return Ok(created);
-        }
-
-        [Authorize(Roles = "ADMIN")]
-        [HttpPost("{id:int}/melhorias-alteracoes")]
-        public async Task<IActionResult> AddMelhoriaAlteracao(int id, [FromBody] CreateRegistoMelhoriaAlteracaoDTO dto)
-        {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
-
-            var entidade = new RegistoMelhoriaAlteracao
-            {
-                ItemDescricao = dto.ItemDescricao.Trim(),
-                Pormenor = dto.Pormenor,
-                Verificado = dto.Verificado,
-                Responsavel_id = dto.Responsavel_id
-            };
-
-            var created = await _service.AddMelhoriaAlteracaoAsync(id, entidade);
-            return Ok(created);
-        }
-
-        [Authorize(Roles = "ADMIN")]
-        [HttpPut("{id:int}/ensaio")]
-        public async Task<IActionResult> UpsertEnsaio(int id, [FromBody] UpsertRegistoEnsaioDTO dto)
-        {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
-
-            var entidade = new RegistoEnsaio
-            {
-                LocalEnsaio = dto.LocalEnsaio.Trim(),
-                AguasCavidade = dto.AguasCavidade,
-                AguasMacho = dto.AguasMacho,
-                AguasMovimentos = dto.AguasMovimentos,
-                ResumoTexto = dto.ResumoTexto,
-                Maquina_id = dto.Maquina_id,
-                Responsavel_id = dto.Responsavel_id
-            };
-
-            var saved = await _service.UpsertEnsaioAsync(id, entidade);
-            return Ok(saved);
         }
 
         [Authorize(Roles = "ADMIN")]

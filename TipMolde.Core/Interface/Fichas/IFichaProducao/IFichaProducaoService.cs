@@ -9,10 +9,6 @@ namespace TipMolde.Core.Interface.Fichas.IFichaProducao
         Task<FichaProducao?> GetFLTByIdAsync(int id);
 
         Task<FichaProducao> CreateAsync(FichaProducao ficha);
-        Task<RegistoOcorrencia> AddOcorrenciaAsync(int fichaId, RegistoOcorrencia ocorrencia);
-        Task<RegistoMelhoriaAlteracao> AddMelhoriaAlteracaoAsync(int fichaId, RegistoMelhoriaAlteracao registo);
-        Task<RegistoEnsaio> UpsertEnsaioAsync(int fichaId, RegistoEnsaio ensaio);
-
         Task DeleteAsync(int id);
     }
 }

@@ -38,67 +38,9 @@ namespace TipMolde.Infrastructure.Service
             if (link == null)
                 throw new KeyNotFoundException($"EncomendaMolde com ID {ficha.EncomendaMolde_id} nao encontrado.");
 
-            ficha.DataGeracao = DateTime.UtcNow;
+            ficha.DataCriacao = DateTime.UtcNow;
             await _fichaRepository.AddAsync(ficha);
             return ficha;
-        }
-
-        public async Task<RegistoOcorrencia> AddOcorrenciaAsync(int fichaId, RegistoOcorrencia ocorrencia)
-        {
-            var ficha = await _fichaRepository.GetByIdAsync(fichaId);
-            if (ficha == null) throw new KeyNotFoundException("Ficha nao encontrada.");
-            if (ficha.Tipo != TipoFicha.FOP) throw new ArgumentException("Ocorrencias apenas em ficha FOP.");
-
-            ocorrencia.FichaProducao_id = fichaId;
-            ocorrencia.DataOcorrencia = DateTime.UtcNow.Date;
-
-            await _context.RegistosOcorrencia.AddAsync(ocorrencia);
-            await _context.SaveChangesAsync();
-            return ocorrencia;
-        }
-
-        public async Task<RegistoMelhoriaAlteracao> AddMelhoriaAlteracaoAsync(int fichaId, RegistoMelhoriaAlteracao registo)
-        {
-            var ficha = await _fichaRepository.GetByIdAsync(fichaId);
-            if (ficha == null) throw new KeyNotFoundException("Ficha nao encontrada.");
-            if (ficha.Tipo != TipoFicha.FRM && ficha.Tipo != TipoFicha.FRA)
-                throw new ArgumentException("Registo de melhoria/alteracao apenas em ficha FRM/FRA.");
-
-            registo.FichaProducao_id = fichaId;
-            registo.DataRegisto = DateTime.UtcNow.Date;
-
-            await _context.RegistosMelhoriaAlteracao.AddAsync(registo);
-            await _context.SaveChangesAsync();
-            return registo;
-        }
-
-        public async Task<RegistoEnsaio> UpsertEnsaioAsync(int fichaId, RegistoEnsaio ensaio)
-        {
-            var ficha = await _fichaRepository.GetByIdAsync(fichaId);
-            if (ficha == null) throw new KeyNotFoundException("Ficha nao encontrada.");
-            if (ficha.Tipo != TipoFicha.FRE) throw new ArgumentException("Registo de ensaio apenas em ficha FRE.");
-
-            var existing = await _context.RegistosEnsaio.FirstOrDefaultAsync(x => x.FichaProducao_id == fichaId);
-
-            if (existing == null)
-            {
-                ensaio.FichaProducao_id = fichaId;
-                ensaio.DataEnsaio = DateTime.UtcNow.Date;
-                await _context.RegistosEnsaio.AddAsync(ensaio);
-                await _context.SaveChangesAsync();
-                return ensaio;
-            }
-
-            existing.LocalEnsaio = ensaio.LocalEnsaio;
-            existing.AguasCavidade = ensaio.AguasCavidade;
-            existing.AguasMacho = ensaio.AguasMacho;
-            existing.AguasMovimentos = ensaio.AguasMovimentos;
-            existing.ResumoTexto = ensaio.ResumoTexto;
-            existing.Maquina_id = ensaio.Maquina_id;
-            existing.Responsavel_id = ensaio.Responsavel_id;
-
-            await _context.SaveChangesAsync();
-            return existing;
         }
 
         public async Task DeleteAsync(int id)

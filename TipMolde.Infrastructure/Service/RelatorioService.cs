@@ -1,8 +1,8 @@
 ﻿using ClosedXML.Excel;
-using DocumentFormat.OpenXml.InkML;
 using Microsoft.Extensions.Configuration;
 using QuestPDF.Fluent;
 using QuestPDF.Infrastructure;
+using TipMolde.Core.Interface.Fichas.IFichaDocumento;
 using TipMolde.Core.Interface.Relatorios;
 using TipMolde.Core.Models.Comercio;
 using TipMolde.Core.Models.Fichas;
@@ -14,11 +14,13 @@ namespace TipMolde.Infrastructure.Service
     {
         private readonly IRelatorioRepository _relatorioRepository;
         private readonly IConfiguration _configuration;
+        private readonly IFichaDocumentoService _fichaDocumentoService;
 
-        public RelatorioService(IRelatorioRepository relatorioRepository, IConfiguration configuration)
+        public RelatorioService(IRelatorioRepository relatorioRepository, IConfiguration configuration, IFichaDocumentoService fichaDocumentoService)
         {
             _relatorioRepository = relatorioRepository;
             _configuration = configuration;
+            _fichaDocumentoService = fichaDocumentoService;
         }
 
         public async Task<(byte[] Content, string FileName)> GerarCicloVidaMoldePdfAsync(int moldeId)
@@ -45,7 +47,7 @@ namespace TipMolde.Infrastructure.Service
             return (bytes, $"ciclo_vida_molde_{moldeId}.pdf");
         }
 
-        public async Task<(byte[] Content, string FileName)> GerarFichaExcelFLTAsync(int fichaId)
+        public async Task<(byte[] Content, string FileName)> GerarFichaExcelFLTAsync(int fichaId, int userId)
         {
             var context = await GetFichaContextAsync(fichaId);
 
@@ -103,10 +105,17 @@ namespace TipMolde.Infrastructure.Service
             ws.Cell("B48").Value = context.EncomendaMolde.DataEntregaPrevista.ToString("dd/MM/yyyy");
             using var ms = new MemoryStream();
             wb.SaveAs(ms);
+            await _fichaDocumentoService.GuardarGeradoAsync(
+                    fichaId,
+                    ms.ToArray(),
+                    $"ficha_FLT_{fichaId}.xlsx",
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    userId,
+                    "SISTEMA");
             return (ms.ToArray(), $"ficha_FTL_{fichaId}.xlsx");
         }
 
-        public async Task<(byte[] Content, string FileName)> GerarFichaExcelFREAsync(int fichaId)
+        public async Task<(byte[] Content, string FileName)> GerarFichaExcelFREAsync(int fichaId, int userId)
         {
             var context = await GetFichaContextAsync(fichaId);
 
@@ -154,10 +163,17 @@ namespace TipMolde.Infrastructure.Service
             ws.Cell("E29").Value = context.Encomenda.NomeResponsavelCliente;
             using var ms = new MemoryStream();
             wb.SaveAs(ms);
+            await _fichaDocumentoService.GuardarGeradoAsync(
+                    fichaId,
+                    ms.ToArray(),
+                    $"ficha_FRE_{fichaId}.xlsx",
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    userId,
+                    "SISTEMA");
             return (ms.ToArray(), $"ficha_FRE_{fichaId}.xlsx");
         }
 
-        public async Task<(byte[] Content, string FileName)> GerarFichaExcelFRMAsync(int fichaId)
+        public async Task<(byte[] Content, string FileName)> GerarFichaExcelFRMAsync(int fichaId, int userId)
         {
             var context = await GetFichaContextAsync(fichaId);
 
@@ -180,10 +196,17 @@ namespace TipMolde.Infrastructure.Service
 
             using var ms = new MemoryStream();
             wb.SaveAs(ms);
+            await _fichaDocumentoService.GuardarGeradoAsync(
+                    fichaId,
+                    ms.ToArray(),
+                    $"ficha_FRE_{fichaId}.xlsx",
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    userId,
+                    "SISTEMA");
             return (ms.ToArray(), $"ficha_FRM_{fichaId}.xlsx");
         }
 
-        public async Task<(byte[] Content, string FileName)> GerarFichaExcelFRAAsync(int fichaId)
+        public async Task<(byte[] Content, string FileName)> GerarFichaExcelFRAAsync(int fichaId, int userId)
         {
             var context = await GetFichaContextAsync(fichaId);
 
@@ -206,10 +229,17 @@ namespace TipMolde.Infrastructure.Service
 
             using var ms = new MemoryStream();
             wb.SaveAs(ms);
+            await _fichaDocumentoService.GuardarGeradoAsync(
+                    fichaId,
+                    ms.ToArray(),
+                    $"ficha_FRA_{fichaId}.xlsx",
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    userId,
+                    "SISTEMA");
             return (ms.ToArray(), $"ficha_FRA_{fichaId}.xlsx");
         }
 
-        public async Task<(byte[] Content, string FileName)> GerarFichaExcelFOPAsync(int fichaId)
+        public async Task<(byte[] Content, string FileName)> GerarFichaExcelFOPAsync(int fichaId, int userId)
         {
             var context = await GetFichaContextAsync(fichaId);
 
@@ -232,6 +262,13 @@ namespace TipMolde.Infrastructure.Service
 
             using var ms = new MemoryStream();
             wb.SaveAs(ms);
+                await _fichaDocumentoService.GuardarGeradoAsync(
+                        fichaId,
+                        ms.ToArray(),
+                        $"ficha_FOP_{fichaId}.xlsx",
+                        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                        userId,
+                        "SISTEMA");
             return (ms.ToArray(), $"ficha_FOP_{fichaId}.xlsx");
         }
 

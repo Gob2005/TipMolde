@@ -7,13 +7,11 @@ namespace TipMolde.Core.Models.Fichas
     {
         public int FichaProducao_id { get; set; }
         public TipoFicha Tipo { get; set; }
-        public DateTime DataGeracao { get; set; }
+        public DateTime DataCriacao { get; set; }
 
         public int EncomendaMolde_id { get; set; }
         public EncomendaMolde? EncomendaMolde { get; set; }
 
-        public ICollection<RegistoOcorrencia> RegistosOcorrencia { get; set; } = new List<RegistoOcorrencia>();
-        public ICollection<RegistoMelhoriaAlteracao> RegistosMelhoriaAlteracao { get; set; } = new List<RegistoMelhoriaAlteracao>();
-        public RegistoEnsaio? RegistoEnsaio { get; set; }
+        public ICollection<FichaDocumento> Relatorios { get; set; } = new List<FichaDocumento>();
     }
 }

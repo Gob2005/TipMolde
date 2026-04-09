@@ -14,7 +14,7 @@ namespace TipMolde.Infrastructure.Repositorio
             return await _context.FichasProducao
                 .AsNoTracking()
                 .Where(f => f.EncomendaMolde_id == encomendaMoldeId)
-                .OrderByDescending(f => f.DataGeracao)
+                .OrderByDescending(f => f.DataCriacao)
                 .ToListAsync();
         }
 
