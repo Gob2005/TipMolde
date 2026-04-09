@@ -55,7 +55,7 @@ namespace TipMolde.API.Controllers
         [HttpGet("{id:int}/export-excel")]
         public async Task<IActionResult> ExportExcel(int id)
         {
-            var result = await _relatorioService.GerarFichaExcelFTLAsync(id);
+            var result = await _relatorioService.GerarFichaExcelFLTAsync(id);
             return File(result.Content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", result.FileName);
         }
 
