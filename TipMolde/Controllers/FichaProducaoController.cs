@@ -43,13 +43,13 @@ namespace TipMolde.API.Controllers
             return Ok(ficha);
         }
 
-        [Authorize(Roles = "ADMIN")]
+        /*[Authorize(Roles = "ADMIN")]
         [HttpGet("{id:int}/export-pdf")]
         public async Task<IActionResult> ExportPdf(int id)
         {
             var result = await _relatorioService.GerarFichaPdfFTLAsync(id);
             return File(result.Content, "application/pdf", result.FileName);
-        }
+        }*/
 
         [Authorize(Roles = "ADMIN")]
         [HttpGet("{id:int}/export-excel")]

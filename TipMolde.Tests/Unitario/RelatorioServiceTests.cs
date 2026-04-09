@@ -27,8 +27,16 @@ namespace TipMolde.Tests.Unitario
             var config = new ConfigurationBuilder()
                 .AddInMemoryCollection(new Dictionary<string, string?>
                 {
-                    ["Templates:FichasPath"] = @"C:\Users\HP\Documents\TipMolde\Templates\FTL.xlsx",
-                    ["Templates:FolhaFLT"] = "FLT - TM.04.05"
+                    ["Templates:FichaFLT"] = @"C:\Users\HP\Documents\TipMolde\Templates\FLT.xlsx",
+                    ["Templates:FichaFRE"] = @"C:\Users\HP\Documents\TipMolde\Templates\FRE.xlsx",
+                    ["Templates:FichaFRM"] = @"C:\Users\HP\Documents\TipMolde\Templates\FRM.xlsx",
+                    ["Templates:FichaFRA"] = @"C:\Users\HP\Documents\TipMolde\Templates\FRA.xlsx",
+                    ["Templates:FichaFOP"] = @"C:\Users\HP\Documents\TipMolde\Templates\FOP.xlsx",
+                    ["Templates:FolhaFLT"] = "FLT - TM.04.05",
+                    ["Templates:FolhaFRE"] = "FRE - TM.08.05",
+                    ["Templates:FolhaFRM"] = "FRM - TM.09.05",
+                    ["Templates:FolhaFRA"] = "FRA - TM.010.05",
+                    ["Templates:FolhaFOP"] = "FOP - TM.07.05"
                 })
                 .Build();
             var repo = new RelatorioRepository(ctx);
@@ -79,7 +87,7 @@ namespace TipMolde.Tests.Unitario
                 Numero = $"M-{fichaId:000}",
                 Nome = $"Molde {fichaId:000}",
                 NumeroMoldeCliente = "Molde Teste - 001",
-                ImagemCapaPath = @"C:\Users\HP\Documents\TipMolde\Templates\Imagem_Template",
+                ImagemCapaPath = @"C:\Users\HP\Documents\TipMolde\Templates\Imagem_Template.png",
                 Numero_cavidades = 2,
                 TipoPedido = TipoPedido.NOVO_MOLDE
             };
@@ -96,7 +104,10 @@ namespace TipMolde.Tests.Unitario
                 MaterialCavidade = "H13",
                 MaterialMovimentos = "AISI 420",
                 AcabamentoPeca = "Polido",
-                Contracao = 1.20m
+                Contracao = 1.20m,
+                Cor = "BI",
+                LadoFixo = true,
+                LadoMovel = true
             };
             await ctx.EspecificacoesTecnicas.AddAsync(specs);
             await ctx.SaveChangesAsync();
@@ -164,7 +175,7 @@ namespace TipMolde.Tests.Unitario
             await Assert.ThrowsAsync<KeyNotFoundException>(act);
         }
 
-        [Fact]
+        /*[Fact]
         public async Task GerarFichaPdfFTLAsync_ComFichaExistente_GeraPdf()
         {
             // Arrange
@@ -187,10 +198,10 @@ namespace TipMolde.Tests.Unitario
             Assert.EndsWith(".pdf", result.FileName, StringComparison.OrdinalIgnoreCase);
             Assert.StartsWith("ficha_", result.FileName, StringComparison.OrdinalIgnoreCase);
             Assert.True(result.Content.Length > 100);
-        }
+        }*/
 
         [Fact]
-        public async Task GerarFichaExcelFTLAsync_ComFichaExistente_GeraExcel()
+        public async Task GerarFichaExcelFLTAsync_ComFichaExistente_GeraExcel()
         {
             // Arrange
             await using var ctx = CreateContext();
@@ -198,7 +209,7 @@ namespace TipMolde.Tests.Unitario
             var sut = CreateSut(ctx);
 
             // Act
-            var result = await sut.GerarFichaExcelFTLAsync(fichaId);
+            var result = await sut.GerarFichaExcelFLTAsync(fichaId);
 
             var outDir = @"C:\Users\HP\Documents\TipMolde\RelatoriosMock";
             Directory.CreateDirectory(outDir);
@@ -215,6 +226,106 @@ namespace TipMolde.Tests.Unitario
         }
 
         [Fact]
+        public async Task GerarFichaExcelFREAsync_ComFichaExistente_GeraExcel()
+        {
+            // Arrange
+            await using var ctx = CreateContext();
+            var fichaId = await SeedFichaAsync(ctx, 30);
+            var sut = CreateSut(ctx);
+
+            // Act
+            var result = await sut.GerarFichaExcelFREAsync(fichaId);
+
+            var outDir = @"C:\Users\HP\Documents\TipMolde\RelatoriosMock";
+            Directory.CreateDirectory(outDir);
+
+            var excelPath = Path.Combine(outDir, result.FileName);
+            await File.WriteAllBytesAsync(excelPath, result.Content);
+
+            // Assert
+            Assert.NotNull(result.Content);
+            Assert.NotEmpty(result.Content);
+            Assert.EndsWith(".xlsx", result.FileName, StringComparison.OrdinalIgnoreCase);
+            Assert.StartsWith("ficha_", result.FileName, StringComparison.OrdinalIgnoreCase);
+            Assert.True(result.Content.Length > 50);
+        }
+
+        [Fact]
+        public async Task GerarFichaExcelFRMAsync_ComFichaExistente_GeraExcel()
+        {
+            // Arrange
+            await using var ctx = CreateContext();
+            var fichaId = await SeedFichaAsync(ctx, 30);
+            var sut = CreateSut(ctx);
+
+            // Act
+            var result = await sut.GerarFichaExcelFRMAsync(fichaId);
+
+            var outDir = @"C:\Users\HP\Documents\TipMolde\RelatoriosMock";
+            Directory.CreateDirectory(outDir);
+
+            var excelPath = Path.Combine(outDir, result.FileName);
+            await File.WriteAllBytesAsync(excelPath, result.Content);
+
+            // Assert
+            Assert.NotNull(result.Content);
+            Assert.NotEmpty(result.Content);
+            Assert.EndsWith(".xlsx", result.FileName, StringComparison.OrdinalIgnoreCase);
+            Assert.StartsWith("ficha_", result.FileName, StringComparison.OrdinalIgnoreCase);
+            Assert.True(result.Content.Length > 50);
+        }
+
+        [Fact]
+        public async Task GerarFichaExcelFRAAsync_ComFichaExistente_GeraExcel()
+        {
+            // Arrange
+            await using var ctx = CreateContext();
+            var fichaId = await SeedFichaAsync(ctx, 30);
+            var sut = CreateSut(ctx);
+
+            // Act
+            var result = await sut.GerarFichaExcelFRAAsync(fichaId);
+
+            var outDir = @"C:\Users\HP\Documents\TipMolde\RelatoriosMock";
+            Directory.CreateDirectory(outDir);
+
+            var excelPath = Path.Combine(outDir, result.FileName);
+            await File.WriteAllBytesAsync(excelPath, result.Content);
+
+            // Assert
+            Assert.NotNull(result.Content);
+            Assert.NotEmpty(result.Content);
+            Assert.EndsWith(".xlsx", result.FileName, StringComparison.OrdinalIgnoreCase);
+            Assert.StartsWith("ficha_", result.FileName, StringComparison.OrdinalIgnoreCase);
+            Assert.True(result.Content.Length > 50);
+        }
+
+        [Fact]
+        public async Task GerarFichaExcelFOPAsync_ComFichaExistente_GeraExcel()
+        {
+            // Arrange
+            await using var ctx = CreateContext();
+            var fichaId = await SeedFichaAsync(ctx, 30);
+            var sut = CreateSut(ctx);
+
+            // Act
+            var result = await sut.GerarFichaExcelFOPAsync(fichaId);
+
+            var outDir = @"C:\Users\HP\Documents\TipMolde\RelatoriosMock";
+            Directory.CreateDirectory(outDir);
+
+            var excelPath = Path.Combine(outDir, result.FileName);
+            await File.WriteAllBytesAsync(excelPath, result.Content);
+
+            // Assert
+            Assert.NotNull(result.Content);
+            Assert.NotEmpty(result.Content);
+            Assert.EndsWith(".xlsx", result.FileName, StringComparison.OrdinalIgnoreCase);
+            Assert.StartsWith("ficha_", result.FileName, StringComparison.OrdinalIgnoreCase);
+            Assert.True(result.Content.Length > 50);
+        }
+
+        /*[Fact]
         public async Task GerarFichaPdfFTLAsync_ComFichaInexistente_LancaExcecao()
         {
             // Arrange
@@ -226,17 +337,17 @@ namespace TipMolde.Tests.Unitario
 
             // Assert
             await Assert.ThrowsAsync<KeyNotFoundException>(act);
-        }
+        }*/
 
         [Fact]
-        public async Task GerarFichaExcelFTLAsync_ComFichaInexistente_LancaExcecao()
+        public async Task GerarFichaExcelFLTAsync_ComFichaInexistente_LancaExcecao()
         {
             // Arrange
             await using var ctx = CreateContext();
             var sut = CreateSut(ctx);
 
             // Act
-            var act = () => sut.GerarFichaExcelFTLAsync(999);
+            var act = () => sut.GerarFichaExcelFLTAsync(999);
 
             // Assert
             await Assert.ThrowsAsync<KeyNotFoundException>(act);

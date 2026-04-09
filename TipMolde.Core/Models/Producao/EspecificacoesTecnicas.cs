@@ -21,6 +21,8 @@ namespace TipMolde.Core.Models.Producao
         public string? MaterialCavidade { get; set; }
         public string? MaterialMovimentos { get; set; }
         public string? MaterialInjecao { get; set; }
+        public bool LadoFixo { get; set; }
+        public bool LadoMovel { get; set; }
     }
 
 }
