@@ -1,11 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using TipMolde.Core.Interface.Comercio.IFornecedor;
-using TipMolde.Core.Models.Comercio;
+using TipMolde.Application.Interface.Comercio.IFornecedor;
+using TipMolde.Domain.Entities.Comercio;
 using TipMolde.Infrastructure.DB;
 
 namespace TipMolde.Infrastructure.Repositorio
 {
-    public class FornecedorRepository : GenericRepository<Fornecedor>, IFornecedorRepository
+    public class FornecedorRepository : GenericRepository<Fornecedor, int>, IFornecedorRepository
     {
         public FornecedorRepository(ApplicationDbContext context) : base(context) { }
 

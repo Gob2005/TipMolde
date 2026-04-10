@@ -1,7 +1,9 @@
 ﻿using Moq;
-using TipMolde.Core.Enums;
-using TipMolde.Core.Interface.Producao.IFasesProducao;
-using TipMolde.Core.Models.Producao;
+using TipMolde.Application.Interface;
+using TipMolde.Application.Interface.Producao.IFasesProducao;
+using TipMolde.Domain.Entities.Comercio;
+using TipMolde.Domain.Entities.Producao;
+using TipMolde.Domain.Enums;
 using TipMolde.Infrastructure.Service;
 
 namespace TipMolde.Tests.Unitario
@@ -40,9 +42,9 @@ namespace TipMolde.Tests.Unitario
 
             _fpRepository
                 .Setup(r => r.AddAsync(It.IsAny<FasesProducao>()))
-                .Returns(Task.CompletedTask);
+                .ReturnsAsync((FasesProducao f) => f);
 
-            var resultado = await _sut.CreateFase_producaoAsync(fase);
+            var resultado = await _sut.CreateAsync(fase);
 
             Assert.NotNull(resultado);
             Assert.Equal(Nome_fases.MAQUINACAO, resultado.Nome);
@@ -61,7 +63,7 @@ namespace TipMolde.Tests.Unitario
             var nova = FaseFake(id: 0);
 
             await Assert.ThrowsAsync<ArgumentException>(() =>
-                _sut.CreateFase_producaoAsync(nova));
+                _sut.CreateAsync(nova));
         }
 
         [Theory]
@@ -76,11 +78,11 @@ namespace TipMolde.Tests.Unitario
 
             _fpRepository
                 .Setup(r => r.AddAsync(It.IsAny<FasesProducao>()))
-                .Returns(Task.CompletedTask);
+                .ReturnsAsync((FasesProducao f) => f);
 
             var fase = new FasesProducao { Nome = nome, Descricao = "Descrição de teste" };
 
-            var resultado = await _sut.CreateFase_producaoAsync(fase);
+            var resultado = await _sut.CreateAsync(fase);
 
             Assert.Equal(nome, resultado.Nome);
         }
@@ -111,7 +113,7 @@ namespace TipMolde.Tests.Unitario
                 Descricao = "Descrição atualizada"
             };
 
-            await _sut.UpdateFase_producaoAsync(atualizada);
+            await _sut.UpdateAsync(atualizada);
 
             _fpRepository.Verify(
                 r => r.UpdateAsync(It.Is<FasesProducao>(f =>
@@ -131,7 +133,7 @@ namespace TipMolde.Tests.Unitario
             var fase = FaseFake(id: 999);
 
             await Assert.ThrowsAsync<KeyNotFoundException>(() =>
-                _sut.UpdateFase_producaoAsync(fase));
+                _sut.UpdateAsync(fase));
         }
 
         [Fact]
@@ -156,7 +158,7 @@ namespace TipMolde.Tests.Unitario
             };
 
             await Assert.ThrowsAsync<ArgumentException>(() =>
-                _sut.UpdateFase_producaoAsync(atualizada));
+                _sut.UpdateAsync(atualizada));
         }
 
         [Fact]
@@ -179,7 +181,7 @@ namespace TipMolde.Tests.Unitario
                 Descricao = "Descrição nova"
             };
 
-            await _sut.UpdateFase_producaoAsync(atualizada);
+            await _sut.UpdateAsync(atualizada);
 
             _fpRepository.Verify(
                 r => r.UpdateAsync(It.Is<FasesProducao>(f =>
@@ -204,7 +206,7 @@ namespace TipMolde.Tests.Unitario
                 .Setup(r => r.DeleteAsync(1))
                 .Returns(Task.CompletedTask);
 
-            await _sut.DeleteFase_producaoAsync(1);
+            await _sut.DeleteAsync(1);
 
             _fpRepository.Verify(r => r.DeleteAsync(1), Times.Once);
         }
@@ -217,7 +219,7 @@ namespace TipMolde.Tests.Unitario
                 .ReturnsAsync((FasesProducao?)null);
 
             await Assert.ThrowsAsync<KeyNotFoundException>(() =>
-                _sut.DeleteFase_producaoAsync(999));
+                _sut.DeleteAsync(999));
         }
 
         // ─────────────────────── GetAllFases / GetByIdAsync ────────────────────────────//
@@ -233,24 +235,34 @@ namespace TipMolde.Tests.Unitario
             };
 
             _fpRepository
-                .Setup(r => r.GetAllAsync())
-                .ReturnsAsync(lista);
+                .Setup(r => r.GetAllAsync(It.IsAny<int>(), It.IsAny<int>()))
+                .ReturnsAsync(new PagedResult<FasesProducao>(
+                    lista,
+                    lista.Count,
+                    1,
+                    lista.Count
+                ));
 
-            var resultado = await _sut.GetAllFases_producaoAsync();
+            var resultado = await _sut.GetAllAsync();
 
-            Assert.Equal(3, resultado.Count());
+            Assert.Equal(3, resultado.Items.Count());
         }
 
         [Fact]
         public async Task GetAllFases_producaoAsync_SemFases_RetornaListaVazia()
         {
             _fpRepository
-                .Setup(r => r.GetAllAsync())
-                .ReturnsAsync(new List<FasesProducao>());
+                .Setup(r => r.GetAllAsync(It.IsAny<int>(), It.IsAny<int>()))
+                .ReturnsAsync(new PagedResult<FasesProducao>(
+                    Enumerable.Empty<FasesProducao>(),
+                    0,
+                    1,
+                    50
+                ));
 
-            var resultado = await _sut.GetAllFases_producaoAsync();
+            var resultado = await _sut.GetAllAsync();
 
-            Assert.Empty(resultado);
+            Assert.Empty(resultado.Items);
         }
 
         [Fact]
@@ -262,7 +274,7 @@ namespace TipMolde.Tests.Unitario
                 .Setup(r => r.GetByIdAsync(1))
                 .ReturnsAsync(fase);
 
-            var resultado = await _sut.GetFase_producaoByIdAsync(1);
+            var resultado = await _sut.GetByIdAsync(1);
 
             Assert.NotNull(resultado);
             Assert.Equal(1, resultado!.Fases_producao_id);
@@ -275,7 +287,7 @@ namespace TipMolde.Tests.Unitario
                 .Setup(r => r.GetByIdAsync(999))
                 .ReturnsAsync((FasesProducao?)null);
 
-            var resultado = await _sut.GetFase_producaoByIdAsync(999);
+            var resultado = await _sut.GetByIdAsync(999);
 
             Assert.Null(resultado);
         }

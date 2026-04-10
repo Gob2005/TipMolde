@@ -1,11 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using TipMolde.Core.Interface.Comercio.ICliente;
-using TipMolde.Core.Models.Comercio;
+using TipMolde.Application.Interface.Comercio.ICliente;
+using TipMolde.Domain.Entities.Comercio;
 using TipMolde.Infrastructure.DB;
 
 namespace TipMolde.Infrastructure.Repositorio
 {
-    public class ClienteRepository : GenericRepository<Cliente>, IClienteRepository
+    public class ClienteRepository : GenericRepository<Cliente, int>, IClienteRepository
     {
         public ClienteRepository(ApplicationDbContext context) : base(context) { }
 

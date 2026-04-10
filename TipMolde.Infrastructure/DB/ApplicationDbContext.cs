@@ -1,9 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using TipMolde.Core.Models;
-using TipMolde.Core.Models.Comercio;
-using TipMolde.Core.Models.Desenho;
-using TipMolde.Core.Models.Fichas;
-using TipMolde.Core.Models.Producao;
+using TipMolde.Domain.Entities;
+using TipMolde.Domain.Entities.Comercio;
+using TipMolde.Domain.Entities.Desenho;
+using TipMolde.Domain.Entities.Fichas;
+using TipMolde.Domain.Entities.Producao;
 
 namespace TipMolde.Infrastructure.DB
 {
@@ -181,8 +181,8 @@ namespace TipMolde.Infrastructure.DB
             modelBuilder.Entity<Projeto>()
                 .Property(p => p.TipoProjeto)
                 .HasConversion(
-                    v => v == TipMolde.Core.Enums.TipoProjeto.PROJETO_2D ? "2D" : "3D",
-                    v => v == "2D" ? TipMolde.Core.Enums.TipoProjeto.PROJETO_2D : TipMolde.Core.Enums.TipoProjeto.PROJETO_3D)
+                    v => v == TipMolde.Domain.Enums.TipoProjeto.PROJETO_2D ? "2D" : "3D",
+                    v => v == "2D" ? TipMolde.Domain.Enums.TipoProjeto.PROJETO_2D : TipMolde.Domain.Enums.TipoProjeto.PROJETO_3D)
                 .HasMaxLength(10);
 
             modelBuilder.Entity<Revisao>()

@@ -1,8 +1,9 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using TipMolde.API.DTOs.RegistoProducaoDTO;
-using TipMolde.Core.Interface.Producao.IRegistosProducao;
-using TipMolde.Core.Models.Producao;
+using MySqlX.XDevAPI.Common;
+using TipMolde.Application.DTOs.RegistoProducaoDTO;
+using TipMolde.Application.Interface.Producao.IRegistosProducao;
+using TipMolde.Domain.Entities.Producao;
 
 namespace TipMolde.API.Controllers
 {
@@ -21,15 +22,21 @@ namespace TipMolde.API.Controllers
         [HttpGet("all-registos_producao")]
         public async Task<IActionResult> GetAllRegistos_producao()
         {
-            var registosProducao = await _registosProducaoService.GetAllRegistosProducaoAsync();
-            return Ok(registosProducao);
+            var result = await _registosProducaoService.GetAllAsync();
+            return Ok(new
+            {
+                result.TotalCount,
+                result.CurrentPage,
+                result.PageSize,
+                Items = result.Items
+            });
         }
 
         [Authorize(Roles = "ADMIN")]
         [HttpGet("registos_producao-byID")]
         public async Task<IActionResult> GetRegistos_producaoById(int id)
         {
-            var registoProducao = await _registosProducaoService.GetRegistoProducaoByIdAsync(id);
+            var registoProducao = await _registosProducaoService.GetByIdAsync(id);
             if (registoProducao == null) return NotFound();
             return Ok(registoProducao);
         }
@@ -59,7 +66,7 @@ namespace TipMolde.API.Controllers
                 Estado_producao = dto.Estado_producao
             };
 
-            var createdRegistoProducao = await _registosProducaoService.CreateRegistoProducaoAsync(rp);
+            var createdRegistoProducao = await _registosProducaoService.CreateAsync(rp);
             return CreatedAtAction(nameof(GetRegistos_producaoById), new { id = createdRegistoProducao.Registo_Producao_id }, createdRegistoProducao);
         }
     }

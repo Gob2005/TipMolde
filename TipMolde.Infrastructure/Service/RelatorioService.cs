@@ -2,12 +2,12 @@
 using Microsoft.Extensions.Configuration;
 using QuestPDF.Fluent;
 using QuestPDF.Infrastructure;
-using TipMolde.Core.Enums;
-using TipMolde.Core.Interface.Fichas.IFichaDocumento;
-using TipMolde.Core.Interface.Relatorios;
-using TipMolde.Core.Models.Comercio;
-using TipMolde.Core.Models.Fichas;
-using TipMolde.Core.Models.Producao;
+using TipMolde.Domain.Enums;
+using TipMolde.Application.Interface.Fichas.IFichaDocumento;
+using TipMolde.Application.Interface.Relatorios;
+using TipMolde.Domain.Entities.Comercio;
+using TipMolde.Domain.Entities.Fichas;
+using TipMolde.Domain.Entities.Producao;
 
 namespace TipMolde.Infrastructure.Service
 {

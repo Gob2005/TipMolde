@@ -1,11 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using TipMolde.Core.Interface.Producao.IPeca;
-using TipMolde.Core.Models.Producao;
+using TipMolde.Application.Interface.Producao.IPeca;
+using TipMolde.Domain.Entities.Producao;
 using TipMolde.Infrastructure.DB;
 
 namespace TipMolde.Infrastructure.Repositorio
 {
-    public class PecaRepository : GenericRepository<Peca>, IPecaRepository
+    public class PecaRepository : GenericRepository<Peca, int>, IPecaRepository
     {
         public PecaRepository(ApplicationDbContext context) : base(context) { }
 

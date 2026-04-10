@@ -1,6 +1,7 @@
 using Moq;
-using TipMolde.Core.Interface.Comercio.ICliente;
-using TipMolde.Core.Models.Comercio;
+using TipMolde.Application.Interface.Comercio.ICliente;
+using TipMolde.Application.Service;
+using TipMolde.Domain.Entities.Comercio;
 using TipMolde.Infrastructure.Service;
 
 namespace TipMolde.Tests.Unitario
@@ -37,9 +38,9 @@ namespace TipMolde.Tests.Unitario
 
             _clienteRepository.Setup(r => r.GetByNifAsync("123456789")).ReturnsAsync((Cliente?)null);
             _clienteRepository.Setup(r => r.GetBySiglaAsync("cla")).ReturnsAsync((Cliente?)null);
-            _clienteRepository.Setup(r => r.AddAsync(It.IsAny<Cliente>())).Returns(Task.CompletedTask);
+            _clienteRepository.Setup(r => r.AddAsync(It.IsAny<Cliente>())).ReturnsAsync((Cliente c) => c);
 
-            var result = await _sut.CreateClienteAsync(cliente);
+            var result = await _sut.CreateAsync(cliente);
 
             Assert.Equal("Cliente A", result.Nome);
             Assert.Equal("123456789", result.NIF);
@@ -53,7 +54,7 @@ namespace TipMolde.Tests.Unitario
             var cliente = ClienteFake();
             _clienteRepository.Setup(r => r.GetByNifAsync(cliente.NIF)).ReturnsAsync(ClienteFake(id: 7));
 
-            await Assert.ThrowsAsync<ArgumentException>(() => _sut.CreateClienteAsync(cliente));
+            await Assert.ThrowsAsync<ArgumentException>(() => _sut.CreateAsync(cliente));
         }
 
         [Fact]
@@ -63,7 +64,7 @@ namespace TipMolde.Tests.Unitario
             _clienteRepository.Setup(r => r.GetByNifAsync(cliente.NIF)).ReturnsAsync((Cliente?)null);
             _clienteRepository.Setup(r => r.GetBySiglaAsync(cliente.Sigla)).ReturnsAsync(ClienteFake(id: 7));
 
-            await Assert.ThrowsAsync<ArgumentException>(() => _sut.CreateClienteAsync(cliente));
+            await Assert.ThrowsAsync<ArgumentException>(() => _sut.CreateAsync(cliente));
         }
 
         [Theory]
@@ -73,7 +74,7 @@ namespace TipMolde.Tests.Unitario
         public async Task CreateClienteAsync_MissingRequiredField_Throws(string nome, string nif, string sigla)
         {
             var cliente = ClienteFake(nome: nome, nif: nif, sigla: sigla);
-            await Assert.ThrowsAsync<ArgumentException>(() => _sut.CreateClienteAsync(cliente));
+            await Assert.ThrowsAsync<ArgumentException>(() => _sut.CreateAsync(cliente));
         }
 
         [Fact]
@@ -81,7 +82,7 @@ namespace TipMolde.Tests.Unitario
         {
             _clienteRepository.Setup(r => r.GetByIdAsync(99)).ReturnsAsync((Cliente?)null);
 
-            await Assert.ThrowsAsync<KeyNotFoundException>(() => _sut.UpdateClienteAsync(ClienteFake(id: 99)));
+            await Assert.ThrowsAsync<KeyNotFoundException>(() => _sut.UpdateAsync(ClienteFake(id: 99)));
         }
 
         [Fact]
@@ -97,7 +98,7 @@ namespace TipMolde.Tests.Unitario
             var update = ClienteFake(id: 1, nome: "  New Name  ", nif: "987654321", sigla: "NEW");
             update.Pais = "  Portugal  ";
 
-            await _sut.UpdateClienteAsync(update);
+            await _sut.UpdateAsync(update);
 
             _clienteRepository.Verify(r => r.UpdateAsync(It.Is<Cliente>(c =>
                 c.Cliente_id == 1 &&
@@ -111,7 +112,7 @@ namespace TipMolde.Tests.Unitario
         public async Task DeleteClienteAsync_NotFound_Throws()
         {
             _clienteRepository.Setup(r => r.GetByIdAsync(50)).ReturnsAsync((Cliente?)null);
-            await Assert.ThrowsAsync<KeyNotFoundException>(() => _sut.DeleteClienteAsync(50));
+            await Assert.ThrowsAsync<KeyNotFoundException>(() => _sut.DeleteAsync(50));
         }
 
         [Fact]
@@ -120,7 +121,7 @@ namespace TipMolde.Tests.Unitario
             _clienteRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(ClienteFake());
             _clienteRepository.Setup(r => r.DeleteAsync(1)).Returns(Task.CompletedTask);
 
-            await _sut.DeleteClienteAsync(1);
+            await _sut.DeleteAsync(1);
 
             _clienteRepository.Verify(r => r.DeleteAsync(1), Times.Once);
         }

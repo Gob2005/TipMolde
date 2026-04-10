@@ -1,12 +1,12 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using TipMolde.Core.Enums;
-using TipMolde.Core.Interface.Producao.IMaquina;
-using TipMolde.Core.Models.Producao;
+using TipMolde.Domain.Enums;
+using TipMolde.Application.Interface.Producao.IMaquina;
+using TipMolde.Domain.Entities.Producao;
 using TipMolde.Infrastructure.DB;
 
 namespace TipMolde.Infrastructure.Repositorio
 {
-    public class MaquinaRepository : GenericRepository<Maquina>, IMaquinaRepository
+    public class MaquinaRepository : GenericRepository<Maquina, int>, IMaquinaRepository
     {
         public MaquinaRepository(ApplicationDbContext context) : base(context) { }
 

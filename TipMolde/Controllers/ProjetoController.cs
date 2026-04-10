@@ -1,8 +1,9 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using TipMolde.API.DTOs.ProjetoDTO;
-using TipMolde.Core.Interface.Desenho.IProjeto;
-using TipMolde.Core.Models.Desenho;
+using MySqlX.XDevAPI.Common;
+using TipMolde.Application.DTOs.ProjetoDTO;
+using TipMolde.Application.Interface.Desenho.IProjeto;
+using TipMolde.Domain.Entities.Desenho;
 
 namespace TipMolde.API.Controllers
 {
@@ -19,9 +20,19 @@ namespace TipMolde.API.Controllers
 
         [Authorize(Roles = "ADMIN,GESTOR_DESENHO")]
         [HttpGet("all")]
-        public async Task<IActionResult> GetAll() => Ok(await _service.GetAllAsync());
+        public async Task<IActionResult> GetAll()
+        {
+            var result = await _service.GetAllAsync();
+            return Ok(new
+            {
+                result.TotalCount,
+                result.CurrentPage,
+                result.PageSize,
+                Items = result.Items
+            });
+        }
 
-        [Authorize(Roles = "ADMIN,GESTOR_DESENHO")]
+            [Authorize(Roles = "ADMIN,GESTOR_DESENHO")]
         [HttpGet("by-id")]
         public async Task<IActionResult> GetById(int id)
         {

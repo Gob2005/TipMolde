@@ -7,9 +7,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TipMolde.API", "TipMolde\Ti
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TipMolde.Tests", "TipMolde.Tests\TipMolde.Tests.csproj", "{22956748-E58E-40FB-86E2-A586BCE4E826}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TipMolde.Core", "TipMolde.Core\TipMolde.Core.csproj", "{5C45BA5A-6535-4AD7-9711-D4DCFF5762B9}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TipMolde.Domain", "TipMolde.Domain\TipMolde.Domain.csproj", "{5C45BA5A-6535-4AD7-9711-D4DCFF5762B9}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TipMolde.Infrastructure", "TipMolde.Infrastructure\TipMolde.Infrastructure.csproj", "{9B59D0B0-7002-4CCB-BBAA-A11D07548D78}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TipMolde.Application", "TipMolde.Application\TipMolde.Application.csproj", "{FD7DE9FE-4232-4E8C-A3CD-16460D76DF59}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,6 +35,10 @@ Global
 		{9B59D0B0-7002-4CCB-BBAA-A11D07548D78}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9B59D0B0-7002-4CCB-BBAA-A11D07548D78}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9B59D0B0-7002-4CCB-BBAA-A11D07548D78}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FD7DE9FE-4232-4E8C-A3CD-16460D76DF59}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FD7DE9FE-4232-4E8C-A3CD-16460D76DF59}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FD7DE9FE-4232-4E8C-A3CD-16460D76DF59}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FD7DE9FE-4232-4E8C-A3CD-16460D76DF59}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

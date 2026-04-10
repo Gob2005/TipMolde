@@ -1,11 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using TipMolde.Core.Interface.Desenho.IRevisao;
-using TipMolde.Core.Models.Desenho;
+using TipMolde.Application.Interface.Desenho.IRevisao;
+using TipMolde.Domain.Entities.Desenho;
 using TipMolde.Infrastructure.DB;
 
 namespace TipMolde.Infrastructure.Repositorio
 {
-    public class RevisaoRepository : GenericRepository<Revisao>, IRevisaoRepository
+    public class RevisaoRepository : GenericRepository<Revisao, int>, IRevisaoRepository
     {
         public RevisaoRepository(ApplicationDbContext context) : base(context) { }
 

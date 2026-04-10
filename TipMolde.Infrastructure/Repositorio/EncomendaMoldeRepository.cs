@@ -1,11 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using TipMolde.Core.Interface.Comercio.IEncomendaMolde;
-using TipMolde.Core.Models.Comercio;
+using TipMolde.Application.Interface.Comercio.IEncomendaMolde;
+using TipMolde.Domain.Entities.Comercio;
 using TipMolde.Infrastructure.DB;
 
 namespace TipMolde.Infrastructure.Repositorio
 {
-    public class EncomendaMoldeRepository : GenericRepository<EncomendaMolde>, IEncomendaMoldeRepository
+    public class EncomendaMoldeRepository : GenericRepository<EncomendaMolde, int>, IEncomendaMoldeRepository
     {
         public EncomendaMoldeRepository(ApplicationDbContext context) : base(context) { }
 

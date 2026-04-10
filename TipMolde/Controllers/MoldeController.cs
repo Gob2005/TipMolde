@@ -1,10 +1,10 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using TipMolde.API.DTOs.MoldeDTO;
-using TipMolde.Core.Interface.Producao.IMolde;
-using TipMolde.Core.Models.Producao;
-using TipMolde.Core.Models.Comercio;
-using TipMolde.Core.Interface.Relatorios;
+using TipMolde.Application.DTOs.MoldeDTO;
+using TipMolde.Application.Interface.Producao.IMolde;
+using TipMolde.Application.Interface.Relatorios;
+using TipMolde.Domain.Entities.Comercio;
+using TipMolde.Domain.Entities.Producao;
 
 namespace TipMolde.API.Controllers
 {
@@ -25,15 +25,21 @@ namespace TipMolde.API.Controllers
         [HttpGet("all-moldes")]
         public async Task<IActionResult> GetAllMoldes()
         {
-            var moldes = await _moldeService.GetAllMoldesAsync();
-            return Ok(moldes.Select(ToResponse));
+            var result = await _moldeService.GetAllAsync();
+            return Ok(new
+            {
+                result.TotalCount,
+                result.CurrentPage,
+                result.PageSize,
+                Items = result.Items.Select(ToResponse)
+            });
         }
 
         [Authorize]
         [HttpGet("molde-byID")]
         public async Task<IActionResult> GetMoldeById(int id)
         {
-            var molde = await _moldeService.GetMoldeWithSpecsAsync(id);
+            var molde = await _moldeService.GetByIdAsync(id);
             if (molde == null) return NotFound();
             return Ok(ToResponse(molde));
         }
@@ -111,7 +117,7 @@ namespace TipMolde.API.Controllers
                 DataEntregaPrevista = dto.DataEntregaPrevista
             };
 
-            var created = await _moldeService.CreateMoldeAsync(molde, specs, link);
+            var created = await _moldeService.CreateAsync(molde, specs);
             return CreatedAtAction(nameof(GetMoldeById), new { id = created.Molde_id }, ToResponse(created));
         }
 
@@ -149,7 +155,7 @@ namespace TipMolde.API.Controllers
                 MaterialInjecao = dto.MaterialInjecao
             };
 
-            await _moldeService.UpdateMoldeAsync(molde, specs);
+            await _moldeService.UpdateAsync(molde, specs);
             return NoContent();
         }
 
@@ -157,7 +163,7 @@ namespace TipMolde.API.Controllers
         [HttpDelete("delete-molde/{id:int}")]
         public async Task<IActionResult> DeleteMolde(int id)
         {
-            await _moldeService.DeleteMoldeAsync(id);
+            await _moldeService.DeleteAsync(id);
             return NoContent();
         }
 

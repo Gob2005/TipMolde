@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using TipMolde.Core.Interface.Fichas.IFichaDocumento;
+using TipMolde.Application.Interface.Fichas.IFichaDocumento;
 
 namespace TipMolde.Controllers
 {

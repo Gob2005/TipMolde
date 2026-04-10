@@ -1,11 +1,11 @@
 ﻿using Microsoft.Extensions.Options;
 using System.Security.Claims;
 using System.Text;
-using TipMolde.Core.Models;
+using TipMolde.Domain.Entities;
 using System.IdentityModel.Tokens.Jwt;
 using Microsoft.IdentityModel.Tokens;
 using TipMolde.Infrastructure.Settings;
-using TipMolde.Core.Interface.Utilizador.IAuth;
+using TipMolde.Application.Interface.Utilizador.IAuth;
 
 namespace TipMolde.Infrastructure.Service
 {

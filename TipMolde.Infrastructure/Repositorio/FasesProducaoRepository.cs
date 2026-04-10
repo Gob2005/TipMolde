@@ -1,12 +1,12 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using TipMolde.Core.Enums;
-using TipMolde.Core.Interface.Producao.IFasesProducao;
-using TipMolde.Core.Models.Producao;
+using TipMolde.Domain.Enums;
+using TipMolde.Application.Interface.Producao.IFasesProducao;
+using TipMolde.Domain.Entities.Producao;
 using TipMolde.Infrastructure.DB;
 
 namespace TipMolde.Infrastructure.Repositorio
 {
-    public class FasesProducaoRepository : GenericRepository<FasesProducao>, IFasesProducaoRepository
+    public class FasesProducaoRepository : GenericRepository<FasesProducao, int>, IFasesProducaoRepository
     {
         public FasesProducaoRepository(ApplicationDbContext context) : base(context)  { }
 

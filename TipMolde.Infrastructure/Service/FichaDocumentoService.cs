@@ -1,8 +1,8 @@
 ﻿using System.Security.Cryptography;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
-using TipMolde.Core.Interface.Fichas.IFichaDocumento;
-using TipMolde.Core.Models.Fichas;
+using TipMolde.Application.Interface.Fichas.IFichaDocumento;
+using TipMolde.Domain.Entities.Fichas;
 
 namespace TipMolde.Infrastructure.Service
 {

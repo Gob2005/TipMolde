@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using TipMolde.Core.Interface.Fichas.IFichaDocumento;
-using TipMolde.Core.Models.Fichas;
+using TipMolde.Application.Interface.Fichas.IFichaDocumento;
+using TipMolde.Domain.Entities.Fichas;
 using TipMolde.Infrastructure.DB;
 
 namespace TipMolde.Infrastructure.Repositorio

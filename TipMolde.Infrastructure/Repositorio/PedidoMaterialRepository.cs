@@ -1,11 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using TipMolde.Core.Interface.Comercio.IPedidoMaterial;
-using TipMolde.Core.Models.Comercio;
+using TipMolde.Application.Interface.Comercio.IPedidoMaterial;
+using TipMolde.Domain.Entities.Comercio;
 using TipMolde.Infrastructure.DB;
 
 namespace TipMolde.Infrastructure.Repositorio
 {
-    public class PedidoMaterialRepository : GenericRepository<PedidoMaterial>, IPedidoMaterialRepository
+    public class PedidoMaterialRepository : GenericRepository<PedidoMaterial, int>, IPedidoMaterialRepository
     {
         public PedidoMaterialRepository(ApplicationDbContext context) : base(context) { }
 

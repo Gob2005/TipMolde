@@ -1,11 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using TipMolde.Core.Interface.Fichas.IFichaProducao;
-using TipMolde.Core.Models.Fichas;
+using TipMolde.Application.Interface.Fichas.IFichaProducao;
+using TipMolde.Domain.Entities.Fichas;
 using TipMolde.Infrastructure.DB;
 
 namespace TipMolde.Infrastructure.Repositorio
 {
-    public class FichaProducaoRepository : GenericRepository<FichaProducao>, IFichaProducaoRepository
+    public class FichaProducaoRepository : GenericRepository<FichaProducao, int>, IFichaProducaoRepository
     {
         public FichaProducaoRepository(ApplicationDbContext context) : base(context) { }
 

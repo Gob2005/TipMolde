@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
-using TipMolde.Core.Interface.Utilizador.IAuth;
-using TipMolde.Core.Models;
+using TipMolde.Application.Interface.Utilizador.IAuth;
+using TipMolde.Domain.Entities;
 using TipMolde.Infrastructure.DB;
 
 namespace TipMolde.Infrastructure.Repositorio

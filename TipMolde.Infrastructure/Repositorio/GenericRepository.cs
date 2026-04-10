@@ -1,10 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using TipMolde.Core.Interface;
+using TipMolde.Application.Interface;
 using TipMolde.Infrastructure.DB;
 
 namespace TipMolde.Infrastructure.Repositorio
 {
-    public class GenericRepository<T> : IGenericRepository<T> where T : class
+    public class GenericRepository<T, TKey> : IGenericRepository<T, TKey> where T : class
     {
         protected readonly ApplicationDbContext _context;
         protected readonly DbSet<T> _db;
@@ -17,12 +17,18 @@ namespace TipMolde.Infrastructure.Repositorio
 
         public async Task<IEnumerable<T>> GetAllAsync() => await _db.AsNoTracking().ToListAsync();
 
-        public async Task<T?> GetByIdAsync(int id) => await _db.FindAsync(id);
-
-        public async Task AddAsync(T entity)
+        public Task<PagedResult<T>> GetAllAsync(int page = 1, int pageSize = 50)
         {
-            await _db.AddAsync(entity);
+            throw new NotImplementedException();
+        }
+
+        public async Task<T?> GetByIdAsync(TKey id) => await _db.FindAsync(id);
+
+        public async Task<T> AddAsync(T entity)
+        {
+            await _context.Set<T>().AddAsync(entity);
             await _context.SaveChangesAsync();
+            return entity;
         }
 
         public async Task UpdateAsync(T entity)
@@ -31,7 +37,7 @@ namespace TipMolde.Infrastructure.Repositorio
             await _context.SaveChangesAsync();
         }
 
-        public async Task DeleteAsync(int id)
+        public async Task DeleteAsync(TKey id)
         {
             var entity = await _db.FindAsync(id);
             if (entity is null) return;

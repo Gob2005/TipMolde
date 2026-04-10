@@ -1,11 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using TipMolde.Core.Interface.Producao.IRegistosProducao;
-using TipMolde.Core.Models.Producao;
+using TipMolde.Application.Interface.Producao.IRegistosProducao;
+using TipMolde.Domain.Entities.Producao;
 using TipMolde.Infrastructure.DB;
 
 namespace TipMolde.Infrastructure.Repositorio
 {
-    public class RegistosProducaoRepository : GenericRepository<RegistosProducao>, IRegistosProducaoRepository
+    public class RegistosProducaoRepository : GenericRepository<RegistosProducao, int>, IRegistosProducaoRepository
     {
         public RegistosProducaoRepository(ApplicationDbContext context) : base(context)   {  }
         public Task<IEnumerable<RegistosProducao>> GetHistoricoAsync(int faseId, int pecaId)

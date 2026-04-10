@@ -1,12 +1,12 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using TipMolde.Core.Enums;
-using TipMolde.Core.Interface.Comercio.IEncomenda;
-using TipMolde.Core.Models.Comercio;
+using TipMolde.Domain.Enums;
+using TipMolde.Application.Interface.Comercio.IEncomenda;
+using TipMolde.Domain.Entities.Comercio;
 using TipMolde.Infrastructure.DB;
 
 namespace TipMolde.Infrastructure.Repositorio
 {
-    public class EncomendaRepository : GenericRepository<Encomenda>, IEncomendaRepository
+    public class EncomendaRepository : GenericRepository<Encomenda, int>, IEncomendaRepository
     {
         public EncomendaRepository(ApplicationDbContext context) : base(context) { }
 

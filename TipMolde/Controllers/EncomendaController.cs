@@ -1,10 +1,11 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using TipMolde.API.DTOs.EncomendaDTO;
-using TipMolde.Core.Enums;
-using TipMolde.Core.Interface.Comercio.IEncomenda;
-using TipMolde.Core.Interface.Comercio.ICliente;
-using TipMolde.Core.Models.Comercio;
+using MySqlX.XDevAPI.Common;
+using TipMolde.Application.DTOs.EncomendaDTO;
+using TipMolde.Application.Interface.Comercio.ICliente;
+using TipMolde.Application.Interface.Comercio.IEncomenda;
+using TipMolde.Domain.Entities.Comercio;
+using TipMolde.Domain.Enums;
 
 namespace TipMolde.API.Controllers
 {
@@ -23,15 +24,21 @@ namespace TipMolde.API.Controllers
         [HttpGet("all-encomendas")]
         public async Task<IActionResult> GetAllEncomendas()
         {
-            var encomendas = await _encomendaService.GetAllEncomendasAsync();
-            return Ok(encomendas.Select(ToResponse));
+            var result = await _encomendaService.GetAllAsync();
+            return Ok(new
+            {
+                result.TotalCount,
+                result.CurrentPage,
+                result.PageSize,
+                Items = result.Items.Select(ToResponse)
+            });
         }
 
         [Authorize(Roles = "ADMIN,GESTOR_COMERCIAL")]
         [HttpGet("encomenda-byID")]
         public async Task<IActionResult> GetEncomendaById(int id)
         {
-            var encomenda = await _encomendaService.GetEncomendaByIdAsync(id);
+            var encomenda = await _encomendaService.GetByIdAsync(id);
             if (encomenda == null) return NotFound();
             return Ok(ToResponse(encomenda));
         }
@@ -88,7 +95,7 @@ namespace TipMolde.API.Controllers
                 Cliente_id = dto.Cliente_id
             };
 
-            var created = await _encomendaService.CreateEncomendaAsync(encomenda);
+            var created = await _encomendaService.CreateAsync(encomenda);
             return CreatedAtAction(
                 nameof(GetEncomendaById),
                 new { id = created.Encomenda_id },
@@ -110,7 +117,7 @@ namespace TipMolde.API.Controllers
                 NomeResponsavelCliente = dto.NomeResponsavelCliente
             };
 
-            await _encomendaService.UpdateEncomendaAsync(encomenda);
+            await _encomendaService.UpdateAsync(encomenda);
             return NoContent();
         }
 
@@ -120,7 +127,7 @@ namespace TipMolde.API.Controllers
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            await _encomendaService.UpdateEstadoEncomendaAsync(id, dto.Estado);
+            await _encomendaService.UpdateEstadoAsync(id, dto.Estado);
             return NoContent();
         }
 
@@ -128,9 +135,9 @@ namespace TipMolde.API.Controllers
         [HttpDelete("delete-encomenda")]
         public async Task<IActionResult> DeleteEncomenda(int id)
         {
-            var encomenda = await _encomendaService.GetEncomendaByIdAsync(id);
+            var encomenda = await _encomendaService.GetByIdAsync(id);
             if (encomenda == null) return NotFound();
-            await _encomendaService.DeleteEncomendaAsync(id);
+            await _encomendaService.DeleteAsync(id);
             return NoContent();
         }
 

@@ -1,9 +1,9 @@
-﻿using Moq;
+﻿/*using Moq;
 using TipMolde.Core.Enums;
 using TipMolde.Core.Interface.Utilizador.IAuth;
 using TipMolde.Core.Interface.Utilizador.ISecurity;
 using TipMolde.Core.Models;
-using TipMolde.Infrastructure.Service;
+using TipMolde.Infrastructure.Service;*/
 
 namespace TipMolde.Tests.Unitario
 {

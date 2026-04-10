@@ -1,11 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using TipMolde.Core.Interface.Desenho.IProjeto;
-using TipMolde.Core.Models.Desenho;
+using TipMolde.Application.Interface.Desenho.IProjeto;
+using TipMolde.Domain.Entities.Desenho;
 using TipMolde.Infrastructure.DB;
 
 namespace TipMolde.Infrastructure.Repositorio
 {
-    public class ProjetoRepository : GenericRepository<Projeto>, IProjetoRepository
+    public class ProjetoRepository : GenericRepository<Projeto, int>, IProjetoRepository
     {
         public ProjetoRepository(ApplicationDbContext context) : base(context) { }
 

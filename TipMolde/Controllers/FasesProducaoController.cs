@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using TipMolde.API.DTOs.Fases_producaoDTO;
-using TipMolde.Core.Interface.Producao.IFasesProducao;
-using TipMolde.Core.Models.Producao;
+using TipMolde.Application.DTOs.Fases_producaoDTO;
+using TipMolde.Application.Interface.Producao.IFasesProducao;
+using TipMolde.Domain.Entities.Producao;
 
 namespace TipMolde.API.Controllers
 {
@@ -21,7 +21,7 @@ namespace TipMolde.API.Controllers
         [HttpGet("all-fases_producao")]
         public async Task<IActionResult> GetAllFases_producao()
         {
-            var fasesProducao = await _fasesProducaoService.GetAllFases_producaoAsync();
+            var fasesProducao = await _fasesProducaoService.GetAllAsync();
             return Ok(fasesProducao);
         }
 
@@ -29,7 +29,7 @@ namespace TipMolde.API.Controllers
         [HttpGet("fases_producao-byID")]
         public async Task<IActionResult> GetFases_producaoById(int id)
         {
-            var fasesProducao = await _fasesProducaoService.GetFase_producaoByIdAsync(id);
+            var fasesProducao = await _fasesProducaoService.GetByIdAsync(id);
             if (fasesProducao == null) return NotFound();
             return Ok(fasesProducao);
         }
@@ -46,7 +46,7 @@ namespace TipMolde.API.Controllers
                 Descricao = dto.Descricao
             };
 
-            var created = await _fasesProducaoService.CreateFase_producaoAsync(fasesProducao);
+            var created = await _fasesProducaoService.CreateAsync(fasesProducao);
             return CreatedAtAction(nameof(GetFases_producaoById), new { id = created.Fases_producao_id }, created);
         }
 
@@ -56,13 +56,13 @@ namespace TipMolde.API.Controllers
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            var fase = await _fasesProducaoService.GetFase_producaoByIdAsync(id);
+            var fase = await _fasesProducaoService.GetByIdAsync(id);
             if (fase == null) return NotFound();
 
             if (dto.Nome.HasValue) fase.Nome = dto.Nome.Value;
             if (!string.IsNullOrWhiteSpace(dto.Descricao)) fase.Descricao = dto.Descricao;
 
-            await _fasesProducaoService.UpdateFase_producaoAsync(fase);
+            await _fasesProducaoService.UpdateAsync(fase);
             return NoContent();
         }
 
@@ -70,10 +70,10 @@ namespace TipMolde.API.Controllers
         [HttpDelete("delete-fases_producao/{id:int}")]
         public async Task<IActionResult> DeleteFases_producao(int id)
         {
-            var fasesProducao = await _fasesProducaoService.GetFase_producaoByIdAsync(id);
+            var fasesProducao = await _fasesProducaoService.GetByIdAsync(id);
             if (fasesProducao == null) return NotFound();
 
-            await _fasesProducaoService.DeleteFase_producaoAsync(id);
+            await _fasesProducaoService.DeleteAsync(id);
             return NoContent();
         }
     }

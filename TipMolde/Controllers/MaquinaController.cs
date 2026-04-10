@@ -1,9 +1,10 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using TipMolde.API.DTOs.MaquinaDTO;
-using TipMolde.Core.Enums;
-using TipMolde.Core.Interface.Producao.IMaquina;
-using TipMolde.Core.Models.Producao;
+using MySqlX.XDevAPI.Common;
+using TipMolde.Application.DTOs.MaquinaDTO;
+using TipMolde.Application.Interface.Producao.IMaquina;
+using TipMolde.Domain.Entities.Producao;
+using TipMolde.Domain.Enums;
 
 namespace TipMolde.API.Controllers
 {
@@ -22,8 +23,14 @@ namespace TipMolde.API.Controllers
         [HttpGet("all")]
         public async Task<IActionResult> GetAll()
         {
-            var maquinas = await _service.GetAllAsync();
-            return Ok(maquinas.Select(ToResponse));
+            var result = await _service.GetAllAsync();
+            return Ok(new
+            {
+                result.TotalCount,
+                result.CurrentPage,
+                result.PageSize,
+                Items = result.Items.Select(ToResponse)
+            });
         }
 
         [Authorize(Roles = "ADMIN,GESTOR_PRODUCAO")]

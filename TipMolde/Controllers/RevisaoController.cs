@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using TipMolde.API.DTOs.RevisaoDTO;
-using TipMolde.Core.Interface.Desenho.IRevisao;
-using TipMolde.Core.Models.Desenho;
+using TipMolde.Application.DTOs.RevisaoDTO;
+using TipMolde.Application.Interface.Desenho.IRevisao;
+using TipMolde.Domain.Entities.Desenho;
 
 namespace TipMolde.API.Controllers
 {

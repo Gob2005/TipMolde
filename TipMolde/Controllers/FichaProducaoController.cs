@@ -1,9 +1,9 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using TipMolde.API.DTOs.FichaProducaoDTO;
-using TipMolde.Core.Interface.Fichas.IFichaProducao;
-using TipMolde.Core.Interface.Relatorios;
-using TipMolde.Core.Models.Fichas;
+using TipMolde.Application.DTOs.FichaProducaoDTO;
+using TipMolde.Application.Interface.Fichas.IFichaProducao;
+using TipMolde.Application.Interface.Relatorios;
+using TipMolde.Domain.Entities.Fichas;
 
 namespace TipMolde.API.Controllers
 {

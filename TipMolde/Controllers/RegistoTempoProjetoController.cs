@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using TipMolde.API.DTOs.RegistoTempoProjetoDTO;
-using TipMolde.Core.Interface.Desenho.IRegistoTempoProjeto;
-using TipMolde.Core.Models.Desenho;
+using TipMolde.Application.DTOs.RegistoTempoProjetoDTO;
+using TipMolde.Application.Interface.Desenho.IRegistoTempoProjeto;
+using TipMolde.Domain.Entities.Desenho;
 
 namespace TipMolde.API.Controllers
 {

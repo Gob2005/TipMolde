@@ -1,8 +1,9 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using TipMolde.API.DTOs.PecaDTO;
-using TipMolde.Core.Interface.Producao.IPeca;
-using TipMolde.Core.Models.Producao;
+using MySqlX.XDevAPI.Common;
+using TipMolde.Application.DTOs.PecaDTO;
+using TipMolde.Application.Interface.Producao.IPeca;
+using TipMolde.Domain.Entities.Producao;
 
 namespace TipMolde.API.Controllers
 {
@@ -20,16 +21,22 @@ namespace TipMolde.API.Controllers
         [Authorize(Roles = "ADMIN,GESTOR_DESENHO")]
         [HttpGet("all-pecas")]
          public async Task<IActionResult> GetAllPecas()
+        {
+            var result = await _pecaService.GetAllAsync();
+            return Ok(new
             {
-                var pecas = await _pecaService.GetAllPecasAsync();
-                return Ok(pecas.Select(ToResponse));
+                result.TotalCount,
+                result.CurrentPage,
+                result.PageSize,
+                Items = result.Items.Select(ToResponse)
+            });
         }
 
         [Authorize(Roles = "ADMIN,GESTOR_DESENHO")]
         [HttpGet("peca-byID")]
         public async Task<IActionResult> GetPecaById(int id)
         {
-            var peca = await _pecaService.GetPecaByIdAsync(id);
+            var peca = await _pecaService.GetByIdAsync(id);
             if (peca == null) return NotFound();
             return Ok(ToResponse(peca));
         }
@@ -69,7 +76,7 @@ namespace TipMolde.API.Controllers
                 Molde_id = dto.Molde_id
             };
 
-            var created = await _pecaService.CreatePecaAsync(peca);
+            var created = await _pecaService.CreateAsync(peca);
             return CreatedAtAction(nameof(GetPecaById), new { id = created.Peca_id }, created);
         }
 
@@ -88,7 +95,7 @@ namespace TipMolde.API.Controllers
                 MaterialRecebido = dto.MaterialRecebido ?? false
             };
 
-            await _pecaService.UpdatePecaAsync(peca);
+            await _pecaService.UpdateAsync(peca);
             return NoContent();
         }
 
@@ -96,7 +103,7 @@ namespace TipMolde.API.Controllers
         [HttpDelete("delete-peca/{id:int}")]
         public async Task<IActionResult> DeletePeca(int id)
         {
-            await _pecaService.DeletePecaAsync(id);
+            await _pecaService.DeleteAsync(id);
             return NoContent();
         }
 

@@ -1,11 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using TipMolde.Core.Interface.Utilizador.IUser;
-using TipMolde.Core.Models;
+using TipMolde.Application.Interface.Utilizador.IUser;
+using TipMolde.Domain.Entities;
 using TipMolde.Infrastructure.DB;
 
 namespace TipMolde.Infrastructure.Repositorio
 {
-    public class UserRepository : GenericRepository<User>, IUserRepository
+    public class UserRepository : GenericRepository<User, int>, IUserRepository
     {
         public UserRepository(ApplicationDbContext context) : base(context) { }
 

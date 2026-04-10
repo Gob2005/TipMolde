@@ -1,8 +1,8 @@
 using Moq;
-using TipMolde.Core.Enums;
-using TipMolde.Core.Interface.Producao.IMolde;
-using TipMolde.Core.Interface.Producao.IPeca;
-using TipMolde.Core.Models.Producao;
+using TipMolde.Domain.Enums;
+using TipMolde.Application.Interface.Producao.IMolde;
+using TipMolde.Application.Interface.Producao.IPeca;
+using TipMolde.Domain.Entities.Producao;
 using TipMolde.Infrastructure.Service;
 
 namespace TipMolde.Tests.Unitario
@@ -42,9 +42,9 @@ namespace TipMolde.Tests.Unitario
             var peca = PecaFake();
             _moldeRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(MoldeFake());
             _pecaRepository.Setup(r => r.GetByDesignacaoAsync("Extrator", 1)).ReturnsAsync((Peca?)null);
-            _pecaRepository.Setup(r => r.AddAsync(It.IsAny<Peca>())).Returns(Task.CompletedTask);
+            _pecaRepository.Setup(r => r.AddAsync(It.IsAny<Peca>())).ReturnsAsync((Peca p) => p);
 
-            var result = await _sut.CreatePecaAsync(peca);
+            var result = await _sut.CreateAsync(peca);
 
             Assert.Equal("Extrator", result.Designacao);
             _pecaRepository.Verify(r => r.AddAsync(It.IsAny<Peca>()), Times.Once);
@@ -56,7 +56,7 @@ namespace TipMolde.Tests.Unitario
             _moldeRepository.Setup(r => r.GetByIdAsync(7)).ReturnsAsync((Molde?)null);
             var peca = PecaFake(moldeId: 7);
 
-            await Assert.ThrowsAsync<KeyNotFoundException>(() => _sut.CreatePecaAsync(peca));
+            await Assert.ThrowsAsync<KeyNotFoundException>(() => _sut.CreateAsync(peca));
         }
 
         [Fact]
@@ -65,7 +65,7 @@ namespace TipMolde.Tests.Unitario
             _moldeRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(MoldeFake());
             var peca = PecaFake(designacao: " ");
 
-            await Assert.ThrowsAsync<ArgumentException>(() => _sut.CreatePecaAsync(peca));
+            await Assert.ThrowsAsync<ArgumentException>(() => _sut.CreateAsync(peca));
         }
 
         [Fact]
@@ -75,14 +75,14 @@ namespace TipMolde.Tests.Unitario
             _pecaRepository.Setup(r => r.GetByDesignacaoAsync("Extrator", 1)).ReturnsAsync(PecaFake(id: 2));
             var peca = PecaFake();
 
-            await Assert.ThrowsAsync<ArgumentException>(() => _sut.CreatePecaAsync(peca));
+            await Assert.ThrowsAsync<ArgumentException>(() => _sut.CreateAsync(peca));
         }
 
         [Fact]
         public async Task UpdatePecaAsync_NotFound_Throws()
         {
             _pecaRepository.Setup(r => r.GetByIdAsync(99)).ReturnsAsync((Peca?)null);
-            await Assert.ThrowsAsync<KeyNotFoundException>(() => _sut.UpdatePecaAsync(PecaFake(id: 99)));
+            await Assert.ThrowsAsync<KeyNotFoundException>(() => _sut.UpdateAsync(PecaFake(id: 99)));
         }
 
         [Fact]
@@ -97,7 +97,7 @@ namespace TipMolde.Tests.Unitario
             update.MaterialDesignacao = "Inox";
             update.MaterialRecebido = true;
 
-            await _sut.UpdatePecaAsync(update);
+            await _sut.UpdateAsync(update);
 
             _pecaRepository.Verify(r => r.UpdateAsync(It.Is<Peca>(p =>
                 p.Peca_id == 1 &&
@@ -121,7 +121,7 @@ namespace TipMolde.Tests.Unitario
             update.MaterialDesignacao = null;
             update.MaterialRecebido = false;
 
-            await _sut.UpdatePecaAsync(update);
+            await _sut.UpdateAsync(update);
 
             _pecaRepository.Verify(r => r.UpdateAsync(It.Is<Peca>(p =>
                 p.Designacao == "Original" &&
@@ -133,7 +133,7 @@ namespace TipMolde.Tests.Unitario
         public async Task DeletePecaAsync_NotFound_Throws()
         {
             _pecaRepository.Setup(r => r.GetByIdAsync(10)).ReturnsAsync((Peca?)null);
-            await Assert.ThrowsAsync<KeyNotFoundException>(() => _sut.DeletePecaAsync(10));
+            await Assert.ThrowsAsync<KeyNotFoundException>(() => _sut.DeleteAsync(10));
         }
 
         [Fact]
@@ -142,7 +142,7 @@ namespace TipMolde.Tests.Unitario
             _pecaRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(PecaFake());
             _pecaRepository.Setup(r => r.DeleteAsync(1)).Returns(Task.CompletedTask);
 
-            await _sut.DeletePecaAsync(1);
+            await _sut.DeleteAsync(1);
 
             _pecaRepository.Verify(r => r.DeleteAsync(1), Times.Once);
         }

@@ -1,8 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using TipMolde.Core.Enums;
-using TipMolde.Core.Interface.Comercio.IEncomendaMolde;
-using TipMolde.Core.Interface.Fichas.IFichaProducao;
-using TipMolde.Core.Models.Fichas;
+using TipMolde.Domain.Enums;
+using TipMolde.Application.Interface.Comercio.IEncomendaMolde;
+using TipMolde.Application.Interface.Fichas.IFichaProducao;
+using TipMolde.Domain.Entities.Fichas;
 using TipMolde.Infrastructure.DB;
 
 namespace TipMolde.Infrastructure.Service

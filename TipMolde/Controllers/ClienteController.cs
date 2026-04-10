@@ -1,9 +1,10 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using TipMolde.API.DTOs.ClienteDTO;
-using TipMolde.API.DTOs.EncomendaDTO;
-using TipMolde.Core.Interface.Comercio.ICliente;
-using TipMolde.Core.Models.Comercio;
+using MySqlX.XDevAPI.Common;
+using TipMolde.Application.DTOs.ClienteDTO;
+using TipMolde.Application.DTOs.EncomendaDTO;
+using TipMolde.Application.Interface.Comercio.ICliente;
+using TipMolde.Domain.Entities.Comercio;
 
 namespace TipMolde.API.Controllers
 {
@@ -22,15 +23,21 @@ namespace TipMolde.API.Controllers
         [HttpGet("all-clientes")]
         public async Task<IActionResult> GetAllClientes()
         {
-            var clientes = await _clienteService.GetAllClientesAsync();
-            return Ok(clientes.Select(ToResponse));
+            var result = await _clienteService.GetAllAsync();
+            return Ok(new
+            {
+                result.TotalCount,
+                result.CurrentPage,
+                result.PageSize,
+                Items = result.Items.Select(ToResponse)
+            });
         }
 
         [Authorize(Roles = "ADMIN,GESTOR_COMERCIAL,GESTOR_DESENHO")]
         [HttpGet("cliente-byID")]
         public async Task<IActionResult> GetClienteById(int id)
         {
-            var cliente = await _clienteService.GetClienteByIdAsync(id);
+            var cliente = await _clienteService.GetByIdAsync(id);
             if (cliente == null) return NotFound();
             return Ok(ToResponse(cliente));
         }
@@ -77,7 +84,7 @@ namespace TipMolde.API.Controllers
                 CreatedAt = DateTime.UtcNow
             };
 
-            var createdCliente = await _clienteService.CreateClienteAsync(cliente);
+            var createdCliente = await _clienteService.CreateAsync(cliente);
             return CreatedAtAction(nameof(GetClienteById), new { id = createdCliente.Cliente_id }, createdCliente);
         }
 
@@ -98,7 +105,7 @@ namespace TipMolde.API.Controllers
                 Telefone = dto.Telefone
             };
 
-            await _clienteService.UpdateClienteAsync(cliente);
+            await _clienteService.UpdateAsync(cliente);
             return NoContent();
         }
 
@@ -106,7 +113,7 @@ namespace TipMolde.API.Controllers
         [HttpDelete("delete-cliente")]
         public async Task<IActionResult> DeleteCliente(int id)
         {
-            await _clienteService.DeleteClienteAsync(id);
+            await _clienteService.DeleteAsync(id);
             return NoContent();
         }
 

@@ -4,26 +4,27 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Text;
 using TipMolde.API.Middleware;
-using TipMolde.Core.Interface.Comercio.ICliente;
-using TipMolde.Core.Interface.Comercio.IEncomenda;
-using TipMolde.Core.Interface.Comercio.IEncomendaMolde;
-using TipMolde.Core.Interface.Comercio.IFornecedor;
-using TipMolde.Core.Interface.Comercio.IPedidoMaterial;
-using TipMolde.Core.Interface.Comercio.IPedidoMaterial.IItemPedidoMaterial;
-using TipMolde.Core.Interface.Desenho.IProjeto;
-using TipMolde.Core.Interface.Desenho.IRegistoTempoProjeto;
-using TipMolde.Core.Interface.Desenho.IRevisao;
-using TipMolde.Core.Interface.Fichas.IFichaDocumento;
-using TipMolde.Core.Interface.Fichas.IFichaProducao;
-using TipMolde.Core.Interface.Producao.IFasesProducao;
-using TipMolde.Core.Interface.Producao.IMaquina;
-using TipMolde.Core.Interface.Producao.IMolde;
-using TipMolde.Core.Interface.Producao.IPeca;
-using TipMolde.Core.Interface.Producao.IRegistosProducao;
-using TipMolde.Core.Interface.Relatorios;
-using TipMolde.Core.Interface.Utilizador.IAuth;
-using TipMolde.Core.Interface.Utilizador.ISecurity;
-using TipMolde.Core.Interface.Utilizador.IUser;
+using TipMolde.Application.Interface.Comercio.ICliente;
+using TipMolde.Application.Interface.Comercio.IEncomenda;
+using TipMolde.Application.Interface.Comercio.IEncomendaMolde;
+using TipMolde.Application.Interface.Comercio.IFornecedor;
+using TipMolde.Application.Interface.Comercio.IPedidoMaterial;
+using TipMolde.Application.Interface.Comercio.IPedidoMaterial.IItemPedidoMaterial;
+using TipMolde.Application.Interface.Desenho.IProjeto;
+using TipMolde.Application.Interface.Desenho.IRegistoTempoProjeto;
+using TipMolde.Application.Interface.Desenho.IRevisao;
+using TipMolde.Application.Interface.Fichas.IFichaDocumento;
+using TipMolde.Application.Interface.Fichas.IFichaProducao;
+using TipMolde.Application.Interface.Producao.IFasesProducao;
+using TipMolde.Application.Interface.Producao.IMaquina;
+using TipMolde.Application.Interface.Producao.IMolde;
+using TipMolde.Application.Interface.Producao.IPeca;
+using TipMolde.Application.Interface.Producao.IRegistosProducao;
+using TipMolde.Application.Interface.Relatorios;
+using TipMolde.Application.Interface.Utilizador.IAuth;
+using TipMolde.Application.Interface.Utilizador.ISecurity;
+using TipMolde.Application.Interface.Utilizador.IUser;
+using TipMolde.Application.Service;
 using TipMolde.Infrastructure.DB;
 using TipMolde.Infrastructure.Repositorio;
 using TipMolde.Infrastructure.Service;
@@ -82,6 +83,7 @@ builder.Services
 
 builder.Services.AddAuthorization();
 
+// Repositories
 builder.Services.AddScoped<IAuthRepository, AuthRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IClienteRepository, ClienteRepository>();
@@ -103,8 +105,9 @@ builder.Services.AddScoped<IFichaProducaoRepository, FichaProducaoRepository>();
 builder.Services.AddScoped<IRelatorioRepository, RelatorioRepository>();
 builder.Services.AddScoped<IFichaDocumentoRepository, FichaDocumentoRepository>();
 
-builder.Services.AddScoped<IAuthService, AuthService>();
-builder.Services.AddScoped<IUserService, UserService>();
+// Application Services
+builder.Services.AddScoped<IUserManagementService, UserManagementService>();
+builder.Services.AddScoped<IPasswordService, PasswordService>();
 builder.Services.AddScoped<IClienteService, ClienteService>();
 builder.Services.AddScoped<IEncomendaService, EncomendaService>();
 builder.Services.AddScoped<IMoldeService, MoldeService>();
@@ -118,12 +121,14 @@ builder.Services.AddScoped<IMaquinaService, MaquinaService>();
 builder.Services.AddScoped<IProjetoService, ProjetoService>();
 builder.Services.AddScoped<IRevisaoService, RevisaoService>();
 builder.Services.AddScoped<IRegistoTempoProjetoService, RegistoTempoProjetoService>();
-builder.Services.AddScoped<IFichaProducaoService, FichaProducaoService>();
-builder.Services.AddScoped<IRelatorioService, RelatorioService>();
-builder.Services.AddScoped<IFichaDocumentoService, FichaDocumentoService>();
 
+// Infrastructure Services
+builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IPasswordHasherService, PasswordHasherService>();
 builder.Services.AddScoped<ITokenService, JwtTokenService>();
+builder.Services.AddScoped<IRelatorioService, RelatorioService>();
+builder.Services.AddScoped<IFichaDocumentoService, FichaDocumentoService>();
+builder.Services.AddScoped<IFichaProducaoService, FichaProducaoService>();
 
 var app = builder.Build();
 app.UseMiddleware<ExceptionMiddleware>();

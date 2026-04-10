@@ -1,8 +1,9 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using TipMolde.API.DTOs.FornecedorDTO;
-using TipMolde.Core.Interface.Comercio.IFornecedor;
-using TipMolde.Core.Models.Comercio;
+using MySqlX.XDevAPI.Common;
+using TipMolde.Application.DTOs.FornecedorDTO;
+using TipMolde.Application.Interface.Comercio.IFornecedor;
+using TipMolde.Domain.Entities.Comercio;
 
 namespace TipMolde.API.Controllers
 {
@@ -21,8 +22,14 @@ namespace TipMolde.API.Controllers
         [HttpGet("all")]
         public async Task<IActionResult> GetAll()
         {
-            var fornecedores = await _service.GetAllAsync();
-            return Ok(fornecedores.Select(ToResponse));
+            var result = await _service.GetAllAsync();
+            return Ok(new
+            {
+                result.TotalCount,
+                result.CurrentPage,
+                result.PageSize,
+                Items = result.Items.Select(ToResponse)
+            });
         }
 
         [Authorize(Roles = "ADMIN,GESTOR_COMERCIAL")]
