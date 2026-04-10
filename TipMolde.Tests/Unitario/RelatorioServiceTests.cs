@@ -1,4 +1,5 @@
-ï»¿using Microsoft.EntityFrameworkCore;
+using FluentAssertions;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Moq;
 using TipMolde.Domain.Enums;
@@ -12,7 +13,9 @@ using TipMolde.Infrastructure.Service;
 
 namespace TipMolde.Tests.Unitario
 {
-    public class RelatorioServiceTests
+    [TestFixture]
+[Category("Integration")]
+public class RelatorioServiceTests
     {
         private static ApplicationDbContext CreateContext()
         {
@@ -76,9 +79,9 @@ namespace TipMolde.Tests.Unitario
             var encomenda = new Encomenda
             {
                 NumeroEncomendaCliente = $"ENC-{fichaId:000}",
-                NomeServicoCliente = $"ServiÃ§o Teste",
+                NomeServicoCliente = $"Serviço Teste",
                 NumeroProjetoCliente = $"PRJ-{fichaId:000}",
-                NomeResponsavelCliente = $"ResponsÃ¡vel GonÃ§alo",
+                NomeResponsavelCliente = $"Responsável Gonçalo",
                 Cliente_id = cliente.Cliente_id
             };
             await ctx.Encomendas.AddAsync(encomenda);
@@ -138,7 +141,7 @@ namespace TipMolde.Tests.Unitario
             return ficha.FichaProducao_id;
         }
 
-        [Fact]
+        [Test]
         public async Task GerarCicloVidaMoldePdfAsync_ComMoldeExistente_GeraPdf()
         {
             // Arrange
@@ -156,14 +159,14 @@ namespace TipMolde.Tests.Unitario
             await File.WriteAllBytesAsync(excelPath, result.Content);
 
             // Assert
-            Assert.NotNull(result.Content);
-            Assert.NotEmpty(result.Content);
-            Assert.EndsWith(".pdf", result.FileName, StringComparison.OrdinalIgnoreCase);
-            Assert.StartsWith("ciclo_vida_molde_", result.FileName, StringComparison.OrdinalIgnoreCase);
-            Assert.True(result.Content.Length > 100);
+            result.Content.Should().NotBeNull();
+            result.Content.Should().NotBeEmpty();
+            result.FileName.Should().EndWith(".pdf");
+            result.FileName.Should().StartWith("ciclo_vida_molde_");
+            result.Content.Length.Should().BeGreaterThan(100);
         }
 
-        [Fact]
+        [Test]
         public async Task GerarCicloVidaMoldePdfAsync_ComMoldeInexistente_LancaExcecao()
         {
             // Arrange
@@ -171,13 +174,10 @@ namespace TipMolde.Tests.Unitario
             var sut = CreateSut(ctx);
 
             // Act
-            var act = () => sut.GerarCicloVidaMoldePdfAsync(999);
-
-            // Assert
-            await Assert.ThrowsAsync<KeyNotFoundException>(act);
+            Func<Task> act = async () => await sut.GerarCicloVidaMoldePdfAsync(999);`r`n`r`n            // Assert`r`n            await act.Should().ThrowAsync<KeyNotFoundException>();
         }
 
-        [Fact]
+        [Test]
         public async Task GerarFichaExcelFLTAsync_ComFichaExistente_GeraExcel()
         {
             // Arrange
@@ -195,14 +195,14 @@ namespace TipMolde.Tests.Unitario
             await File.WriteAllBytesAsync(excelPath, result.Content);
 
             // Assert
-            Assert.NotNull(result.Content);
-            Assert.NotEmpty(result.Content);
-            Assert.EndsWith(".xlsx", result.FileName, StringComparison.OrdinalIgnoreCase);
-            Assert.StartsWith("ficha_", result.FileName, StringComparison.OrdinalIgnoreCase);
-            Assert.True(result.Content.Length > 50);
+            result.Content.Should().NotBeNull();
+            result.Content.Should().NotBeEmpty();
+            result.FileName.Should().EndWith(".xlsx");
+            result.FileName.Should().StartWith("ficha_");
+            result.Content.Length.Should().BeGreaterThan(50);
         }
 
-        [Fact]
+        [Test]
         public async Task GerarFichaExcelFREAsync_ComFichaExistente_GeraExcel()
         {
             // Arrange
@@ -220,14 +220,14 @@ namespace TipMolde.Tests.Unitario
             await File.WriteAllBytesAsync(excelPath, result.Content);
 
             // Assert
-            Assert.NotNull(result.Content);
-            Assert.NotEmpty(result.Content);
-            Assert.EndsWith(".xlsx", result.FileName, StringComparison.OrdinalIgnoreCase);
-            Assert.StartsWith("ficha_", result.FileName, StringComparison.OrdinalIgnoreCase);
-            Assert.True(result.Content.Length > 50);
+            result.Content.Should().NotBeNull();
+            result.Content.Should().NotBeEmpty();
+            result.FileName.Should().EndWith(".xlsx");
+            result.FileName.Should().StartWith("ficha_");
+            result.Content.Length.Should().BeGreaterThan(50);
         }
 
-        [Fact]
+        [Test]
         public async Task GerarFichaExcelFRMAsync_ComFichaExistente_GeraExcel()
         {
             // Arrange
@@ -245,14 +245,14 @@ namespace TipMolde.Tests.Unitario
             await File.WriteAllBytesAsync(excelPath, result.Content);
 
             // Assert
-            Assert.NotNull(result.Content);
-            Assert.NotEmpty(result.Content);
-            Assert.EndsWith(".xlsx", result.FileName, StringComparison.OrdinalIgnoreCase);
-            Assert.StartsWith("ficha_", result.FileName, StringComparison.OrdinalIgnoreCase);
-            Assert.True(result.Content.Length > 50);
+            result.Content.Should().NotBeNull();
+            result.Content.Should().NotBeEmpty();
+            result.FileName.Should().EndWith(".xlsx");
+            result.FileName.Should().StartWith("ficha_");
+            result.Content.Length.Should().BeGreaterThan(50);
         }
 
-        [Fact]
+        [Test]
         public async Task GerarFichaExcelFRAAsync_ComFichaExistente_GeraExcel()
         {
             // Arrange
@@ -270,14 +270,14 @@ namespace TipMolde.Tests.Unitario
             await File.WriteAllBytesAsync(excelPath, result.Content);
 
             // Assert
-            Assert.NotNull(result.Content);
-            Assert.NotEmpty(result.Content);
-            Assert.EndsWith(".xlsx", result.FileName, StringComparison.OrdinalIgnoreCase);
-            Assert.StartsWith("ficha_", result.FileName, StringComparison.OrdinalIgnoreCase);
-            Assert.True(result.Content.Length > 50);
+            result.Content.Should().NotBeNull();
+            result.Content.Should().NotBeEmpty();
+            result.FileName.Should().EndWith(".xlsx");
+            result.FileName.Should().StartWith("ficha_");
+            result.Content.Length.Should().BeGreaterThan(50);
         }
 
-        [Fact]
+        [Test]
         public async Task GerarFichaExcelFOPAsync_ComFichaExistente_GeraExcel()
         {
             // Arrange
@@ -295,14 +295,14 @@ namespace TipMolde.Tests.Unitario
             await File.WriteAllBytesAsync(excelPath, result.Content);
 
             // Assert
-            Assert.NotNull(result.Content);
-            Assert.NotEmpty(result.Content);
-            Assert.EndsWith(".xlsx", result.FileName, StringComparison.OrdinalIgnoreCase);
-            Assert.StartsWith("ficha_", result.FileName, StringComparison.OrdinalIgnoreCase);
-            Assert.True(result.Content.Length > 50);
+            result.Content.Should().NotBeNull();
+            result.Content.Should().NotBeEmpty();
+            result.FileName.Should().EndWith(".xlsx");
+            result.FileName.Should().StartWith("ficha_");
+            result.Content.Length.Should().BeGreaterThan(50);
         }
 
-        [Fact]
+        [Test]
         public async Task GerarFichaExcelFLTAsync_ComFichaInexistente_LancaExcecao()
         {
             // Arrange
@@ -310,10 +310,10 @@ namespace TipMolde.Tests.Unitario
             var sut = CreateSut(ctx);
 
             // Act
-            var act = () => sut.GerarFichaExcelFLTAsync(999, 1);
-
-            // Assert
-            await Assert.ThrowsAsync<KeyNotFoundException>(act);
+            Func<Task> act = async () => await sut.GerarFichaExcelFLTAsync(999, 1);`r`n`r`n            // Assert`r`n            await act.Should().ThrowAsync<KeyNotFoundException>();
         }
     }
 }
+
+
+

@@ -7,7 +7,8 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
 COPY ["TipMolde/TipMolde.API.csproj", "TipMolde/"]
-COPY ["TipMolde.Core/TipMolde.Core.csproj", "TipMolde.Core/"]
+COPY ["TipMolde.Domain/TipMolde.Domain.csproj", "TipMolde.Core/"]
+COPY ["TipMolde.Application/TipMolde.Application.csproj", "TipMolde.Core/"]
 COPY ["TipMolde.Infrastructure/TipMolde.Infrastructure.csproj", "TipMolde.Infrastructure/"]
 
 RUN dotnet restore "TipMolde/TipMolde.API.csproj"

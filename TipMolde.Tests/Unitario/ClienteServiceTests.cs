@@ -1,145 +1,190 @@
+using FluentAssertions;
 using Moq;
 using TipMolde.Application.Interface.Comercio.ICliente;
-using TipMolde.Application.Service;
 using TipMolde.Domain.Entities.Comercio;
-using TipMolde.Infrastructure.Service;
+using TipMolde.Application.Service;
 
-namespace TipMolde.Tests.Unitario
+namespace TipMolde.Tests.Unitario;
+
+[TestFixture]
+public class ClienteServiceTests
 {
-    public class ClienteServiceTests
+    private Mock<IClienteRepository> _clienteRepository = null!;
+    private ClienteService _sut = null!;
+
+    [SetUp]
+    public void SetUp()
     {
-        private readonly Mock<IClienteRepository> _clienteRepository = new();
-        private readonly ClienteService _sut;
+        _clienteRepository = new Mock<IClienteRepository>();
+        _sut = new ClienteService(_clienteRepository.Object);
+    }
 
-        public ClienteServiceTests()
+    private static Cliente BuildCliente(
+        int id = 1,
+        string nome = "Cliente A",
+        string nif = "123456789",
+        string sigla = "CLA") => new()
         {
-            _sut = new ClienteService(_clienteRepository.Object);
-        }
+            Cliente_id = id,
+            Nome = nome,
+            NIF = nif,
+            Sigla = sigla,
+            Pais = "PT",
+            Email = "cliente@a.pt",
+            Telefone = "910000000"
+        };
 
-        private static Cliente ClienteFake(
-            int id = 1,
-            string nome = "Cliente A",
-            string nif = "123456789",
-            string sigla = "CLA") => new()
-            {
-                Cliente_id = id,
-                Nome = nome,
-                NIF = nif,
-                Sigla = sigla,
-                Pais = "PT",
-                Email = "cliente@a.pt",
-                Telefone = "910000000"
-            };
+    [Test]
+    public async Task shouldTrimAndCreateClienteWhenDataIsValid()
+    {
+        // Arrange
+        var cliente = BuildCliente(nome: "  Cliente A  ", nif: " 123456789 ", sigla: " cla ");
+        _clienteRepository.Setup(r => r.GetByNifAsync("123456789")).ReturnsAsync((Cliente?)null);
+        _clienteRepository.Setup(r => r.GetBySiglaAsync("cla")).ReturnsAsync((Cliente?)null);
 
-        [Fact]
-        public async Task CreateClienteAsync_ValidData_AddsCliente()
-        {
-            var cliente = ClienteFake(nome: "  Cliente A  ", nif: " 123456789 ", sigla: " cla ");
+        // Act
+        var result = await _sut.CreateAsync(cliente);
 
-            _clienteRepository.Setup(r => r.GetByNifAsync("123456789")).ReturnsAsync((Cliente?)null);
-            _clienteRepository.Setup(r => r.GetBySiglaAsync("cla")).ReturnsAsync((Cliente?)null);
-            _clienteRepository.Setup(r => r.AddAsync(It.IsAny<Cliente>())).ReturnsAsync((Cliente c) => c);
+        // Assert
+        result.Nome.Should().Be("Cliente A");
+        result.NIF.Should().Be("123456789");
+        result.Sigla.Should().Be("cla");
+        _clienteRepository.Verify(r => r.AddAsync(It.IsAny<Cliente>()), Times.Once);
+    }
 
-            var result = await _sut.CreateAsync(cliente);
+    [Test]
+    public async Task shouldThrowArgumentExceptionWhenNifAlreadyExists()
+    {
+        // Arrange
+        var cliente = BuildCliente();
+        _clienteRepository.Setup(r => r.GetByNifAsync(cliente.NIF)).ReturnsAsync(BuildCliente(id: 7));
 
-            Assert.Equal("Cliente A", result.Nome);
-            Assert.Equal("123456789", result.NIF);
-            Assert.Equal("cla", result.Sigla);
-            _clienteRepository.Verify(r => r.AddAsync(It.IsAny<Cliente>()), Times.Once);
-        }
+        // Act
+        Func<Task> act = () => _sut.CreateAsync(cliente);
 
-        [Fact]
-        public async Task CreateClienteAsync_DuplicateNif_Throws()
-        {
-            var cliente = ClienteFake();
-            _clienteRepository.Setup(r => r.GetByNifAsync(cliente.NIF)).ReturnsAsync(ClienteFake(id: 7));
+        // Assert
+        await act.Should().ThrowAsync<ArgumentException>();
+    }
 
-            await Assert.ThrowsAsync<ArgumentException>(() => _sut.CreateAsync(cliente));
-        }
+    [Test]
+    public async Task shouldThrowArgumentExceptionWhenSiglaAlreadyExists()
+    {
+        // Arrange
+        var cliente = BuildCliente();
+        _clienteRepository.Setup(r => r.GetByNifAsync(cliente.NIF)).ReturnsAsync((Cliente?)null);
+        _clienteRepository.Setup(r => r.GetBySiglaAsync(cliente.Sigla)).ReturnsAsync(BuildCliente(id: 7));
 
-        [Fact]
-        public async Task CreateClienteAsync_DuplicateSigla_Throws()
-        {
-            var cliente = ClienteFake();
-            _clienteRepository.Setup(r => r.GetByNifAsync(cliente.NIF)).ReturnsAsync((Cliente?)null);
-            _clienteRepository.Setup(r => r.GetBySiglaAsync(cliente.Sigla)).ReturnsAsync(ClienteFake(id: 7));
+        // Act
+        Func<Task> act = () => _sut.CreateAsync(cliente);
 
-            await Assert.ThrowsAsync<ArgumentException>(() => _sut.CreateAsync(cliente));
-        }
+        // Assert
+        await act.Should().ThrowAsync<ArgumentException>();
+    }
 
-        [Theory]
-        [InlineData("", "123456789", "SIG")]
-        [InlineData("Cliente", "", "SIG")]
-        [InlineData("Cliente", "123456789", "")]
-        public async Task CreateClienteAsync_MissingRequiredField_Throws(string nome, string nif, string sigla)
-        {
-            var cliente = ClienteFake(nome: nome, nif: nif, sigla: sigla);
-            await Assert.ThrowsAsync<ArgumentException>(() => _sut.CreateAsync(cliente));
-        }
+    [TestCase("", "123456789", "SIG")]
+    [TestCase("Cliente", "", "SIG")]
+    [TestCase("Cliente", "123456789", "")]
+    public async Task shouldThrowArgumentExceptionWhenRequiredFieldIsMissing(string nome, string nif, string sigla)
+    {
+        // Arrange
+        var cliente = BuildCliente(nome: nome, nif: nif, sigla: sigla);
 
-        [Fact]
-        public async Task UpdateClienteAsync_NotFound_Throws()
-        {
-            _clienteRepository.Setup(r => r.GetByIdAsync(99)).ReturnsAsync((Cliente?)null);
+        // Act
+        Func<Task> act = () => _sut.CreateAsync(cliente);
 
-            await Assert.ThrowsAsync<KeyNotFoundException>(() => _sut.UpdateAsync(ClienteFake(id: 99)));
-        }
+        // Assert
+        await act.Should().ThrowAsync<ArgumentException>();
+    }
 
-        [Fact]
-        public async Task UpdateClienteAsync_ValidData_UpdatesExisting()
-        {
-            var existing = ClienteFake(id: 1, nome: "Old Name", nif: "123456789", sigla: "OLD");
+    [Test]
+    public async Task shouldThrowKeyNotFoundExceptionWhenUpdatingUnknownCliente()
+    {
+        // Arrange
+        _clienteRepository.Setup(r => r.GetByIdAsync(99)).ReturnsAsync((Cliente?)null);
 
-            _clienteRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(existing);
-            _clienteRepository.Setup(r => r.GetByNifAsync("987654321")).ReturnsAsync((Cliente?)null);
-            _clienteRepository.Setup(r => r.GetBySiglaAsync("NEW")).ReturnsAsync((Cliente?)null);
-            _clienteRepository.Setup(r => r.UpdateAsync(It.IsAny<Cliente>())).Returns(Task.CompletedTask);
+        // Act
+        Func<Task> act = () => _sut.UpdateAsync(BuildCliente(id: 99));
 
-            var update = ClienteFake(id: 1, nome: "  New Name  ", nif: "987654321", sigla: "NEW");
-            update.Pais = "  Portugal  ";
+        // Assert
+        await act.Should().ThrowAsync<KeyNotFoundException>();
+    }
 
-            await _sut.UpdateAsync(update);
+    [Test]
+    public async Task shouldUpdateExistingClienteWhenDataIsValid()
+    {
+        // Arrange
+        var existing = BuildCliente(id: 1, nome: "Old Name", nif: "123456789", sigla: "OLD");
+        _clienteRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(existing);
+        _clienteRepository.Setup(r => r.GetByNifAsync("987654321")).ReturnsAsync((Cliente?)null);
+        _clienteRepository.Setup(r => r.GetBySiglaAsync("NEW")).ReturnsAsync((Cliente?)null);
 
-            _clienteRepository.Verify(r => r.UpdateAsync(It.Is<Cliente>(c =>
-                c.Cliente_id == 1 &&
-                c.Nome == "New Name" &&
-                c.NIF == "987654321" &&
-                c.Sigla == "NEW" &&
-                c.Pais == "Portugal")), Times.Once);
-        }
+        var update = BuildCliente(id: 1, nome: "  New Name  ", nif: "987654321", sigla: "NEW");
+        update.Pais = "  Portugal  ";
 
-        [Fact]
-        public async Task DeleteClienteAsync_NotFound_Throws()
-        {
-            _clienteRepository.Setup(r => r.GetByIdAsync(50)).ReturnsAsync((Cliente?)null);
-            await Assert.ThrowsAsync<KeyNotFoundException>(() => _sut.DeleteAsync(50));
-        }
+        // Act
+        await _sut.UpdateAsync(update);
 
-        [Fact]
-        public async Task DeleteClienteAsync_Found_Deletes()
-        {
-            _clienteRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(ClienteFake());
-            _clienteRepository.Setup(r => r.DeleteAsync(1)).Returns(Task.CompletedTask);
+        // Assert
+        _clienteRepository.Verify(r => r.UpdateAsync(It.Is<Cliente>(c =>
+            c.Cliente_id == 1 &&
+            c.Nome == "New Name" &&
+            c.NIF == "987654321" &&
+            c.Sigla == "NEW" &&
+            c.Pais == "Portugal")), Times.Once);
+    }
 
-            await _sut.DeleteAsync(1);
+    [Test]
+    public async Task shouldThrowKeyNotFoundExceptionWhenDeletingUnknownCliente()
+    {
+        // Arrange
+        _clienteRepository.Setup(r => r.GetByIdAsync(50)).ReturnsAsync((Cliente?)null);
 
-            _clienteRepository.Verify(r => r.DeleteAsync(1), Times.Once);
-        }
+        // Act
+        Func<Task> act = () => _sut.DeleteAsync(50);
 
-        [Fact]
-        public async Task SearchByNameAsync_EmptyTerm_ReturnsEmptyWithoutRepo()
-        {
-            var result = await _sut.SearchByNameAsync("   ");
-            Assert.Empty(result);
-            _clienteRepository.Verify(r => r.SearchByNameAsync(It.IsAny<string>()), Times.Never);
-        }
+        // Assert
+        await act.Should().ThrowAsync<KeyNotFoundException>();
+    }
 
-        [Fact]
-        public async Task SearchBySiglaAsync_EmptyTerm_ReturnsEmptyWithoutRepo()
-        {
-            var result = await _sut.SearchBySiglaAsync("");
-            Assert.Empty(result);
-            _clienteRepository.Verify(r => r.SearchBySiglaAsync(It.IsAny<string>()), Times.Never);
-        }
+    [Test]
+    public async Task shouldDeleteClienteWhenClienteExists()
+    {
+        // Arrange
+        _clienteRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(BuildCliente());
+
+        // Act
+        await _sut.DeleteAsync(1);
+
+        // Assert
+        _clienteRepository.Verify(r => r.DeleteAsync(1), Times.Once);
+    }
+
+    [Test]
+    public async Task shouldReturnEmptyWhenSearchByNameTermIsBlank()
+    {
+        // Arrange
+        // no setup needed
+
+        // Act
+        var result = await _sut.SearchByNameAsync("   ");
+
+        // Assert
+        result.Should().BeEmpty();
+        _clienteRepository.Verify(r => r.SearchByNameAsync(It.IsAny<string>()), Times.Never);
+    }
+
+    [Test]
+    public async Task shouldReturnEmptyWhenSearchBySiglaTermIsBlank()
+    {
+        // Arrange
+        // no setup needed
+
+        // Act
+        var result = await _sut.SearchBySiglaAsync(string.Empty);
+
+        // Assert
+        result.Should().BeEmpty();
+        _clienteRepository.Verify(r => r.SearchBySiglaAsync(It.IsAny<string>()), Times.Never);
     }
 }
+

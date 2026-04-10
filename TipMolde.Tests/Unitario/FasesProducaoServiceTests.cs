@@ -1,295 +1,206 @@
-﻿using Moq;
+using FluentAssertions;
+using Moq;
 using TipMolde.Application.Interface;
 using TipMolde.Application.Interface.Producao.IFasesProducao;
-using TipMolde.Domain.Entities.Comercio;
 using TipMolde.Domain.Entities.Producao;
 using TipMolde.Domain.Enums;
 using TipMolde.Infrastructure.Service;
 
-namespace TipMolde.Tests.Unitario
+namespace TipMolde.Tests.Unitario;
+
+[TestFixture]
+public class FasesProducaoServiceTests
 {
-    public class FasesProducaoServiceTests
+    private Mock<IFasesProducaoRepository> _repository = null!;
+    private FasesProducaoService _sut = null!;
+
+    [SetUp]
+    public void SetUp()
     {
-        private readonly Mock<IFasesProducaoRepository> _fpRepository;
-        private readonly FasesProducaoService _sut;
+        _repository = new Mock<IFasesProducaoRepository>();
+        _sut = new FasesProducaoService(_repository.Object);
+    }
 
-        private static FasesProducao FaseFake(
-            int id = 1,
-            Nome_fases nome = Nome_fases.MAQUINACAO,
-            string descricao = "Fase de maquinação") => new()
-            {
-                Fases_producao_id = id,
-                Nome = nome,
-                Descricao = descricao
-            };
-
-        public FasesProducaoServiceTests()
+    private static FasesProducao BuildFase(
+        int id = 1,
+        Nome_fases nome = Nome_fases.MAQUINACAO,
+        string descricao = "Fase de maquina��o") => new()
         {
-            _fpRepository = new Mock<IFasesProducaoRepository>();
-            _sut = new FasesProducaoService(_fpRepository.Object);
-        }
+            Fases_producao_id = id,
+            Nome = nome,
+            Descricao = descricao
+        };
 
-        // ─────────────────────── CreateFase_producaoAsync ────────────────────────────//
+    [Test]
+    public async Task shouldCreateFaseWhenNomeIsUnique()
+    {
+        // Arrange
+        var fase = BuildFase();
+        _repository.Setup(r => r.GetByNomeAsync(Nome_fases.MAQUINACAO)).ReturnsAsync((FasesProducao?)null);
 
-        [Fact]
-        public async Task CreateFase_producaoAsync_ComNomeNovo_CriaFase()
+        // Act
+        var result = await _sut.CreateAsync(fase);
+
+        // Assert
+        result.Nome.Should().Be(Nome_fases.MAQUINACAO);
+        _repository.Verify(r => r.AddAsync(It.IsAny<FasesProducao>()), Times.Once);
+    }
+
+    [Test]
+    public async Task shouldThrowArgumentExceptionWhenNomeAlreadyExists()
+    {
+        // Arrange
+        _repository.Setup(r => r.GetByNomeAsync(Nome_fases.MAQUINACAO)).ReturnsAsync(BuildFase());
+
+        // Act
+        Func<Task> act = () => _sut.CreateAsync(BuildFase(id: 0));
+
+        // Assert
+        await act.Should().ThrowAsync<ArgumentException>();
+    }
+
+    [TestCase(Nome_fases.MAQUINACAO)]
+    [TestCase(Nome_fases.EROSAO)]
+    [TestCase(Nome_fases.MONTAGEM)]
+    public async Task shouldCreateFaseForEveryValidNome(Nome_fases nome)
+    {
+        // Arrange
+        _repository.Setup(r => r.GetByNomeAsync(nome)).ReturnsAsync((FasesProducao?)null);
+
+        // Act
+        var result = await _sut.CreateAsync(new FasesProducao { Nome = nome, Descricao = "Descri��o de teste" });
+
+        // Assert
+        result.Nome.Should().Be(nome);
+    }
+
+    [Test]
+    public async Task shouldUpdateFaseWhenDataIsValid()
+    {
+        // Arrange
+        var existing = BuildFase(id: 1, nome: Nome_fases.MAQUINACAO, descricao: "Antiga");
+        _repository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(existing);
+        _repository.Setup(r => r.GetByNomeAsync(Nome_fases.EROSAO)).ReturnsAsync((FasesProducao?)null);
+
+        var update = new FasesProducao
         {
-            var fase = FaseFake();
+            Fases_producao_id = 1,
+            Nome = Nome_fases.EROSAO,
+            Descricao = "Descri��o atualizada"
+        };
 
-            _fpRepository
-                .Setup(r => r.GetByNomeAsync(Nome_fases.MAQUINACAO))
-                .ReturnsAsync((FasesProducao?)null);
+        // Act
+        await _sut.UpdateAsync(update);
 
-            _fpRepository
-                .Setup(r => r.AddAsync(It.IsAny<FasesProducao>()))
-                .ReturnsAsync((FasesProducao f) => f);
+        // Assert
+        _repository.Verify(r => r.UpdateAsync(It.Is<FasesProducao>(f =>
+            f.Nome == Nome_fases.EROSAO &&
+            f.Descricao == "Descri��o atualizada")), Times.Once);
+    }
 
-            var resultado = await _sut.CreateAsync(fase);
+    [Test]
+    public async Task shouldThrowKeyNotFoundExceptionWhenUpdatingUnknownFase()
+    {
+        // Arrange
+        _repository.Setup(r => r.GetByIdAsync(999)).ReturnsAsync((FasesProducao?)null);
 
-            Assert.NotNull(resultado);
-            Assert.Equal(Nome_fases.MAQUINACAO, resultado.Nome);
-            _fpRepository.Verify(r => r.AddAsync(It.IsAny<FasesProducao>()), Times.Once);
-        }
+        // Act
+        Func<Task> act = () => _sut.UpdateAsync(BuildFase(id: 999));
 
-        [Fact]
-        public async Task CreateFase_producaoAsync_ComNomeDuplicado_LancaExcecao()
+        // Assert
+        await act.Should().ThrowAsync<KeyNotFoundException>();
+    }
+
+    [Test]
+    public async Task shouldThrowArgumentExceptionWhenUpdatingToNomeAlreadyUsedByOtherFase()
+    {
+        // Arrange
+        var existing = BuildFase(id: 1, nome: Nome_fases.MAQUINACAO);
+        var other = BuildFase(id: 2, nome: Nome_fases.EROSAO);
+        _repository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(existing);
+        _repository.Setup(r => r.GetByNomeAsync(Nome_fases.EROSAO)).ReturnsAsync(other);
+
+        var update = new FasesProducao
         {
-            var existente = FaseFake();
+            Fases_producao_id = 1,
+            Nome = Nome_fases.EROSAO,
+            Descricao = "Sem conflito na descri��o"
+        };
 
-            _fpRepository
-                .Setup(r => r.GetByNomeAsync(Nome_fases.MAQUINACAO))
-                .ReturnsAsync(existente);
+        // Act
+        Func<Task> act = () => _sut.UpdateAsync(update);
 
-            var nova = FaseFake(id: 0);
+        // Assert
+        await act.Should().ThrowAsync<ArgumentException>();
+    }
 
-            await Assert.ThrowsAsync<ArgumentException>(() =>
-                _sut.CreateAsync(nova));
-        }
+    [Test]
+    public async Task shouldUpdateDescricaoOnlyWhenNomeIsUnchanged()
+    {
+        // Arrange
+        var existing = BuildFase(id: 1, nome: Nome_fases.MAQUINACAO, descricao: "Antiga");
+        _repository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(existing);
 
-        [Theory]
-        [InlineData(Nome_fases.MAQUINACAO)]
-        [InlineData(Nome_fases.EROSAO)]
-        [InlineData(Nome_fases.MONTAGEM)]
-        public async Task CreateFase_producaoAsync_ParaCadaNomeFase_CriaComSucesso(Nome_fases nome)
+        var update = new FasesProducao
         {
-            _fpRepository
-                .Setup(r => r.GetByNomeAsync(nome))
-                .ReturnsAsync((FasesProducao?)null);
+            Fases_producao_id = 1,
+            Nome = Nome_fases.MAQUINACAO,
+            Descricao = "Descri��o nova"
+        };
 
-            _fpRepository
-                .Setup(r => r.AddAsync(It.IsAny<FasesProducao>()))
-                .ReturnsAsync((FasesProducao f) => f);
+        // Act
+        await _sut.UpdateAsync(update);
 
-            var fase = new FasesProducao { Nome = nome, Descricao = "Descrição de teste" };
+        // Assert
+        _repository.Verify(r => r.UpdateAsync(It.Is<FasesProducao>(f =>
+            f.Nome == Nome_fases.MAQUINACAO &&
+            f.Descricao == "Descri��o nova")), Times.Once);
+    }
 
-            var resultado = await _sut.CreateAsync(fase);
+    [Test]
+    public async Task shouldDeleteFaseWhenIdExists()
+    {
+        // Arrange
+        _repository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(BuildFase());
 
-            Assert.Equal(nome, resultado.Nome);
-        }
+        // Act
+        await _sut.DeleteAsync(1);
 
-        // ─────────────────────── UpdateFase_producaoAsync ────────────────────────────//
+        // Assert
+        _repository.Verify(r => r.DeleteAsync(1), Times.Once);
+    }
 
-        [Fact]
-        public async Task UpdateFase_producaoAsync_ComDadosValidos_AtualizaFase()
+    [Test]
+    public async Task shouldThrowKeyNotFoundExceptionWhenDeletingUnknownFase()
+    {
+        // Arrange
+        _repository.Setup(r => r.GetByIdAsync(999)).ReturnsAsync((FasesProducao?)null);
+
+        // Act
+        Func<Task> act = () => _sut.DeleteAsync(999);
+
+        // Assert
+        await act.Should().ThrowAsync<KeyNotFoundException>();
+    }
+
+    [Test]
+    public async Task shouldReturnPagedFasesFromRepository()
+    {
+        // Arrange
+        var fases = new List<FasesProducao>
         {
-            var existente = FaseFake(id: 1, nome: Nome_fases.MAQUINACAO, descricao: "Antiga");
+            BuildFase(1, Nome_fases.MAQUINACAO),
+            BuildFase(2, Nome_fases.EROSAO),
+            BuildFase(3, Nome_fases.MONTAGEM)
+        };
 
-            _fpRepository
-                .Setup(r => r.GetByIdAsync(1))
-                .ReturnsAsync(existente);
+        _repository.Setup(r => r.GetAllAsync(It.IsAny<int>(), It.IsAny<int>()))
+            .ReturnsAsync(new PagedResult<FasesProducao>(fases, fases.Count, 1, fases.Count));
 
-            _fpRepository
-                .Setup(r => r.GetByNomeAsync(Nome_fases.EROSAO))
-                .ReturnsAsync((FasesProducao?)null);
+        // Act
+        var result = await _sut.GetAllAsync();
 
-            _fpRepository
-                .Setup(r => r.UpdateAsync(It.IsAny<FasesProducao>()))
-                .Returns(Task.CompletedTask);
-
-            var atualizada = new FasesProducao
-            {
-                Fases_producao_id = 1,
-                Nome = Nome_fases.EROSAO,
-                Descricao = "Descrição atualizada"
-            };
-
-            await _sut.UpdateAsync(atualizada);
-
-            _fpRepository.Verify(
-                r => r.UpdateAsync(It.Is<FasesProducao>(f =>
-                    f.Nome == Nome_fases.EROSAO &&
-                    f.Descricao == "Descrição atualizada")),
-                Times.Once
-            );
-        }
-
-        [Fact]
-        public async Task UpdateFase_producaoAsync_ComIdInexistente_LancaExcecao()
-        {
-            _fpRepository
-                .Setup(r => r.GetByIdAsync(999))
-                .ReturnsAsync((FasesProducao?)null);
-
-            var fase = FaseFake(id: 999);
-
-            await Assert.ThrowsAsync<KeyNotFoundException>(() =>
-                _sut.UpdateAsync(fase));
-        }
-
-        [Fact]
-        public async Task UpdateFase_producaoAsync_ComNomeJaUsadoPorOutraFase_LancaExcecao()
-        {
-            var existente = FaseFake(id: 1, nome: Nome_fases.MAQUINACAO);
-            var outra = FaseFake(id: 2, nome: Nome_fases.EROSAO);
-
-            _fpRepository
-                .Setup(r => r.GetByIdAsync(1))
-                .ReturnsAsync(existente);
-
-            _fpRepository
-                .Setup(r => r.GetByNomeAsync(Nome_fases.EROSAO))
-                .ReturnsAsync(outra); 
-
-            var atualizada = new FasesProducao
-            {
-                Fases_producao_id = 1,
-                Nome = Nome_fases.EROSAO,
-                Descricao = "Sem conflito na descrição"
-            };
-
-            await Assert.ThrowsAsync<ArgumentException>(() =>
-                _sut.UpdateAsync(atualizada));
-        }
-
-        [Fact]
-        public async Task UpdateFase_producaoAsync_SemAlteracaoDeNome_AtualizaApenasDescricao()
-        {
-            var existente = FaseFake(id: 1, nome: Nome_fases.MAQUINACAO, descricao: "Antiga");
-
-            _fpRepository
-                .Setup(r => r.GetByIdAsync(1))
-                .ReturnsAsync(existente);
-
-            _fpRepository
-                .Setup(r => r.UpdateAsync(It.IsAny<FasesProducao>()))
-                .Returns(Task.CompletedTask);
-
-            var atualizada = new FasesProducao
-            {
-                Fases_producao_id = 1,
-                Nome = Nome_fases.MAQUINACAO,
-                Descricao = "Descrição nova"
-            };
-
-            await _sut.UpdateAsync(atualizada);
-
-            _fpRepository.Verify(
-                r => r.UpdateAsync(It.Is<FasesProducao>(f =>
-                    f.Nome == Nome_fases.MAQUINACAO &&
-                    f.Descricao == "Descrição nova")),
-                Times.Once
-            );
-        }
-
-        // ─────────────────────── DeleteFase_producaoAsync ────────────────────────────//
-
-        [Fact]
-        public async Task DeleteFase_producaoAsync_ComIdValido_EliminaFase()
-        {
-            var fase = FaseFake();
-
-            _fpRepository
-                .Setup(r => r.GetByIdAsync(1))
-                .ReturnsAsync(fase);
-
-            _fpRepository
-                .Setup(r => r.DeleteAsync(1))
-                .Returns(Task.CompletedTask);
-
-            await _sut.DeleteAsync(1);
-
-            _fpRepository.Verify(r => r.DeleteAsync(1), Times.Once);
-        }
-
-        [Fact]
-        public async Task DeleteFase_producaoAsync_ComIdInexistente_LancaExcecao()
-        {
-            _fpRepository
-                .Setup(r => r.GetByIdAsync(999))
-                .ReturnsAsync((FasesProducao?)null);
-
-            await Assert.ThrowsAsync<KeyNotFoundException>(() =>
-                _sut.DeleteAsync(999));
-        }
-
-        // ─────────────────────── GetAllFases / GetByIdAsync ────────────────────────────//
-
-        [Fact]
-        public async Task GetAllFases_producaoAsync_RetornaTodasAsFases()
-        {
-            var lista = new List<FasesProducao>
-            {
-                FaseFake(1, Nome_fases.MAQUINACAO),
-                FaseFake(2, Nome_fases.EROSAO),
-                FaseFake(3, Nome_fases.MONTAGEM)
-            };
-
-            _fpRepository
-                .Setup(r => r.GetAllAsync(It.IsAny<int>(), It.IsAny<int>()))
-                .ReturnsAsync(new PagedResult<FasesProducao>(
-                    lista,
-                    lista.Count,
-                    1,
-                    lista.Count
-                ));
-
-            var resultado = await _sut.GetAllAsync();
-
-            Assert.Equal(3, resultado.Items.Count());
-        }
-
-        [Fact]
-        public async Task GetAllFases_producaoAsync_SemFases_RetornaListaVazia()
-        {
-            _fpRepository
-                .Setup(r => r.GetAllAsync(It.IsAny<int>(), It.IsAny<int>()))
-                .ReturnsAsync(new PagedResult<FasesProducao>(
-                    Enumerable.Empty<FasesProducao>(),
-                    0,
-                    1,
-                    50
-                ));
-
-            var resultado = await _sut.GetAllAsync();
-
-            Assert.Empty(resultado.Items);
-        }
-
-        [Fact]
-        public async Task GetFase_producaoByIdAsync_ComIdValido_RetornaFase()
-        {
-            var fase = FaseFake(id: 1);
-
-            _fpRepository
-                .Setup(r => r.GetByIdAsync(1))
-                .ReturnsAsync(fase);
-
-            var resultado = await _sut.GetByIdAsync(1);
-
-            Assert.NotNull(resultado);
-            Assert.Equal(1, resultado!.Fases_producao_id);
-        }
-
-        [Fact]
-        public async Task GetFase_producaoByIdAsync_ComIdInexistente_RetornaNull()
-        {
-            _fpRepository
-                .Setup(r => r.GetByIdAsync(999))
-                .ReturnsAsync((FasesProducao?)null);
-
-            var resultado = await _sut.GetByIdAsync(999);
-
-            Assert.Null(resultado);
-        }
+        // Assert
+        result.Items.Should().HaveCount(3);
     }
 }

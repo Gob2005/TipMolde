@@ -71,7 +71,8 @@ namespace TipMolde.Infrastructure.Service
             if ((registo.Estado_producao == EstadoProducao.PREPARACAO || registo.Estado_producao == EstadoProducao.EM_CURSO) &&
                 registo.Maquina_id.HasValue)
             {
-                var maquina = await _maquinaRepository.GetByIdUnicoAsync(registo.Maquina_id.Value);
+                var maquina = await _maquinaRepository.GetByIdUnicoAsync(registo.Maquina_id.Value)
+                    ?? throw new KeyNotFoundException($"Maquina com ID {registo.Maquina_id.Value} nao encontrada.");
                 if (maquina.FaseDedicada_id != registo.Fase_id)
                     throw new ArgumentException("Maquina nao esta apta para esta fase.");
 
