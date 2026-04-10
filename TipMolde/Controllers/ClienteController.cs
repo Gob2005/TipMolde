@@ -1,8 +1,7 @@
+using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using MySqlX.XDevAPI.Common;
 using TipMolde.Application.DTOs.ClienteDTO;
-using TipMolde.Application.DTOs.EncomendaDTO;
 using TipMolde.Application.Interface.Comercio.ICliente;
 using TipMolde.Domain.Entities.Comercio;
 
@@ -13,10 +12,17 @@ namespace TipMolde.API.Controllers
     public class ClienteController : ControllerBase
     {
         private readonly IClienteService _clienteService;
+        private readonly IMapper _mapper;
+        private readonly ILogger<ClienteController> _logger;
 
-        public ClienteController(IClienteService clienteService)
+        public ClienteController(
+            IClienteService clienteService,
+            IMapper mapper,
+            ILogger<ClienteController> logger)
         {
             _clienteService = clienteService;
+            _mapper = mapper;
+            _logger = logger;
         }
 
         [Authorize(Roles = "ADMIN,GESTOR_COMERCIAL,GESTOR_DESENHO")]
@@ -24,12 +30,13 @@ namespace TipMolde.API.Controllers
         public async Task<IActionResult> GetAllClientes()
         {
             var result = await _clienteService.GetAllAsync();
+            var response = _mapper.Map<IEnumerable<ResponseClienteDTO>>(result.Items);
             return Ok(new
             {
                 result.TotalCount,
                 result.CurrentPage,
                 result.PageSize,
-                Items = result.Items.Select(ToResponse)
+                Items = response
             });
         }
 
@@ -38,8 +45,9 @@ namespace TipMolde.API.Controllers
         public async Task<IActionResult> GetClienteById(int id)
         {
             var cliente = await _clienteService.GetByIdAsync(id);
+            var response = _mapper.Map<ResponseClienteDTO>(cliente);
             if (cliente == null) return NotFound();
-            return Ok(ToResponse(cliente));
+            return Ok(response);
         }
 
         [Authorize(Roles = "ADMIN,GESTOR_COMERCIAL")]
@@ -47,8 +55,9 @@ namespace TipMolde.API.Controllers
         public async Task<IActionResult> GetClienteWithEncomendas(int id)
         {
             var cliente = await _clienteService.GetClienteWithEncomendasAsync(id);
+            var response = _mapper.Map<ResponseClienteWithEncomendasDTO>(cliente);  
             if (cliente == null) return NotFound();
-            return Ok(ToResponseWithEncomendas(cliente));
+            return Ok(response);
         }
 
         [Authorize(Roles = "ADMIN,GESTOR_COMERCIAL,GESTOR_DESENHO")]
@@ -56,7 +65,8 @@ namespace TipMolde.API.Controllers
         public async Task<IActionResult> SearchByName([FromQuery] string searchTerm)
         {
             var clientes = await _clienteService.SearchByNameAsync(searchTerm);
-            return Ok(clientes.Select(ToResponse));
+            var response = _mapper.Map<IEnumerable<ResponseClienteDTO>>(clientes);
+            return Ok(response);
         }
 
         [Authorize(Roles = "ADMIN,GESTOR_COMERCIAL,GESTOR_DESENHO")]
@@ -64,7 +74,8 @@ namespace TipMolde.API.Controllers
         public async Task<IActionResult> SearchBySigla([FromQuery] string searchTerm)
         {
             var clientes = await _clienteService.SearchBySiglaAsync(searchTerm);
-            return Ok(clientes.Select(ToResponse));
+            var response = _mapper.Map<IEnumerable<ResponseClienteDTO>>(clientes);
+            return Ok(response);
         }
 
         [Authorize(Roles = "ADMIN,GESTOR_COMERCIAL")]
@@ -73,19 +84,24 @@ namespace TipMolde.API.Controllers
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            var cliente = new Cliente
+            try
             {
-                Nome = dto.Nome.Trim(),
-                Pais = dto.Pais,
-                Email = dto.Email,
-                Telefone = dto.Telefone,
-                NIF = dto.NIF.Trim(),
-                Sigla = dto.Sigla.Trim(),
-                CreatedAt = DateTime.UtcNow
-            };
+                var cliente = _mapper.Map<Cliente>(dto);
+                var created = await _clienteService.CreateAsync(cliente);
+                var response = _mapper.Map<ResponseClienteDTO>(created);
 
-            var createdCliente = await _clienteService.CreateAsync(cliente);
-            return CreatedAtAction(nameof(GetClienteById), new { id = createdCliente.Cliente_id }, createdCliente);
+                _logger.LogInformation("Cliente {ClienteId} criado com sucesso", created.Cliente_id);
+
+                return CreatedAtAction(
+                    nameof(GetClienteById),
+                    new { id = created.Cliente_id },
+                    response);
+            }
+            catch (ArgumentException ex)
+            {
+                _logger.LogWarning("Erro ao criar cliente: {Message}", ex.Message);
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
         [Authorize (Roles = "ADMIN,GESTOR_COMERCIAL")]
@@ -94,57 +110,39 @@ namespace TipMolde.API.Controllers
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            var cliente = new Cliente
+            try
             {
-                Cliente_id = id,
-                Nome = dto.Nome ?? string.Empty,
-                NIF = dto.NIF ?? string.Empty,
-                Sigla = dto.Sigla ?? string.Empty,
-                Pais = dto.Pais,
-                Email = dto.Email,
-                Telefone = dto.Telefone
-            };
+                var cliente = _mapper.Map<Cliente>(dto);
+                cliente.Cliente_id = id;
 
-            await _clienteService.UpdateAsync(cliente);
-            return NoContent();
+                await _clienteService.UpdateAsync(cliente);
+
+                _logger.LogInformation("Cliente {ClienteId} atualizado com sucesso", id);
+
+                return NoContent();
+            }
+            catch (KeyNotFoundException ex)
+            {
+                _logger.LogWarning("Cliente {ClienteId} não encontrado: {Message}", id, ex.Message);
+                return NotFound(new { message = ex.Message });
+            }
         }
 
         [Authorize(Roles = "ADMIN,GESTOR_COMERCIAL")]
         [HttpDelete("delete-cliente")]
         public async Task<IActionResult> DeleteCliente(int id)
         {
-            await _clienteService.DeleteAsync(id);
-            return NoContent();
-        }
-
-        private static ResponseClienteWithEncomendasDTO ToResponseWithEncomendas(Cliente c) => new()
-        {
-            ClienteId = c.Cliente_id,
-            Nome = c.Nome,
-            Sigla = c.Sigla,
-            Pais = c.Pais,
-            Email = c.Email,
-            Telefone = c.Telefone,
-            NIF = c.NIF,
-            Encomendas = c.Encomendas.Select(e => new ResponseEncomendaDTO
+            try
             {
-                Encomenda_id = e.Encomenda_id,
-                NumeroEncomendaCliente = e.NumeroEncomendaCliente,
-                Estado = e.Estado,
-                Cliente_id = e.Cliente_id,
-                NomeCliente = c.Nome,
-            })
-        };
-
-        private static ResponseClienteDTO ToResponse(Cliente c) => new()
-        {
-            ClienteId = c.Cliente_id,
-            Nome = c.Nome,
-            Sigla = c.Sigla,
-            Pais = c.Pais,
-            Email = c.Email,
-            Telefone = c.Telefone,
-            NIF = c.NIF
-        };
+                await _clienteService.DeleteAsync(id);
+                _logger.LogInformation("Cliente {ClienteId} deletado com sucesso", id);
+                return NoContent();
+            }
+            catch (KeyNotFoundException ex)
+            {
+                _logger.LogWarning("Cliente {ClienteId} não encontrado: {Message}", id, ex.Message);
+                return NotFound(new { message = ex.Message });
+            }
+        }
     }
 }

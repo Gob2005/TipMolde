@@ -29,6 +29,7 @@ using TipMolde.Infrastructure.DB;
 using TipMolde.Infrastructure.Repositorio;
 using TipMolde.Infrastructure.Service;
 using TipMolde.Infrastructure.Settings;
+using TipMolde.Application.Mappings;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -129,6 +130,10 @@ builder.Services.AddScoped<ITokenService, JwtTokenService>();
 builder.Services.AddScoped<IRelatorioService, RelatorioService>();
 builder.Services.AddScoped<IFichaDocumentoService, FichaDocumentoService>();
 builder.Services.AddScoped<IFichaProducaoService, FichaProducaoService>();
+
+// AutoMapper
+builder.Services.AddAutoMapper(typeof(ClienteProfile).Assembly);
+
 
 var app = builder.Build();
 app.UseMiddleware<ExceptionMiddleware>();
