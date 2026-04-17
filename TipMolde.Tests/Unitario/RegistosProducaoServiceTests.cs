@@ -8,7 +8,7 @@ using TipMolde.Application.Interface.Utilizador.IUser;
 using TipMolde.Domain.Entities;
 using TipMolde.Domain.Entities.Producao;
 using TipMolde.Domain.Enums;
-using TipMolde.Infrastructure.Service;
+using TipMolde.Application.Service;
 
 namespace TipMolde.Tests.Unitario;
 

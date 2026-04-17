@@ -4,7 +4,7 @@ using TipMolde.Application.Interface;
 using TipMolde.Application.Interface.Producao.IFasesProducao;
 using TipMolde.Domain.Entities.Producao;
 using TipMolde.Domain.Enums;
-using TipMolde.Infrastructure.Service;
+using TipMolde.Application.Service;
 
 namespace TipMolde.Tests.Unitario;
 

@@ -5,7 +5,7 @@ using TipMolde.Application.Interface.Utilizador.IUser;
 using TipMolde.Domain.Entities;
 using TipMolde.Domain.Enums;
 
-namespace TipMolde.Infrastructure.Service
+namespace TipMolde.Application.Service
 {
     public class UserManagementService : IUserManagementService
     {

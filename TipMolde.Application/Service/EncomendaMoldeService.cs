@@ -3,7 +3,7 @@ using TipMolde.Application.Interface.Comercio.IEncomendaMolde;
 using TipMolde.Application.Interface.Producao.IMolde;
 using TipMolde.Domain.Entities.Comercio;
 
-namespace TipMolde.Infrastructure.Service
+namespace TipMolde.Application.Service
 {
     public class EncomendaMoldeService : IEncomendaMoldeService
     {

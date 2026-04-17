@@ -2,7 +2,7 @@
 using TipMolde.Application.Interface.Utilizador.ISecurity;
 using TipMolde.Application.Interface.Utilizador.IUser;
 
-namespace TipMolde.Infrastructure.Service
+namespace TipMolde.Application.Service
 {
     public class PasswordService : IPasswordService
     {

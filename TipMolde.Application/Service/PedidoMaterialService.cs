@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
 using TipMolde.Application.Interface;
-using TipMolde.Application.Interface.Comercio.ICliente;
 using TipMolde.Application.Interface.Comercio.IFornecedor;
 using TipMolde.Application.Interface.Comercio.IPedidoMaterial;
 using TipMolde.Application.Interface.Comercio.IPedidoMaterial.IItemPedidoMaterial;
@@ -8,7 +7,7 @@ using TipMolde.Application.Interface.Producao.IPeca;
 using TipMolde.Application.Interface.Utilizador.IUser;
 using TipMolde.Domain.Entities.Comercio;
 using TipMolde.Domain.Enums;
-namespace TipMolde.Infrastructure.Service
+namespace TipMolde.Application.Service
 {
     public class PedidoMaterialService : IPedidoMaterialService
     {
@@ -90,14 +89,14 @@ namespace TipMolde.Infrastructure.Service
                 _logger.LogWarning("Registo de rececao falhou: pedido nao encontrado {PedidoId}", pedidoId);
                 throw new KeyNotFoundException($"Pedido com ID {pedidoId} nao encontrado.");
             }
-                
+
             var user = await _userRepository.GetByIdAsync(userId);
             if (user == null)
             {
                 _logger.LogWarning("Registo de rececao falhou: utilizador nao encontrado {UserId}", userId);
                 throw new KeyNotFoundException($"Utilizador com ID {userId} nao encontrado.");
             }
-                
+
 
             pedido.Estado = EstadoPedido.RECEBIDO;
             pedido.DataRececao = DateTime.UtcNow;

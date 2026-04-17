@@ -1,11 +1,12 @@
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Moq;
+using TipMolde.Application.Interface;
 using TipMolde.Application.Interface.Utilizador.ISecurity;
 using TipMolde.Application.Interface.Utilizador.IUser;
 using TipMolde.Domain.Entities;
 using TipMolde.Domain.Enums;
-using TipMolde.Infrastructure.Service;
+using TipMolde.Application.Service;
 
 namespace TipMolde.Tests.Unitario;
 
@@ -34,6 +35,30 @@ public class UserManagementServiceTests
         Password = password,
         Role = UserRole.GESTOR_PRODUCAO
     };
+
+    [Test]
+    public async Task shouldReturnAllUsersWhenGettingAllUsers()
+    {
+        // Arrange
+        var users = new List<User>
+        {
+            BuildUser(id: 1, nome: "Ana", email: "ana@tipmolde.pt"),
+            BuildUser(id: 2, nome: "Bruno", email: "bruno@tipmolde.pt")
+        };
+
+        var pagedResult = new PagedResult<User>(users, users.Count, 1, 10);
+        _userRepository.Setup(r => r.GetAllAsync(1, 10)).ReturnsAsync(pagedResult);
+
+        // Act
+        var result = await _sut.GetAllAsync();
+
+        // Assert
+        result.Items.Should().HaveCount(2);
+        result.TotalCount.Should().Be(2);
+        result.CurrentPage.Should().Be(1);
+        result.PageSize.Should().Be(10);
+        _userRepository.Verify(r => r.GetAllAsync(1, 10), Times.Once);
+    }
 
     [Test]
     public async Task shouldThrowArgumentExceptionWhenCreatingUserWithDuplicateEmail()

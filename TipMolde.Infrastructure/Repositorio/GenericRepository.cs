@@ -17,9 +17,20 @@ namespace TipMolde.Infrastructure.Repositorio
 
         public async Task<IEnumerable<T>> GetAllAsync() => await _db.AsNoTracking().ToListAsync();
 
-        public Task<PagedResult<T>> GetAllAsync(int page = 1, int pageSize = 50)
+        public async Task<PagedResult<T>> GetAllAsync(int page = 1, int pageSize = 50)
         {
-            throw new NotImplementedException();
+            page = page < 1 ? 1 : page;
+            pageSize = pageSize < 1 ? 10 : pageSize > 200 ? 200 : pageSize;
+
+            var query = _db.AsNoTracking();
+
+            var totalCount = await query.CountAsync();
+            var items = await query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return new PagedResult<T>(items, totalCount, page, pageSize);
         }
 
         public async Task<T?> GetByIdAsync(TKey id) => await _db.FindAsync(id);

@@ -1,5 +1,5 @@
-﻿using TipMolde.Domain.Enums;
-using TipMolde.Domain.Entities;
+﻿using TipMolde.Domain.Entities;
+using TipMolde.Domain.Enums;
 
 /// <summary>
 /// Serviço de gestão de utilizadores.

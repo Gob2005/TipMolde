@@ -1,10 +1,10 @@
-﻿using TipMolde.Domain.Enums;
-using TipMolde.Application.Interface.Desenho.IProjeto;
+﻿using TipMolde.Application.Interface.Desenho.IProjeto;
 using TipMolde.Application.Interface.Desenho.IRegistoTempoProjeto;
 using TipMolde.Application.Interface.Utilizador.IUser;
 using TipMolde.Domain.Entities.Desenho;
+using TipMolde.Domain.Enums;
 
-namespace TipMolde.Infrastructure.Service
+namespace TipMolde.Application.Service
 {
     public class RegistoTempoProjetoService : IRegistoTempoProjetoService
     {

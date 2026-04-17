@@ -1,9 +1,8 @@
 ﻿using TipMolde.Application.Interface;
-using TipMolde.Application.Interface.Comercio.ICliente;
 using TipMolde.Application.Interface.Comercio.IFornecedor;
 using TipMolde.Domain.Entities.Comercio;
 
-namespace TipMolde.Infrastructure.Service
+namespace TipMolde.Application.Service
 {
     public class FornecedorService : IFornecedorService
     {

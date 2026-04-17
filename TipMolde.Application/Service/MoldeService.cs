@@ -1,10 +1,8 @@
 using TipMolde.Application.Interface;
-using TipMolde.Application.Interface.Comercio.IEncomenda;
 using TipMolde.Application.Interface.Producao.IMolde;
-using TipMolde.Domain.Entities.Comercio;
 using TipMolde.Domain.Entities.Producao;
 
-namespace TipMolde.Infrastructure.Service
+namespace TipMolde.Application.Service
 {
     public class MoldeService : IMoldeService
     {

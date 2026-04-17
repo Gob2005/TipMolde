@@ -5,19 +5,12 @@ using System.Security.Claims;
 using TipMolde.Application.DTOs.UserDTO;
 using TipMolde.Application.Interface.Utilizador.IUser;
 using TipMolde.Domain.Entities;
+using TipMolde.Domain.Enums;
 
 namespace TipMolde.API.Controllers
 {
-
-    /// <summary>
-    /// Controller base com helpers comuns para autenticação.
-    /// </summary>
     public abstract class AuthenticatedControllerBase : ControllerBase
     {
-        /// <summary>
-        /// Obtém ID do utilizador autenticado a partir do token JWT.
-        /// </summary>
-        /// <exception cref="UnauthorizedAccessException">Token inválido ou sem claim de ID.</exception>
         protected int GetAuthenticatedUserId()
         {
             var sub = User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value
@@ -30,15 +23,8 @@ namespace TipMolde.API.Controllers
         }
     }
 
-    /// <summary>
-    /// Controller de gestão de utilizadores.
-    /// </summary>
-    /// <remarks>
-    /// Autorização: apenas ADMIN pode criar/editar/eliminar utilizadores.
-    /// Utilizadores autenticados podem alterar a própria password.
-    /// </remarks>
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/users")]
     public class UserController : AuthenticatedControllerBase
     {
         private readonly IUserManagementService _userService;
@@ -51,10 +37,13 @@ namespace TipMolde.API.Controllers
         }
 
         [Authorize(Roles = "ADMIN")]
-        [HttpGet("all-users")]
-        public async Task<IActionResult> GetAllUsers()
+        [HttpGet]
+        public async Task<IActionResult> GetAllUsers([FromQuery] int page = 1, [FromQuery] int pageSize = 50)
         {
-            var result = await _userService.GetAllAsync();
+            if (page < 1 || pageSize < 1)
+                return BadRequest(new { message = "page e pageSize devem ser >= 1." });
+
+            var result = await _userService.GetAllAsync(page, pageSize);
             return Ok(new
             {
                 result.TotalCount,
@@ -65,7 +54,7 @@ namespace TipMolde.API.Controllers
         }
 
         [Authorize(Roles = "ADMIN")]
-        [HttpGet("user-byID")]
+        [HttpGet("{id:int}")]
         public async Task<IActionResult> GetUserById(int id)
         {
             var user = await _userService.GetByIdAsync(id);
@@ -74,18 +63,15 @@ namespace TipMolde.API.Controllers
         }
 
         [Authorize(Roles = "ADMIN")]
-        [HttpGet("search-name")]
+        [HttpGet("search")]
         public async Task<IActionResult> SearchByName([FromQuery] string searchTerm)
         {
             var users = await _userService.SearchByNameAsync(searchTerm);
             return Ok(users);
         }
 
-        /// <summary>
-        /// Cria novo utilizador (apenas ADMIN).
-        /// </summary>
         [Authorize(Roles = "ADMIN")]
-        [HttpPost("create-user")]
+        [HttpPost]
         [ProducesResponseType(typeof(ResponseUserDTO), StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> CreateUser([FromBody] CreateUserDTO dto)
@@ -93,7 +79,6 @@ namespace TipMolde.API.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            // Validação de negócio no Service, não no Controller
             var user = new User
             {
                 Nome = dto.Nome.Trim(),
@@ -106,27 +91,38 @@ namespace TipMolde.API.Controllers
             try
             {
                 var createdUser = await _userService.CreateAsync(user);
+                _logger.LogInformation("Utilizador {Email} criado com sucesso por admin {AdminId}", dto.Email, GetAuthenticatedUserId());
 
-                _logger.LogInformation("Utilizador {Email} criado com sucesso por admin {AdminId}",
-                    dto.Email, GetAuthenticatedUserId());
-
-                return CreatedAtAction(
-                    nameof(GetUserById),
-                    new { id = createdUser.User_id },
-                    ToResponseDto(createdUser));
+                return CreatedAtAction(nameof(GetUserById), new { id = createdUser.User_id }, ToResponseDto(createdUser));
             }
             catch (ArgumentException ex)
             {
-                _logger.LogWarning("Falha ao criar utilizador {Email}: {Erro}", dto.Email, ex.Message);
                 return BadRequest(new { message = ex.Message });
             }
         }
 
         [Authorize]
-        [HttpPut("update-user/{id:int}")]
+        [HttpPut("{id:int}")]
         public async Task<IActionResult> UpdateUser(int id, [FromBody] UpdateUserDTO dto)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
+
+            int authenticatedUserId;
+            try
+            {
+                authenticatedUserId = GetAuthenticatedUserId();
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Unauthorized(new { message = ex.Message });
+            }
+
+            var authenticatedUser = await _userService.GetByIdAsync(authenticatedUserId);
+            if (authenticatedUser == null)
+                return Unauthorized(new { message = "Utilizador autenticado nao encontrado." });
+
+            if (authenticatedUser.Role != UserRole.ADMIN && authenticatedUserId != id)
+                return Forbid();
 
             var user = await _userService.GetByIdAsync(id);
             if (user == null) return NotFound();
@@ -139,27 +135,23 @@ namespace TipMolde.API.Controllers
         }
 
         [Authorize(Roles = "ADMIN")]
-        [HttpPut("change-role/{id:int}")]
+        [HttpPut("{id:int}/role")]
         public async Task<IActionResult> ChangeRole(int id, [FromBody] ChangeUserRoleDTO dto)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            var user = await _userService.GetByIdAsync(id);
-            if (user == null) return NotFound();
-
             await _userService.ChangeRoleAsync(id, dto.Role);
-            return Ok(user);
+            return NoContent();
         }
 
         [Authorize(Roles = "ADMIN")]
-        [HttpDelete("delete-user")]
+        [HttpDelete("{id:int}")]
         public async Task<IActionResult> DeleteUser(int id)
         {
             await _userService.DeleteAsync(id);
             return NoContent();
         }
 
-        // Método helper para conversão
         private static ResponseUserDTO ToResponseDto(User user) => new()
         {
             User_id = user.User_id,

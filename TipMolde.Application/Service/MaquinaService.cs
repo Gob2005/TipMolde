@@ -1,11 +1,9 @@
 ﻿using TipMolde.Application.Interface;
-using TipMolde.Application.Interface.Comercio.ICliente;
 using TipMolde.Application.Interface.Producao.IMaquina;
-using TipMolde.Domain.Entities.Comercio;
 using TipMolde.Domain.Entities.Producao;
 using TipMolde.Domain.Enums;
 
-namespace TipMolde.Infrastructure.Service
+namespace TipMolde.Application.Service
 {
     public class MaquinaService : IMaquinaService
     {

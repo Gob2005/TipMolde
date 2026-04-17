@@ -2,7 +2,7 @@
 using TipMolde.Application.Interface.Desenho.IRevisao;
 using TipMolde.Domain.Entities.Desenho;
 
-namespace TipMolde.Infrastructure.Service
+namespace TipMolde.Application.Service
 {
     public class RevisaoService : IRevisaoService
     {

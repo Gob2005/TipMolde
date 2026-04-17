@@ -1,5 +1,5 @@
-﻿using TipMolde.Domain.Enums;
-using TipMolde.Domain.Entities.Producao;
+﻿using TipMolde.Domain.Entities.Producao;
+using TipMolde.Domain.Enums;
 
 namespace TipMolde.Application.Interface.Producao.IFasesProducao
 {

@@ -5,7 +5,7 @@ using TipMolde.Application.Interface.Comercio.IEncomenda;
 using TipMolde.Domain.Entities.Comercio;
 using TipMolde.Domain.Enums;
 
-namespace TipMolde.Infrastructure.Service
+namespace TipMolde.Application.Service
 {
     public class EncomendaService : IEncomendaService
     {
@@ -13,7 +13,7 @@ namespace TipMolde.Infrastructure.Service
         private readonly IClienteRepository _clienteRepository;
         private readonly ILogger<EncomendaService> _logger;
         public EncomendaService(
-            IEncomendaRepository encomendaRepository, 
+            IEncomendaRepository encomendaRepository,
             IClienteRepository clienteRepository,
             ILogger<EncomendaService> logger)
         {
@@ -104,8 +104,8 @@ namespace TipMolde.Infrastructure.Service
 
         public async Task UpdateEstadoAsync(int id, EstadoEncomenda novoEstado)
         {
-           var encomenda = await _encomendaRepository.GetByIdAsync(id);
-            if (encomenda == null) 
+            var encomenda = await _encomendaRepository.GetByIdAsync(id);
+            if (encomenda == null)
             {
                 _logger.LogInformation("Alteracao de estado da encomenda {EncomendaId}: {EstadoAtual} -> {NovoEstado}",
                     id, encomenda.Estado, novoEstado);

@@ -1,10 +1,8 @@
 ﻿using TipMolde.Application.Interface;
-using TipMolde.Application.Interface.Comercio.ICliente;
 using TipMolde.Application.Interface.Producao.IFasesProducao;
-using TipMolde.Domain.Entities.Comercio;
 using TipMolde.Domain.Entities.Producao;
 
-namespace TipMolde.Infrastructure.Service
+namespace TipMolde.Application.Service
 {
     public class FasesProducaoService : IFasesProducaoService
     {

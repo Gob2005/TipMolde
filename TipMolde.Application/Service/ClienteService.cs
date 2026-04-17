@@ -1,8 +1,6 @@
 using TipMolde.Application.Interface;
 using TipMolde.Application.Interface.Comercio.ICliente;
-using TipMolde.Application.Interface.Producao.IMolde;
 using TipMolde.Domain.Entities.Comercio;
-using TipMolde.Domain.Entities.Producao;
 
 namespace TipMolde.Application.Service
 {
