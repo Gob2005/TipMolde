@@ -1,8 +1,11 @@
 ﻿using AutoMapper;
 using FluentAssertions;
 using TipMolde.Application.DTOs.ClienteDTO;
+using TipMolde.Application.DTOs.UserDTO;
 using TipMolde.Application.Mappings;
+using TipMolde.Domain.Entities;
 using TipMolde.Domain.Entities.Comercio;
+using TipMolde.Domain.Enums;
 
 namespace TipMolde.Tests.Unitario;
 
@@ -17,17 +20,21 @@ public class MappingProfilesTests
         var config = new MapperConfiguration(cfg =>
         {
             cfg.AddProfile<ClienteProfile>();
+            cfg.AddProfile<UserProfile>();
+            cfg.AddProfile<UserPasswordProfile>();
         });
 
         _mapper = config.CreateMapper();
     }
 
     [Test]
-    public void shouldHaveValidClienteAutoMapperConfiguration()
+    public void shouldHaveValidAutoMapperConfiguration()
     {
         var config = new MapperConfiguration(cfg =>
         {
             cfg.AddProfile<ClienteProfile>();
+            cfg.AddProfile<UserProfile>();
+            cfg.AddProfile<UserPasswordProfile>();
         });
 
         config.AssertConfigurationIsValid();
@@ -114,5 +121,92 @@ public class MappingProfilesTests
         result.Pais.Should().Be("PT");
         result.Email.Should().Be("a@tipmolde.pt");
         result.Telefone.Should().Be("911111111");
+    }
+
+    [Test]
+    public void shouldMapCreateUserDtoToUserWithTrimmedFields()
+    {
+        var source = new CreateUserDTO
+        {
+            Nome = "  Ana  ",
+            Email = " ana@tipmolde.pt ",
+            Password = "Valida123!",
+            Role = UserRole.ADMIN
+        };
+
+        var result = _mapper.Map<User>(source);
+
+        result.Nome.Should().Be("Ana");
+        result.Email.Should().Be("ana@tipmolde.pt");
+        result.Password.Should().Be("Valida123!");
+        result.Role.Should().Be(UserRole.ADMIN);
+    }
+
+    [Test]
+    public void shouldMapUpdateUserDtoToExistingUserWithoutOverwritingNulls()
+    {
+        var source = new UpdateUserDTO { Nome = "  Novo Nome  ", Email = null };
+        var destination = new User
+        {
+            User_id = 11,
+            Nome = "Nome Antigo",
+            Email = "antigo@tipmolde.pt",
+            Password = "hash",
+            Role = UserRole.GESTOR_PRODUCAO,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        _mapper.Map(source, destination);
+
+        destination.Nome.Should().Be("Novo Nome");
+        destination.Email.Should().Be("antigo@tipmolde.pt");
+    }
+
+    [Test]
+    public void shouldMapUserToResponseUserDto()
+    {
+        var source = new User
+        {
+            User_id = 7,
+            Nome = "Bruno",
+            Email = "bruno@tipmolde.pt",
+            Password = "hash",
+            Role = UserRole.ADMIN,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        var result = _mapper.Map<ResponseUserDTO>(source);
+
+        result.User_id.Should().Be(7);
+        result.Nome.Should().Be("Bruno");
+        result.Email.Should().Be("bruno@tipmolde.pt");
+        result.Role.Should().Be(UserRole.ADMIN);
+    }
+
+    [Test]
+    public void shouldMapChangeUserPasswordDtoToUser()
+    {
+        var source = new ChangeUserPasswordDTO
+        {
+            CurrentPassword = "Atual123!",
+            NewPassword = "Nova123!"
+        };
+
+        var result = _mapper.Map<User>(source);
+
+        result.Password.Should().Be("Nova123!");
+    }
+
+    [Test]
+    public void shouldMapResetUserPasswordDtoToUser()
+    {
+        var source = new ResetUserPasswordDTO
+        {
+            NewPassword = "Nova123!"
+        };
+
+        var result = _mapper.Map<User>(source);
+
+        result.Password.Should().Be("Nova123!");
     }
 }

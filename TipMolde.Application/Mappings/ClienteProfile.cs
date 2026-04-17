@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using TipMolde.Application.DTOs.ClienteDTO;
+using TipMolde.Application.DTOs.EncomendaDTO;
 using TipMolde.Domain.Entities.Comercio;
 
 namespace TipMolde.Application.Mappings
@@ -26,7 +27,26 @@ namespace TipMolde.Application.Mappings
                 .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
 
             CreateMap<Cliente, ResponseClienteDTO>()
-                .ForMember(dest => dest.ClienteId, opt => opt.MapFrom(src => src.Cliente_id));
+                .ForMember(dest => dest.ClienteId, opt => opt.MapFrom(src => src.Cliente_id))
+                .ForMember(dest => dest.Nome, opt => opt.MapFrom(src => src.Nome.Trim()))
+                .ForMember(dest => dest.NIF, opt => opt.MapFrom(src => src.NIF.Trim()))
+                .ForMember(dest => dest.Sigla, opt => opt.MapFrom(src => src.Sigla.Trim()))
+                .ForMember(dest => dest.Pais, opt => opt.MapFrom(src => src.Pais.Trim()))
+                .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.Email.Trim()))
+                .ForMember(dest => dest.Telefone, opt => opt.MapFrom(src => src.Telefone.Trim()));
+
+            CreateMap<Encomenda, ResponseEncomendaDTO>()
+                .ForMember(dest => dest.NomeCliente, opt => opt.MapFrom(src => src.Cliente == null ? null : src.Cliente.Nome));
+
+            CreateMap<Cliente, ResponseClienteWithEncomendasDTO>()
+                .ForMember(dest => dest.ClienteId, opt => opt.MapFrom(src => src.Cliente_id))
+                .ForMember(dest => dest.Nome, opt => opt.MapFrom(src => src.Nome.Trim()))
+                .ForMember(dest => dest.NIF, opt => opt.MapFrom(src => src.NIF.Trim()))
+                .ForMember(dest => dest.Sigla, opt => opt.MapFrom(src => src.Sigla.Trim()))
+                .ForMember(dest => dest.Pais, opt => opt.MapFrom(src => src.Pais.Trim()))
+                .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.Email.Trim()))
+                .ForMember(dest => dest.Telefone, opt => opt.MapFrom(src => src.Telefone.Trim()))
+                .ForMember(dest => dest.Encomendas, opt => opt.MapFrom(src => src.Encomendas));
         }
     }
 }

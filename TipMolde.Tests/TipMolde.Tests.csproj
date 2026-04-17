@@ -11,6 +11,7 @@
   <ItemGroup>
     <PackageReference Include="coverlet.collector" Version="6.0.0" />
     <PackageReference Include="FluentAssertions" Version="6.12.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Core" Version="2.3.9" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="8.0.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="10.0.5" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
@@ -23,6 +24,7 @@
     <ProjectReference Include="..\TipMolde.Domain\TipMolde.Domain.csproj" />
     <ProjectReference Include="..\TipMolde.Application\TipMolde.Application.csproj" />
     <ProjectReference Include="..\TipMolde.Infrastructure\TipMolde.Infrastructure.csproj" />
+    <ProjectReference Include="..\TipMolde\TipMolde.API.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -34,8 +36,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Integracao\" />
     <Folder Include="Helper\" />
+    <Folder Include="Integracao\" />
   </ItemGroup>
 
 </Project>

@@ -20,7 +20,7 @@ namespace TipMolde.API.Controllers
 
         [Authorize]
         [HttpPut("me/password")]
-        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDTO dto)
+        public async Task<IActionResult> ChangePassword([FromBody] ChangeUserPasswordDTO dto)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
@@ -47,7 +47,7 @@ namespace TipMolde.API.Controllers
 
         [Authorize(Roles = "ADMIN")]
         [HttpPut("{id:int}/password/reset")]
-        public async Task<IActionResult> ResetPassword(int id, [FromBody] ResetPasswordDTO dto)
+        public async Task<IActionResult> ResetPassword(int id, [FromBody] ResetUserPasswordDTO dto)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 

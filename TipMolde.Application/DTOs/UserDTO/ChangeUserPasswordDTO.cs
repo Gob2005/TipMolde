@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace TipMolde.Application.DTOs.UserDTO
 {
-    public class ChangePasswordDTO
+    public class ChangeUserPasswordDTO
     {
         [Required, MinLength(8), MaxLength(255)]
         public required string CurrentPassword { get; set; }
