@@ -3,13 +3,6 @@ using Microsoft.AspNetCore.Mvc;
 using TipMolde.Application.DTOs.AuthDTO;
 using TipMolde.Application.Interface.Utilizador.IAuth;
 
-/// <summary>
-/// Controller de autenticação.
-/// </summary>
-/// <remarks>
-/// Responsável exclusivamente por login/logout.
-/// Gestão de utilizadores está em UserController.
-/// </remarks>
 [ApiController]
 [Route("api/[controller]")]
 public class AuthController : ControllerBase
@@ -23,11 +16,6 @@ public class AuthController : ControllerBase
         _logger = logger;
     }
 
-    /// <summary>
-    /// Autentica utilizador e retorna token JWT.
-    /// </summary>
-    /// <response code="200">Autenticação bem-sucedida.</response>
-    /// <response code="401">Credenciais inválidas.</response>
     [HttpPost("login")]
     [AllowAnonymous]
     [ProducesResponseType(typeof(AuthResponseDTO), StatusCodes.Status200OK)]
@@ -41,33 +29,29 @@ public class AuthController : ControllerBase
         {
             var result = await _authService.LoginAsync(dto.Email, dto.Password);
 
-            _logger.LogInformation("Login bem-sucedido para utilizador com email {Email}",
-                dto.Email);
-
-            return Ok("Token criado");
+            _logger.LogInformation("Login bem-sucedido para utilizador com email {Email}", dto.Email);
+            return Ok(result);
         }
         catch (UnauthorizedAccessException)
         {
-            _logger.LogWarning("Tentativa de login falhada para email {Email}",
-                dto.Email);
-
+            _logger.LogWarning("Tentativa de login falhada para email {Email}", dto.Email);
             return Unauthorized(new { message = "Credenciais invalidas." });
         }
     }
 
-    /// <summary>
-    /// Termina sessão do utilizador revogando o token.
-    /// </summary>
     [HttpPost("logout")]
     [Authorize]
     [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Logout()
     {
         var authHeader = Request.Headers.Authorization.ToString();
-        await _authService.LogoutAsync(authHeader);
+        var result = await _authService.LogoutAsync(authHeader);
 
-        _logger.LogInformation("Utilizador terminou sessão");
+        if (!result.Success)
+            return BadRequest(new { message = result.Message });
 
-        return Ok(new { message = "Sessao terminada com sucesso." });
+        _logger.LogInformation("Utilizador terminou sessao");
+        return Ok(new { message = result.Message });
     }
 }

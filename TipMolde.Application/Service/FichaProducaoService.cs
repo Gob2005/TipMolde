@@ -1,26 +1,20 @@
-﻿using Microsoft.EntityFrameworkCore;
-using TipMolde.Domain.Enums;
-using TipMolde.Application.Interface.Comercio.IEncomendaMolde;
+﻿using TipMolde.Application.Interface.Comercio.IEncomendaMolde;
 using TipMolde.Application.Interface.Fichas.IFichaProducao;
 using TipMolde.Domain.Entities.Fichas;
-using TipMolde.Infrastructure.DB;
 
-namespace TipMolde.Infrastructure.Service
+namespace TipMolde.Application.Service
 {
     public class FichaProducaoService : IFichaProducaoService
     {
         private readonly IFichaProducaoRepository _fichaRepository;
         private readonly IEncomendaMoldeRepository _encomendaMoldeRepository;
-        private readonly ApplicationDbContext _context;
 
         public FichaProducaoService(
             IFichaProducaoRepository fichaRepository,
-            IEncomendaMoldeRepository encomendaMoldeRepository,
-            ApplicationDbContext context)
+            IEncomendaMoldeRepository encomendaMoldeRepository)
         {
             _fichaRepository = fichaRepository;
             _encomendaMoldeRepository = encomendaMoldeRepository;
-            _context = context;
         }
 
         public Task<IEnumerable<FichaProducao>> GetByEncomendaMoldeIdAsync(int encomendaMoldeId) =>

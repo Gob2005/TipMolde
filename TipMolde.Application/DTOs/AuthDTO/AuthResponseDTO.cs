@@ -2,7 +2,7 @@
 {
     public class AuthResponseDTO
     {
-        public string Token { get; set; }
-        public DateTime ExpiresAt { get; set; }
+        public string Token { get; set; } = string.Empty;
+        public DateTimeOffset ExpiresAt { get; set; }
     }
 }
