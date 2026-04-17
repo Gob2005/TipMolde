@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TipMolde.Application.DTOs.AuthDTO;
 using TipMolde.Application.Interface.Utilizador.IAuth;
@@ -19,7 +20,7 @@ public class AuthController : ControllerBase
     [HttpPost("login")]
     [AllowAnonymous]
     [ProducesResponseType(typeof(AuthResponseDTO), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> Login([FromBody] LoginDTO dto)
     {
         if (!ModelState.IsValid)
@@ -35,23 +36,42 @@ public class AuthController : ControllerBase
         catch (UnauthorizedAccessException)
         {
             _logger.LogWarning("Tentativa de login falhada para email {Email}", dto.Email);
-            return Unauthorized(new { message = "Credenciais invalidas." });
+            return Unauthorized(CreateProblem(
+                StatusCodes.Status401Unauthorized,
+                "Credenciais invalidas",
+                "Email ou password incorretos."));
         }
     }
 
     [HttpPost("logout")]
     [Authorize]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(LogoutResultDTO), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Logout()
     {
         var authHeader = Request.Headers.Authorization.ToString();
         var result = await _authService.LogoutAsync(authHeader);
 
         if (!result.Success)
-            return BadRequest(new { message = result.Message });
+        {
+            return BadRequest(CreateProblem(
+                StatusCodes.Status400BadRequest,
+                "Logout invalido",
+                result.Message));
+        }
 
         _logger.LogInformation("Utilizador terminou sessao");
-        return Ok(new { message = result.Message });
+        return Ok(result);
+    }
+
+    private ProblemDetails CreateProblem(int status, string title, string detail)
+    {
+        return new ProblemDetails
+        {
+            Status = status,
+            Title = title,
+            Detail = detail,
+            Instance = HttpContext?.Request?.Path
+        };
     }
 }

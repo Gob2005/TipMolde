@@ -11,10 +11,10 @@ namespace TipMolde.Infrastructure.Repositorio
 
         public async Task<IEnumerable<User>> SearchByNameAsync(string searchTerm)
         {
-            var term = searchTerm.Trim().ToLower();
+            var term = searchTerm.Trim();
             return await _context.Users
                 .AsNoTracking()
-                .Where(u => u.Nome.ToLower().Contains(term))
+                .Where(u => u.Nome.Contains(term))
                 .OrderBy(u => u.Nome)
                 .ToListAsync();
         }

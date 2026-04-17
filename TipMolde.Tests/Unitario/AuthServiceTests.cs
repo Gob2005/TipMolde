@@ -5,9 +5,9 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using TipMolde.Application.Interface.Utilizador.IAuth;
 using TipMolde.Application.Interface.Utilizador.ISecurity;
+using TipMolde.Application.Service;
 using TipMolde.Domain.Entities;
 using TipMolde.Domain.Enums;
-using TipMolde.Application.Service;
 
 namespace TipMolde.Tests.Unitario;
 

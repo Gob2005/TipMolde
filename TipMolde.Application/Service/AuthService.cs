@@ -46,6 +46,8 @@ namespace TipMolde.Application.Service
             }
             else
             {
+                // Porque: garantir compatibilidade com credenciais legacy em plaintext.
+                // Risco: remover isto pode bloquear login de utilizadores antigos.
                 valid = user.Password == password;
                 if (valid)
                 {

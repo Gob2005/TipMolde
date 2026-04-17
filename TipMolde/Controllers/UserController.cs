@@ -38,10 +38,15 @@ namespace TipMolde.API.Controllers
 
         [Authorize(Roles = "ADMIN")]
         [HttpGet]
-        public async Task<IActionResult> GetAllUsers([FromQuery] int page = 1, [FromQuery] int pageSize = 50)
+        public async Task<IActionResult> GetAllUsers([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
-            if (page < 1 || pageSize < 1)
-                return BadRequest(new { message = "page e pageSize devem ser >= 1." });
+            if (page < 1 || pageSize < 1 )
+            {
+                return BadRequest(CreateProblem(
+                    StatusCodes.Status400BadRequest,
+                    "Pedido invalido",
+                    $"Os parametros de paginacao sao invalidos. Regras: page >= 1."));
+            }
 
             var result = await _userService.GetAllAsync(page, pageSize);
             return Ok(new
@@ -58,7 +63,14 @@ namespace TipMolde.API.Controllers
         public async Task<IActionResult> GetUserById(int id)
         {
             var user = await _userService.GetByIdAsync(id);
-            if (user == null) return NotFound();
+            if (user == null)
+            {
+                return NotFound(CreateProblem(
+                    StatusCodes.Status404NotFound,
+                    "Recurso nao encontrado",
+                    $"Utilizador com ID {id} nao encontrado."));
+            }
+
             return Ok(user);
         }
 
@@ -66,6 +78,14 @@ namespace TipMolde.API.Controllers
         [HttpGet("search")]
         public async Task<IActionResult> SearchByName([FromQuery] string searchTerm)
         {
+            if (string.IsNullOrWhiteSpace(searchTerm))
+            {
+                return BadRequest(CreateProblem(
+                    StatusCodes.Status400BadRequest,
+                    "Pedido invalido",
+                    "O parametro searchTerm e obrigatorio."));
+            }
+
             var users = await _userService.SearchByNameAsync(searchTerm);
             return Ok(users);
         }
@@ -77,7 +97,12 @@ namespace TipMolde.API.Controllers
         public async Task<IActionResult> CreateUser([FromBody] CreateUserDTO dto)
         {
             if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+            {
+                return BadRequest(CreateProblem(
+                    StatusCodes.Status400BadRequest,
+                    "Pedido invalido",
+                    "O body do pedido e invalido."));
+            }
 
             var user = new User
             {
@@ -88,24 +113,23 @@ namespace TipMolde.API.Controllers
                 CreatedAt = DateTime.UtcNow
             };
 
-            try
-            {
-                var createdUser = await _userService.CreateAsync(user);
-                _logger.LogInformation("Utilizador {Email} criado com sucesso por admin {AdminId}", dto.Email, GetAuthenticatedUserId());
+            var createdUser = await _userService.CreateAsync(user);
+            _logger.LogInformation("Utilizador {Email} criado com sucesso por admin {AdminId}", dto.Email, GetAuthenticatedUserId());
 
-                return CreatedAtAction(nameof(GetUserById), new { id = createdUser.User_id }, ToResponseDto(createdUser));
-            }
-            catch (ArgumentException ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
+            return CreatedAtAction(nameof(GetUserById), new { id = createdUser.User_id }, ToResponseDto(createdUser));
         }
 
         [Authorize]
         [HttpPut("{id:int}")]
         public async Task<IActionResult> UpdateUser(int id, [FromBody] UpdateUserDTO dto)
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(CreateProblem(
+                    StatusCodes.Status400BadRequest,
+                    "Pedido invalido",
+                    "O body do pedido e invalido."));
+            }
 
             int authenticatedUserId;
             try
@@ -114,18 +138,36 @@ namespace TipMolde.API.Controllers
             }
             catch (UnauthorizedAccessException ex)
             {
-                return Unauthorized(new { message = ex.Message });
+                return Unauthorized(CreateProblem(
+                    StatusCodes.Status401Unauthorized,
+                    "Nao autorizado",
+                    ex.Message));
             }
 
             var authenticatedUser = await _userService.GetByIdAsync(authenticatedUserId);
             if (authenticatedUser == null)
-                return Unauthorized(new { message = "Utilizador autenticado nao encontrado." });
+            {
+                return Unauthorized(CreateProblem(
+                    StatusCodes.Status401Unauthorized,
+                    "Nao autorizado",
+                    "Utilizador autenticado nao encontrado."));
+            }
 
             if (authenticatedUser.Role != UserRole.ADMIN && authenticatedUserId != id)
-                return Forbid();
+            {
+                return StatusCode(
+                    StatusCodes.Status403Forbidden,
+                    CreateProblem(StatusCodes.Status403Forbidden, "Proibido", "Sem permissao para atualizar este utilizador."));
+            }
 
             var user = await _userService.GetByIdAsync(id);
-            if (user == null) return NotFound();
+            if (user == null)
+            {
+                return NotFound(CreateProblem(
+                    StatusCodes.Status404NotFound,
+                    "Recurso nao encontrado",
+                    $"Utilizador com ID {id} nao encontrado."));
+            }
 
             user.Nome = dto.Nome?.Trim() ?? user.Nome;
             user.Email = dto.Email?.Trim() ?? user.Email;
@@ -138,7 +180,13 @@ namespace TipMolde.API.Controllers
         [HttpPut("{id:int}/role")]
         public async Task<IActionResult> ChangeRole(int id, [FromBody] ChangeUserRoleDTO dto)
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(CreateProblem(
+                    StatusCodes.Status400BadRequest,
+                    "Pedido invalido",
+                    "O body do pedido e invalido."));
+            }
 
             await _userService.ChangeRoleAsync(id, dto.Role);
             return NoContent();
@@ -150,6 +198,17 @@ namespace TipMolde.API.Controllers
         {
             await _userService.DeleteAsync(id);
             return NoContent();
+        }
+
+        private ProblemDetails CreateProblem(int status, string title, string detail)
+        {
+            return new ProblemDetails
+            {
+                Status = status,
+                Title = title,
+                Detail = detail,
+                Instance = HttpContext?.Request?.Path
+            };
         }
 
         private static ResponseUserDTO ToResponseDto(User user) => new()

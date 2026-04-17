@@ -17,6 +17,7 @@ namespace TipMolde.API.Middleware
             _logger = logger;
             _env = env;
         }
+
         public async Task Invoke(HttpContext context)
         {
             try
@@ -25,7 +26,7 @@ namespace TipMolde.API.Middleware
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Erro nao tratado.");
+                _logger.LogError(ex, "Erro nao tratado. TraceId: {TraceId}", context.TraceIdentifier);
 
                 var (status, title) = ex switch
                 {
@@ -35,13 +36,20 @@ namespace TipMolde.API.Middleware
                     _ => (StatusCodes.Status500InternalServerError, "Erro interno")
                 };
 
+                var detail = status >= 500 && !_env.IsDevelopment()
+                    ? "Ocorreu um erro ao processar o pedido."
+                    : ex.Message;
+
                 var problem = new ProblemDetails
                 {
                     Status = status,
                     Title = title,
-                    Detail = _env.IsDevelopment() ? ex.Message : "Ocorreu um erro ao processar o pedido.",
-                    Instance = context.Request.Path
+                    Detail = detail,
+                    Instance = context.Request.Path,
+                    Type = $"https://httpstatuses.com/{status}"
                 };
+
+                problem.Extensions["traceId"] = context.TraceIdentifier;
 
                 context.Response.StatusCode = status;
                 context.Response.ContentType = "application/problem+json";
