@@ -2,81 +2,172 @@
 using Microsoft.AspNetCore.Mvc;
 using TipMolde.Application.DTOs.EncomendaMoldeDTO;
 using TipMolde.Application.Interface.Comercio.IEncomendaMolde;
-using TipMolde.Domain.Entities.Comercio;
 
 namespace TipMolde.API.Controllers
 {
+    /// <summary>
+    /// Disponibiliza endpoints HTTP para gestao da relacao Encomenda-Molde.
+    /// </summary>
+    /// <remarks>
+    /// O controller valida input HTTP e delega regras de negocio ao servico.
+    /// </remarks>
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/encomenda-moldes")]
     public class EncomendaMoldeController : ControllerBase
     {
         private readonly IEncomendaMoldeService _service;
+        private readonly ILogger<EncomendaMoldeController> _logger;
 
-        public EncomendaMoldeController(IEncomendaMoldeService service)
+        /// <summary>
+        /// Construtor de EncomendaMoldeController.
+        /// </summary>
+        /// <param name="service">Servico responsavel pelos casos de uso da feature EncomendaMolde.</param>
+        /// <param name="logger">Logger para rastreabilidade de operacoes HTTP.</param>
+        public EncomendaMoldeController(
+            IEncomendaMoldeService service,
+            ILogger<EncomendaMoldeController> logger)
         {
             _service = service;
+            _logger = logger;
         }
 
+        /// <summary>
+        /// Obtem uma associacao Encomenda-Molde por ID.
+        /// </summary>
+        /// <param name="id">Identificador da associacao.</param>
+        /// <param name="cancellationToken">Token de cancelamento da operacao assicrona.</param>
+        /// <returns>HTTP 200 com DTO de resposta; HTTP 404 quando nao encontrado.</returns>
         [Authorize(Roles = "ADMIN,GESTOR_COMERCIAL")]
-        [HttpGet("by-encomenda")]
-        public async Task<IActionResult> GetByEncomendaId(int encomendaId)
+        [HttpGet("{id:int}")]
+        public async Task<IActionResult> GetById(int id, CancellationToken cancellationToken)
         {
-            var links = await _service.GetByEncomendaIdAsync(encomendaId);
-            return Ok(links);
+            var link = await _service.GetByIdAsync(id, cancellationToken);
+            if (link == null)
+                return NotFound(CreateProblem(StatusCodes.Status404NotFound, "Recurso nao encontrado", $"EncomendaMolde com ID {id} nao encontrada."));
+
+            return Ok(link);
         }
 
+        /// <summary>
+        /// Lista associacoes por encomenda com paginacao.
+        /// </summary>
+        /// <param name="encomendaId">Identificador da encomenda para filtro.</param>
+        /// <param name="page">Pagina atual (>= 1).</param>
+        /// <param name="pageSize">Tamanho da pagina (>= 1).</param>
+        /// <param name="cancellationToken">Token de cancelamento da operacao assicrona.</param>
+        /// <returns>HTTP 200 com resultado paginado; HTTP 400 para paginacao invalida.</returns>
         [Authorize(Roles = "ADMIN,GESTOR_COMERCIAL")]
-        [HttpGet("by-molde")]
-        public async Task<IActionResult> GetByMoldeId(int moldeId)
+        [HttpGet("por-encomenda/{encomendaId:int}")]
+        public async Task<IActionResult> GetByEncomendaId(
+            int encomendaId,
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 10,
+            CancellationToken cancellationToken = default)
         {
-            var links = await _service.GetByMoldeIdAsync(moldeId);
-            return Ok(links);
+            if (page < 1 || pageSize < 1)
+                return BadRequest(CreateProblem(StatusCodes.Status400BadRequest, "Pedido invalido", "Page e pageSize devem ser >= 1."));
+
+            var result = await _service.GetByEncomendaIdAsync(encomendaId, page, pageSize, cancellationToken);
+            return Ok(result);
         }
 
+        /// <summary>
+        /// Lista associacoes por molde com paginacao.
+        /// </summary>
+        /// <param name="moldeId">Identificador do molde para filtro.</param>
+        /// <param name="page">Pagina atual (>= 1).</param>
+        /// <param name="pageSize">Tamanho da pagina (>= 1).</param>
+        /// <param name="cancellationToken">Token de cancelamento da operacao assicrona.</param>
+        /// <returns>HTTP 200 com resultado paginado; HTTP 400 para paginacao invalida.</returns>
         [Authorize(Roles = "ADMIN,GESTOR_COMERCIAL")]
-        [HttpPost("create")]
-        public async Task<IActionResult> Create([FromBody] CreateEncomendaMoldeDTO dto)
+        [HttpGet("por-molde/{moldeId:int}")]
+        public async Task<IActionResult> GetByMoldeId(
+            int moldeId,
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 10,
+            CancellationToken cancellationToken = default)
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
+            if (page < 1 || pageSize < 1)
+                return BadRequest(CreateProblem(StatusCodes.Status400BadRequest, "Pedido invalido", "Page e pageSize devem ser >= 1."));
 
-            var link = new EncomendaMolde
-            {
-                Encomenda_id = dto.Encomenda_id,
-                Molde_id = dto.Molde_id,
-                Quantidade = dto.Quantidade,
-                Prioridade = dto.Prioridade,
-                DataEntregaPrevista = dto.DataEntregaPrevista
-            };
-
-            var created = await _service.CreateAsync(link);
-            return Ok(created);
+            var result = await _service.GetByMoldeIdAsync(moldeId, page, pageSize, cancellationToken);
+            return Ok(result);
         }
 
+        /// <summary>
+        /// Cria uma nova associacao Encomenda-Molde.
+        /// </summary>
+        /// <param name="dto">Dados de criacao da associacao.</param>
+        /// <param name="cancellationToken">Token de cancelamento da operacao assicrona.</param>
+        /// <returns>HTTP 201 com recurso criado; HTTP 400 quando o body e invalido.</returns>
         [Authorize(Roles = "ADMIN,GESTOR_COMERCIAL")]
-        [HttpPut("update/{id:int}")]
-        public async Task<IActionResult> Update(int id, [FromBody] UpdateEncomendaMoldeDTO dto)
+        [HttpPost]
+        public async Task<IActionResult> Create([FromBody] CreateEncomendaMoldeDTO dto, CancellationToken cancellationToken)
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
-            
-            var link = new EncomendaMolde
-            {
-                EncomendaMolde_id = id,
-                Quantidade = dto.Quantidade ?? 0,
-                Prioridade = dto.Prioridade ?? 0,
-                DataEntregaPrevista = dto.DataEntregaPrevista ?? default
-            };
+            if (!ModelState.IsValid)
+                return BadRequest(CreateProblem(StatusCodes.Status400BadRequest, "Pedido invalido", "Dados de criacao invalidos."));
 
-            await _service.UpdateAsync(link);
+            var created = await _service.CreateAsync(dto, cancellationToken);
+            _logger.LogInformation("Controller: EncomendaMolde {EncomendaMoldeId} criado", created.EncomendaMolde_id);
+
+            return CreatedAtAction(nameof(GetById), new { id = created.EncomendaMolde_id }, created);
+        }
+
+        /// <summary>
+        /// Atualiza parcialmente uma associacao Encomenda-Molde.
+        /// </summary>
+        /// <remarks>
+        /// Campos nao enviados sao preservados no registo atual.
+        /// </remarks>
+        /// <param name="id">Identificador da associacao a atualizar.</param>
+        /// <param name="dto">Dados de atualizacao parcial.</param>
+        /// <param name="cancellationToken">Token de cancelamento da operacao assicrona.</param>
+        /// <returns>HTTP 204 quando a atualizacao e concluida; HTTP 400 quando o body e invalido.</returns>
+        [Authorize(Roles = "ADMIN,GESTOR_COMERCIAL")]
+        [HttpPut("{id:int}")]
+        public async Task<IActionResult> Update(int id, [FromBody] UpdateEncomendaMoldeDTO dto, CancellationToken cancellationToken)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(CreateProblem(StatusCodes.Status400BadRequest, "Pedido invalido", "Dados de atualizacao invalidos."));
+
+            await _service.UpdateAsync(id, dto, cancellationToken);
+            _logger.LogInformation("Controller: EncomendaMolde {EncomendaMoldeId} atualizado", id);
+
             return NoContent();
         }
 
+        /// <summary>
+        /// Remove uma associacao Encomenda-Molde.
+        /// </summary>
+        /// <param name="id">Identificador da associacao a remover.</param>
+        /// <param name="cancellationToken">Token de cancelamento da operacao assicrona.</param>
+        /// <returns>HTTP 204 quando a remocao e concluida.</returns>
         [Authorize(Roles = "ADMIN,GESTOR_COMERCIAL")]
-        [HttpDelete("delete/{id:int}")]
-        public async Task<IActionResult> Delete(int id)
+        [HttpDelete("{id:int}")]
+        public async Task<IActionResult> Delete(int id, CancellationToken cancellationToken)
         {
-            await _service.DeleteAsync(id);
+            await _service.DeleteAsync(id, cancellationToken);
+            _logger.LogInformation("Controller: EncomendaMolde {EncomendaMoldeId} removido", id);
+
             return NoContent();
+        }
+
+        /// <summary>
+        /// Cria objeto ProblemDetails para respostas de erro no controller.
+        /// </summary>
+        /// <param name="status">Codigo HTTP do erro.</param>
+        /// <param name="title">Titulo curto do erro.</param>
+        /// <param name="detail">Detalhe funcional do erro.</param>
+        /// <returns>Objeto ProblemDetails preenchido com contexto do request atual.</returns>
+        private ProblemDetails CreateProblem(int status, string title, string detail)
+        {
+            return new ProblemDetails
+            {
+                Status = status,
+                Title = title,
+                Detail = detail,
+                Instance = HttpContext?.Request?.Path
+            };
         }
     }
 }
-

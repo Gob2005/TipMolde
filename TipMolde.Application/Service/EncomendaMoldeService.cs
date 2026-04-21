@@ -1,66 +1,183 @@
-﻿using TipMolde.Application.Interface.Comercio.IEncomenda;
+﻿using AutoMapper;
+using Microsoft.Extensions.Logging;
+using TipMolde.Application.DTOs.EncomendaMoldeDTO;
+using TipMolde.Application.Exceptions;
+using TipMolde.Application.Interface;
+using TipMolde.Application.Interface.Comercio.IEncomenda;
 using TipMolde.Application.Interface.Comercio.IEncomendaMolde;
 using TipMolde.Application.Interface.Producao.IMolde;
 using TipMolde.Domain.Entities.Comercio;
 
 namespace TipMolde.Application.Service
 {
+    /// <summary>
+    /// Implementa os casos de uso da relacao Encomenda-Molde.
+    /// </summary>
+    /// <remarks>
+    /// Centraliza validacoes de FK, unicidade da associacao e atualizacao parcial.
+    /// </remarks>
     public class EncomendaMoldeService : IEncomendaMoldeService
     {
         private readonly IEncomendaMoldeRepository _repo;
         private readonly IEncomendaRepository _encomendaRepo;
         private readonly IMoldeRepository _moldeRepo;
+        private readonly IMapper _mapper;
+        private readonly ILogger<EncomendaMoldeService> _logger;
 
+        /// <summary>
+        /// Construtor de EncomendaMoldeService.
+        /// </summary>
+        /// <param name="repo">Repositorio da relacao Encomenda-Molde.</param>
+        /// <param name="encomendaRepo">Repositorio de encomenda para validacao de FK.</param>
+        /// <param name="moldeRepo">Repositorio de molde para validacao de FK.</param>
+        /// <param name="mapper">Mapper para conversao entre entidades e DTOs.</param>
+        /// <param name="logger">Logger para rastreabilidade das operacoes criticas.</param>
         public EncomendaMoldeService(
             IEncomendaMoldeRepository repo,
             IEncomendaRepository encomendaRepo,
-            IMoldeRepository moldeRepo)
+            IMoldeRepository moldeRepo,
+            IMapper mapper,
+            ILogger<EncomendaMoldeService> logger)
         {
             _repo = repo;
             _encomendaRepo = encomendaRepo;
             _moldeRepo = moldeRepo;
+            _mapper = mapper;
+            _logger = logger;
         }
 
-        public Task<IEnumerable<EncomendaMolde>> GetByEncomendaIdAsync(int encomendaId) =>
-            _repo.GetByEncomendaIdAsync(encomendaId);
-
-        public Task<IEnumerable<EncomendaMolde>> GetByMoldeIdAsync(int moldeId) =>
-            _repo.GetByMoldeIdAsync(moldeId);
-
-        public async Task<EncomendaMolde> CreateAsync(EncomendaMolde link)
+        /// <summary>
+        /// Obtem associacao Encomenda-Molde por ID.
+        /// </summary>
+        /// <param name="id">Identificador da associacao.</param>
+        /// <param name="cancellationToken">Token de cancelamento da operacao assicrona.</param>
+        /// <returns>DTO de resposta quando encontrado; nulo caso nao exista.</returns>
+        public async Task<ResponseEncomendaMoldeDTO?> GetByIdAsync(int id, CancellationToken cancellationToken = default)
         {
-            var encomenda = await _encomendaRepo.GetByIdAsync(link.Encomenda_id);
+            var entity = await _repo.GetByIdAsync(id);
+            return entity == null ? null : _mapper.Map<ResponseEncomendaMoldeDTO>(entity);
+        }
+
+        /// <summary>
+        /// Lista associacoes por encomenda com paginacao.
+        /// </summary>
+        /// <param name="encomendaId">Identificador da encomenda para filtro.</param>
+        /// <param name="page">Pagina atual (>= 1).</param>
+        /// <param name="pageSize">Tamanho da pagina (>= 1).</param>
+        /// <param name="cancellationToken">Token de cancelamento da operacao assicrona.</param>
+        /// <returns>Resultado paginado com DTOs de associacao.</returns>
+        public async Task<PagedResult<ResponseEncomendaMoldeDTO>> GetByEncomendaIdAsync(
+            int encomendaId,
+            int page = 1,
+            int pageSize = 10,
+            CancellationToken cancellationToken = default)
+        {
+            var result = await _repo.GetByEncomendaIdAsync(encomendaId, page, pageSize, cancellationToken);
+            var mapped = _mapper.Map<IEnumerable<ResponseEncomendaMoldeDTO>>(result.Items);
+            return new PagedResult<ResponseEncomendaMoldeDTO>(mapped, result.TotalCount, result.CurrentPage, result.PageSize);
+        }
+
+        /// <summary>
+        /// Lista associacoes por molde com paginacao.
+        /// </summary>
+        /// <param name="moldeId">Identificador do molde para filtro.</param>
+        /// <param name="page">Pagina atual (>= 1).</param>
+        /// <param name="pageSize">Tamanho da pagina (>= 1).</param>
+        /// <param name="cancellationToken">Token de cancelamento da operacao assicrona.</param>
+        /// <returns>Resultado paginado com DTOs de associacao.</returns>
+        public async Task<PagedResult<ResponseEncomendaMoldeDTO>> GetByMoldeIdAsync(
+            int moldeId,
+            int page = 1,
+            int pageSize = 10,
+            CancellationToken cancellationToken = default)
+        {
+            var result = await _repo.GetByMoldeIdAsync(moldeId, page, pageSize, cancellationToken);
+            var mapped = _mapper.Map<IEnumerable<ResponseEncomendaMoldeDTO>>(result.Items);
+            return new PagedResult<ResponseEncomendaMoldeDTO>(mapped, result.TotalCount, result.CurrentPage, result.PageSize);
+        }
+
+        /// <summary>
+        /// Cria uma associacao Encomenda-Molde.
+        /// </summary>
+        /// <remarks>
+        /// Fluxo critico:
+        /// 1. Valida existencia das FK Encomenda e Molde.
+        /// 2. Valida unicidade do par Encomenda_id + Molde_id.
+        /// 3. Persiste associacao.
+        /// </remarks>
+        /// <param name="dto">Dados de criacao da associacao.</param>
+        /// <param name="cancellationToken">Token de cancelamento da operacao assicrona.</param>
+        /// <returns>DTO da associacao criada e persistida.</returns>
+        public async Task<ResponseEncomendaMoldeDTO> CreateAsync(
+            CreateEncomendaMoldeDTO dto,
+            CancellationToken cancellationToken = default)
+        {
+            var encomenda = await _encomendaRepo.GetByIdAsync(dto.Encomenda_id);
             if (encomenda == null)
-                throw new KeyNotFoundException($"Encomenda com ID {link.Encomenda_id} nao encontrada.");
+                throw new KeyNotFoundException($"Encomenda com ID {dto.Encomenda_id} nao encontrada.");
 
-            var molde = await _moldeRepo.GetByIdAsync(link.Molde_id);
+            var molde = await _moldeRepo.GetByIdAsync(dto.Molde_id);
             if (molde == null)
-                throw new KeyNotFoundException($"Molde com ID {link.Molde_id} nao encontrado.");
+                throw new KeyNotFoundException($"Molde com ID {dto.Molde_id} nao encontrado.");
 
-            await _repo.AddAsync(link);
-            return link;
+            var duplicated = await _repo.ExistsAssociationAsync(dto.Encomenda_id, dto.Molde_id, null, cancellationToken);
+            if (duplicated)
+                throw new BusinessConflictException($"Ja existe associacao para Encomenda_id={dto.Encomenda_id} e Molde_id={dto.Molde_id}.");
+
+            var entity = _mapper.Map<EncomendaMolde>(dto);
+            await _repo.AddAsync(entity);
+
+            _logger.LogInformation(
+                "EncomendaMolde criado com sucesso {EncomendaMoldeId} (EncomendaId={EncomendaId}, MoldeId={MoldeId})",
+                entity.EncomendaMolde_id,
+                entity.Encomenda_id,
+                entity.Molde_id);
+
+            return _mapper.Map<ResponseEncomendaMoldeDTO>(entity);
         }
 
-        public async Task UpdateAsync(EncomendaMolde link)
+        /// <summary>
+        /// Atualiza parcialmente uma associacao Encomenda-Molde.
+        /// </summary>
+        /// <remarks>
+        /// Campos nao enviados no DTO sao preservados na entidade.
+        /// </remarks>
+        /// <param name="id">Identificador da associacao a atualizar.</param>
+        /// <param name="dto">Dados de atualizacao parcial.</param>
+        /// <param name="cancellationToken">Token de cancelamento da operacao assicrona.</param>
+        /// <returns>Task de conclusao da atualizacao.</returns>
+        public async Task UpdateAsync(int id, UpdateEncomendaMoldeDTO dto, CancellationToken cancellationToken = default)
         {
-            var existente = await _repo.GetByIdAsync(link.EncomendaMolde_id);
+            var existente = await _repo.GetByIdAsync(id);
             if (existente == null)
-                throw new KeyNotFoundException($"EncomendaMolde com ID {link.EncomendaMolde_id} nao encontrada.");
+                throw new KeyNotFoundException($"EncomendaMolde com ID {id} nao encontrada.");
 
-            existente.Quantidade = link.Quantidade > 0 ? link.Quantidade : existente.Quantidade;
-            existente.Prioridade = link.Prioridade > 0 ? link.Prioridade : existente.Prioridade;
-            existente.DataEntregaPrevista = link.DataEntregaPrevista != default ? link.DataEntregaPrevista : existente.DataEntregaPrevista;
+            var hasChanges = dto.Quantidade.HasValue || dto.Prioridade.HasValue || dto.DataEntregaPrevista.HasValue;
+            if (!hasChanges)
+                throw new ArgumentException("Pelo menos um campo deve ser informado para atualizacao.");
+
+            if (dto.Quantidade.HasValue) existente.Quantidade = dto.Quantidade.Value;
+            if (dto.Prioridade.HasValue) existente.Prioridade = dto.Prioridade.Value;
+            if (dto.DataEntregaPrevista.HasValue) existente.DataEntregaPrevista = dto.DataEntregaPrevista.Value;
 
             await _repo.UpdateAsync(existente);
+            _logger.LogInformation("EncomendaMolde {EncomendaMoldeId} atualizado com sucesso", id);
         }
 
-        public async Task DeleteAsync(int id)
+        /// <summary>
+        /// Remove uma associacao Encomenda-Molde.
+        /// </summary>
+        /// <param name="id">Identificador da associacao a remover.</param>
+        /// <param name="cancellationToken">Token de cancelamento da operacao assicrona.</param>
+        /// <returns>Task de conclusao da remocao.</returns>
+        public async Task DeleteAsync(int id, CancellationToken cancellationToken = default)
         {
             var existente = await _repo.GetByIdAsync(id);
             if (existente == null)
                 throw new KeyNotFoundException($"EncomendaMolde com ID {id} nao encontrada.");
 
             await _repo.DeleteAsync(id);
+            _logger.LogInformation("EncomendaMolde {EncomendaMoldeId} removido com sucesso", id);
         }
     }
 }

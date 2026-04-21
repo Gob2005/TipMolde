@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using TipMolde.Application.Exceptions;
 
 namespace TipMolde.API.Middleware
 {
@@ -30,6 +31,7 @@ namespace TipMolde.API.Middleware
 
                 var (status, title) = ex switch
                 {
+                    BusinessConflictException => (StatusCodes.Status409Conflict, "Conflito de negocio"),
                     ArgumentException => (StatusCodes.Status400BadRequest, "Pedido invalido"),
                     KeyNotFoundException => (StatusCodes.Status404NotFound, "Recurso nao encontrado"),
                     UnauthorizedAccessException => (StatusCodes.Status401Unauthorized, "Nao autorizado"),

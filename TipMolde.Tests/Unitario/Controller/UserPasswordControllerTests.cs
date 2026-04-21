@@ -9,7 +9,7 @@ using TipMolde.API.Controllers;
 using TipMolde.Application.DTOs.UserDTO;
 using TipMolde.Application.Interface.Utilizador.IUser;
 
-namespace TipMolde.Tests.Unitario;
+namespace TipMolde.Tests.Unitario.Controller;
 
 [TestFixture]
 public class UserPasswordControllerTests

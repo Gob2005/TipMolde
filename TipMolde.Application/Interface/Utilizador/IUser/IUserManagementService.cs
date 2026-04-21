@@ -7,7 +7,8 @@ namespace TipMolde.Application.Interface.Utilizador.IUser
     /// Define os casos de uso de gestao de utilizadores.
     /// </summary>
     /// <remarks>
-    /// Responsavel por consultas, pesquisa, criacao, atualizacao, alteracao de perfil e remocao de utilizadores.
+    /// Responsavel por consultas, pesquisa, criacao, atualizacao, alteracao de perfil e remocao de utilizadores,
+    /// dependendo do role, seguindo o padrão RBAC.
     /// </remarks>
     public interface IUserManagementService
     {

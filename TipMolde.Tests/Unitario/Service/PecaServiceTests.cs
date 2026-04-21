@@ -6,7 +6,7 @@ using TipMolde.Domain.Entities.Producao;
 using TipMolde.Domain.Enums;
 using TipMolde.Application.Service;
 
-namespace TipMolde.Tests.Unitario;
+namespace TipMolde.Tests.Unitario.Service;
 
 [TestFixture]
 public class PecaServiceTests

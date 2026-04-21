@@ -1,14 +1,80 @@
-﻿using TipMolde.Domain.Entities.Comercio;
+﻿using TipMolde.Application.DTOs.EncomendaMoldeDTO;
+using TipMolde.Application.Interface;
 
 namespace TipMolde.Application.Interface.Comercio.IEncomendaMolde
 {
+    /// <summary>
+    /// Define os casos de uso da feature EncomendaMolde.
+    /// </summary>
+    /// <remarks>
+    /// O contrato usa DTOs de aplicacao para evitar acoplamento API-Domain.
+    /// </remarks>
     public interface IEncomendaMoldeService
     {
-        Task<IEnumerable<EncomendaMolde>> GetByEncomendaIdAsync(int encomendaId);
-        Task<IEnumerable<EncomendaMolde>> GetByMoldeIdAsync(int moldeId);
-        Task<EncomendaMolde> CreateAsync(EncomendaMolde link);
-        Task UpdateAsync(EncomendaMolde link);
-        Task DeleteAsync(int id);
+        /// <summary>
+        /// Obtem uma associacao Encomenda-Molde por identificador.
+        /// </summary>
+        /// <param name="id">Identificador da associacao.</param>
+        /// <param name="cancellationToken">Token de cancelamento da operacao assicrona.</param>
+        /// <returns>DTO de resposta quando encontrado; nulo caso nao exista.</returns>
+        Task<ResponseEncomendaMoldeDTO?> GetByIdAsync(int id, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Lista associacoes por encomenda com paginacao.
+        /// </summary>
+        /// <param name="encomendaId">Identificador da encomenda para filtro.</param>
+        /// <param name="page">Pagina atual (>= 1).</param>
+        /// <param name="pageSize">Tamanho da pagina (>= 1).</param>
+        /// <param name="cancellationToken">Token de cancelamento da operacao assicrona.</param>
+        /// <returns>Resultado paginado com DTOs de associacao.</returns>
+        Task<PagedResult<ResponseEncomendaMoldeDTO>> GetByEncomendaIdAsync(
+            int encomendaId,
+            int page = 1,
+            int pageSize = 10,
+            CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Lista associacoes por molde com paginacao.
+        /// </summary>
+        /// <param name="moldeId">Identificador do molde para filtro.</param>
+        /// <param name="page">Pagina atual (>= 1).</param>
+        /// <param name="pageSize">Tamanho da pagina (>= 1).</param>
+        /// <param name="cancellationToken">Token de cancelamento da operacao assicrona.</param>
+        /// <returns>Resultado paginado com DTOs de associacao.</returns>
+        Task<PagedResult<ResponseEncomendaMoldeDTO>> GetByMoldeIdAsync(
+            int moldeId,
+            int page = 1,
+            int pageSize = 10,
+            CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Cria uma nova associacao Encomenda-Molde.
+        /// </summary>
+        /// <param name="dto">Dados de criacao da associacao.</param>
+        /// <param name="cancellationToken">Token de cancelamento da operacao assicrona.</param>
+        /// <returns>DTO da associacao criada e persistida.</returns>
+        Task<ResponseEncomendaMoldeDTO> CreateAsync(
+            CreateEncomendaMoldeDTO dto,
+            CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Atualiza parcialmente uma associacao Encomenda-Molde.
+        /// </summary>
+        /// <param name="id">Identificador da associacao a atualizar.</param>
+        /// <param name="dto">Dados de atualizacao parcial.</param>
+        /// <param name="cancellationToken">Token de cancelamento da operacao assicrona.</param>
+        /// <returns>Task de conclusao da atualizacao.</returns>
+        Task UpdateAsync(
+            int id,
+            UpdateEncomendaMoldeDTO dto,
+            CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Remove uma associacao Encomenda-Molde por identificador.
+        /// </summary>
+        /// <param name="id">Identificador da associacao a remover.</param>
+        /// <param name="cancellationToken">Token de cancelamento da operacao assicrona.</param>
+        /// <returns>Task de conclusao da remocao.</returns>
+        Task DeleteAsync(int id, CancellationToken cancellationToken = default);
     }
 }
-

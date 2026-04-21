@@ -1,11 +1,56 @@
-﻿using TipMolde.Domain.Entities.Comercio;
+﻿using TipMolde.Application.Interface;
+using TipMolde.Domain.Entities.Comercio;
 
 namespace TipMolde.Application.Interface.Comercio.IEncomendaMolde
 {
+    /// <summary>
+    /// Define operacoes de persistencia especificas da relacao Encomenda-Molde.
+    /// </summary>
+    /// <remarks>
+    /// Expõe consultas paginadas por FK e validacao de unicidade da associacao.
+    /// </remarks>
     public interface IEncomendaMoldeRepository : IGenericRepository<EncomendaMolde, int>
     {
-        Task<IEnumerable<EncomendaMolde>> GetByEncomendaIdAsync(int encomendaId);
-        Task<IEnumerable<EncomendaMolde>> GetByMoldeIdAsync(int moldeId);
+        /// <summary>
+        /// Lista associacoes por encomenda com paginacao.
+        /// </summary>
+        /// <param name="encomendaId">Identificador da encomenda para filtro.</param>
+        /// <param name="page">Pagina atual (>= 1).</param>
+        /// <param name="pageSize">Tamanho da pagina (>= 1).</param>
+        /// <param name="cancellationToken">Token de cancelamento da operacao assicrona.</param>
+        /// <returns>Resultado paginado com associacoes da encomenda.</returns>
+        Task<PagedResult<EncomendaMolde>> GetByEncomendaIdAsync(
+            int encomendaId,
+            int page = 1,
+            int pageSize = 10,
+            CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Lista associacoes por molde com paginacao.
+        /// </summary>
+        /// <param name="moldeId">Identificador do molde para filtro.</param>
+        /// <param name="page">Pagina atual (>= 1).</param>
+        /// <param name="pageSize">Tamanho da pagina (>= 1).</param>
+        /// <param name="cancellationToken">Token de cancelamento da operacao assicrona.</param>
+        /// <returns>Resultado paginado com associacoes do molde.</returns>
+        Task<PagedResult<EncomendaMolde>> GetByMoldeIdAsync(
+            int moldeId,
+            int page = 1,
+            int pageSize = 10,
+            CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Verifica se ja existe associacao para o par Encomenda_id + Molde_id.
+        /// </summary>
+        /// <param name="encomendaId">Identificador da encomenda da associacao.</param>
+        /// <param name="moldeId">Identificador do molde da associacao.</param>
+        /// <param name="excludeEncomendaMoldeId">ID opcional a excluir da validacao em cenarios de update.</param>
+        /// <param name="cancellationToken">Token de cancelamento da operacao assicrona.</param>
+        /// <returns>True quando existe duplicado; caso contrario, false.</returns>
+        Task<bool> ExistsAssociationAsync(
+            int encomendaId,
+            int moldeId,
+            int? excludeEncomendaMoldeId = null,
+            CancellationToken cancellationToken = default);
     }
 }
-

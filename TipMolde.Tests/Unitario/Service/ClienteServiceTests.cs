@@ -4,7 +4,7 @@ using TipMolde.Application.Interface.Comercio.ICliente;
 using TipMolde.Domain.Entities.Comercio;
 using TipMolde.Application.Service;
 
-namespace TipMolde.Tests.Unitario;
+namespace TipMolde.Tests.Unitario.Service;
 
 [TestFixture]
 public class ClienteServiceTests

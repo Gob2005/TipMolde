@@ -40,7 +40,7 @@ namespace TipMolde.Domain.Entities.Comercio
 
         /// <summary>
         /// Data de registo da encomenda no sistema.
-        /// Definida automaticamente em CreateEncomendaAsync.
+        /// Definida automaticamente em CreateAsync.
         /// </summary>
         public DateTime DataRegisto { get; set; } = DateTime.UtcNow;
 

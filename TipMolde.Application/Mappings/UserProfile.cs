@@ -16,10 +16,16 @@ namespace TipMolde.Application.Mappings
                 .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(_ => DateTime.UtcNow));
 
             CreateMap<UpdateUserDTO, User>()
-                .ForMember(dest => dest.Nome, opt => opt.Condition(src => !string.IsNullOrWhiteSpace(src.Nome)))
-                .ForMember(dest => dest.Email, opt => opt.Condition(src => !string.IsNullOrWhiteSpace(src.Email)))
-                .ForMember(dest => dest.Nome, opt => opt.MapFrom(src => src.Nome == null ? null : src.Nome.Trim()))
-                .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.Email == null ? null : src.Email.Trim()))
+                .ForMember(dest => dest.Nome, opt =>
+                {
+                    opt.Condition(src => !string.IsNullOrWhiteSpace(src.Nome));
+                    opt.MapFrom(src => src.Nome!.Trim());
+                })
+                .ForMember(dest => dest.Email, opt =>
+                {
+                    opt.Condition(src => !string.IsNullOrWhiteSpace(src.Email));
+                    opt.MapFrom(src => src.Email!.Trim());
+                })
                 .ForMember(dest => dest.Role, opt => opt.Ignore())
                 .ForMember(dest => dest.Password, opt => opt.Ignore())
                 .ForMember(dest => dest.User_id, opt => opt.Ignore())

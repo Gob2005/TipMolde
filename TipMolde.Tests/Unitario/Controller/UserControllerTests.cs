@@ -14,7 +14,7 @@ using TipMolde.Application.Mappings;
 using TipMolde.Domain.Entities;
 using TipMolde.Domain.Enums;
 
-namespace TipMolde.Tests.Unitario;
+namespace TipMolde.Tests.Unitario.Controller;
 
 [TestFixture]
 public class UserControllerTests

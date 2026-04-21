@@ -9,7 +9,7 @@ using TipMolde.Application.Service;
 using TipMolde.Domain.Entities;
 using TipMolde.Domain.Enums;
 
-namespace TipMolde.Tests.Unitario;
+namespace TipMolde.Tests.Unitario.Service;
 
 /// <summary>
 /// Testes unitarios do servico de autenticacao.

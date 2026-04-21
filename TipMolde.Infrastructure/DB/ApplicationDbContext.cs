@@ -101,6 +101,10 @@ namespace TipMolde.Infrastructure.DB
                 .HasForeignKey<EspecificacoesTecnicas>(e => e.Molde_id);
 
             modelBuilder.Entity<EncomendaMolde>()
+                .HasIndex(em => new { em.Encomenda_id, em.Molde_id })
+                .IsUnique();
+
+            modelBuilder.Entity<EncomendaMolde>()
                 .HasOne(em => em.Encomenda)
                 .WithMany(e => e.EncomendasMoldes)
                 .HasForeignKey(em => em.Encomenda_id);

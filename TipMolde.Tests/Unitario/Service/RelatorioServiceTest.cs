@@ -11,7 +11,7 @@ using TipMolde.Infrastructure.DB;
 using TipMolde.Infrastructure.Repositorio;
 using TipMolde.Infrastructure.Service;
 
-namespace TipMolde.Tests.Unitario
+namespace TipMolde.Tests.Unitario.Service
 {
     [TestFixture]
     [Category("Integration")]

@@ -187,6 +187,16 @@ namespace TipMolde.API.Controllers
         [HttpPut("{id:int}")]
         public async Task<IActionResult> UpdateCliente(int id, [FromBody] UpdateClienteDTO dto)
         {
+            var existingCliente = await _clienteService.GetByIdAsync(id);
+            if (existingCliente == null)
+            {
+                _logger.LogWarning("Tentativa de atualizacao de cliente {ClienteId} falhou: recurso nao encontrado", id);
+                return NotFound(CreateProblem(
+                    StatusCodes.Status404NotFound,
+                    "Recurso nao encontrado",
+                    $"Cliente com ID {id} nao encontrado."));
+            }
+
             var cliente = _mapper.Map<Cliente>(dto);
             cliente.Cliente_id = id;
 
@@ -206,6 +216,16 @@ namespace TipMolde.API.Controllers
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> DeleteCliente(int id)
         {
+            var existingCliente = await _clienteService.GetByIdAsync(id);
+            if (existingCliente == null)
+            {
+                _logger.LogWarning("Tentativa de remocao de cliente {ClienteId} falhou: recurso nao encontrado", id);
+                return NotFound(CreateProblem(
+                    StatusCodes.Status404NotFound,
+                    "Recurso nao encontrado",
+                    $"Cliente com ID {id} nao encontrado."));
+            }
+
             await _clienteService.DeleteAsync(id);
 
             _logger.LogInformation("Cliente {ClienteId} removido com sucesso", id);

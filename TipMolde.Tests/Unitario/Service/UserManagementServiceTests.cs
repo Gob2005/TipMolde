@@ -8,7 +8,7 @@ using TipMolde.Domain.Entities;
 using TipMolde.Domain.Enums;
 using TipMolde.Application.Service;
 
-namespace TipMolde.Tests.Unitario;
+namespace TipMolde.Tests.Unitario.Service;
 
 [TestFixture]
 public class UserManagementServiceTests

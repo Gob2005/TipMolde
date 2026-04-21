@@ -1,0 +1,59 @@
+﻿using AutoMapper;
+using FluentAssertions;
+using TipMolde.Application.DTOs.EncomendaMoldeDTO;
+using TipMolde.Application.Mappings;
+using TipMolde.Domain.Entities.Comercio;
+using TipMolde.Domain.Entities.Producao;
+
+namespace TipMolde.Tests.Unitario.Mapping;
+
+[TestFixture]
+public class EncomendaMoldeProfileTests
+{
+    private IMapper _mapper = null!;
+
+    [SetUp]
+    public void SetUp()
+    {
+        var config = new MapperConfiguration(cfg => cfg.AddProfile<EncomendaMoldeProfile>());
+        _mapper = config.CreateMapper();
+    }
+
+    [Test(Description = "TENCMMAP1 - Configuracao AutoMapper de EncomendaMoldeProfile deve ser valida.")]
+    public void MappingConfiguration_Should_BeValid()
+    {
+        // ARRANGE
+        var config = new MapperConfiguration(cfg => cfg.AddProfile<EncomendaMoldeProfile>());
+
+        // ACT
+        Action act = () => config.AssertConfigurationIsValid();
+
+        // ASSERT
+        act.Should().NotThrow();
+    }
+
+    [Test(Description = "TENCMMAP2 - Entidade EncomendaMolde deve mapear para DTO de resposta com campos de navegacao.")]
+    public void EncomendaMolde_Should_MapTo_ResponseEncomendaMoldeDTO()
+    {
+        // ARRANGE
+        var source = new EncomendaMolde
+        {
+            EncomendaMolde_id = 5,
+            Encomenda_id = 10,
+            Molde_id = 20,
+            Quantidade = 30,
+            Prioridade = 1,
+            DataEntregaPrevista = new DateTime(2026, 5, 1),
+            Encomenda = new Encomenda { Encomenda_id = 10, NumeroEncomendaCliente = "ENC-10" },
+            Molde = new Molde { Molde_id = 20, Numero = "M-20" }
+        };
+
+        // ACT
+        var result = _mapper.Map<ResponseEncomendaMoldeDTO>(source);
+
+        // ASSERT
+        result.EncomendaMolde_id.Should().Be(5);
+        result.NumeroEncomendaCliente.Should().Be("ENC-10");
+        result.NumeroMolde.Should().Be("M-20");
+    }
+}

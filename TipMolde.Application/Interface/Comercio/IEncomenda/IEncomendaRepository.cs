@@ -3,11 +3,28 @@ using TipMolde.Domain.Enums;
 
 namespace TipMolde.Application.Interface.Comercio.IEncomenda
 {
+    /// <summary>
+    /// Define operacoes de persistencia especificas de encomenda.
+    /// </summary>
     public interface IEncomendaRepository : IGenericRepository<Encomenda, int>
     {
+        /// <summary>Obtem encomenda com moldes associados.</summary>
         Task<Encomenda?> GetWithMoldesAsync(int id);
+
+        /// <summary>Obtem encomenda por numero de referencia do cliente.</summary>
         Task<Encomenda?> GetByNumeroEncomendaClienteAsync(string numero);
-        Task<IEnumerable<Encomenda>> GetByEstadoAsync(EstadoEncomenda estado);
-        Task<IEnumerable<Encomenda>> GetEncomendasPorConcluirAsync();
+
+        /// <summary>Lista encomendas por estado.</summary>
+        Task<PagedResult<Encomenda>> GetByEstadoAsync(EstadoEncomenda estado, int page = 1, int pageSize = 10);
+
+        /// <summary>Lista encomendas com estado nao terminal.</summary>
+        Task<PagedResult<Encomenda>> GetEncomendasPorConcluirAsync(int page = 1, int pageSize = 10);
+
+        /// <summary>
+        /// Verifica se ja existe encomenda com o numero informado.
+        /// </summary>
+        /// <param name="numero">Numero da encomenda do cliente.</param>
+        /// <param name="excludeEncomendaId">ID a excluir da pesquisa (util em update).</param>
+        Task<bool> ExistsNumeroEncomendaClienteAsync(string numero, int? excludeEncomendaId = null);
     }
 }
