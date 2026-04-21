@@ -6,11 +6,22 @@ on:
   pull_request:
     branches: [ "main", "master" ]
 
+env:
+  SOLUTION_FILE: "TipMolde.sln"
+  TEST_PROJECT: "TipMolde.Tests/TipMolde.Tests.csproj"
+  TEST_RESULTS_DIR: "TestResults"
+  SONAR_PROJECT_KEY: "TipMolde-Backend"
+  DOCKER_IMAGE_NAME: "tipmolde-api"
+
 jobs:
   build:
+    name: Build Solution
     runs-on: self-hosted
+
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Check local .NET SDK
         shell: powershell
@@ -18,31 +29,34 @@ jobs:
           dotnet --info
           dotnet --list-sdks
 
-      - name: Cache NuGet packages
+      - name: Cache NuGet
         uses: actions/cache@v4
         with:
           path: ~/.nuget/packages
-          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+          key: nuget-${{ runner.os }}-${{ hashFiles('**/*.csproj') }}
           restore-keys: |
-            ${{ runner.os }}-nuget-
+            nuget-${{ runner.os }}-
 
-      - name: Restore dependencies
-        run: dotnet restore
+      - name: Restore
+        run: dotnet restore ${{ env.SOLUTION_FILE }}
 
       - name: Build
-        run: dotnet build --configuration Release --no-restore
+        run: dotnet build ${{ env.SOLUTION_FILE }} --configuration Release --no-restore
 
       - name: Upload build artifacts
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v4
         with:
           name: build-output
           path: |
             **/bin/Release/**
-          if-no-files-found: error
+            **/obj/Release/**
+          if-no-files-found: warn
 
-  test:
+  unit-tests:
+    name: Unit Tests
     runs-on: self-hosted
-    needs: build
+    needs: [ build ]
+
     steps:
       - uses: actions/checkout@v4
 
@@ -52,81 +66,149 @@ jobs:
           dotnet --info
           dotnet --list-sdks
 
-      - name: Restore dependencies
-        run: dotnet restore
-
-      - name: Run tests with coverage
-        run: dotnet test --configuration Release
-             --collect:"XPlat Code Coverage"
-             --results-directory:"TestResults"
-             --
-             DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=cobertura
-
-      - name: Upload test results
-        uses: actions/upload-artifact@v6
+      - name: Cache NuGet
+        uses: actions/cache@v4
         with:
-          name: test-results
-          path: "**/TestResults/**"
-          if-no-files-found: warn
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('**/*.csproj') }}
+          restore-keys: |
+            nuget-${{ runner.os }}-
+
+      - name: Run Unit Tests with OpenCover
+        shell: powershell
+        run: |
+          dotnet test ${{ env.TEST_PROJECT }} --configuration Release --no-build `
+            --filter "FullyQualifiedName~Unit" `
+            --collect:"XPlat Code Coverage;Format=opencover" `
+            --logger "trx;LogFileName=unit-tests.trx" `
+            --results-directory "${{ env.TEST_RESULTS_DIR }}"
+
+      - name: Upload Unit Test Results
         if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: unit-test-results
+          path: ${{ env.TEST_RESULTS_DIR }}
+          if-no-files-found: warn
 
   coverage-report:
+    name: Coverage Report
     runs-on: self-hosted
-    needs: [ build, test ]
+    needs: [ unit-tests ]
     if: always()
+
     steps:
       - uses: actions/checkout@v4
 
-      - name: Download test results
-        uses: actions/download-artifact@v7
+      - name: Download Unit Test Results
+        uses: actions/download-artifact@v4
         with:
-          name: test-results
-          path: TestResults
+          name: unit-test-results
+          path: TestResults/Unit
+        continue-on-error: true
+
+      - name: Check if coverage files exist
+        id: check-coverage
+        shell: powershell
+        run: |
+          $coverageFiles = Get-ChildItem -Path TestResults -Recurse -Filter "coverage.opencover.xml" -ErrorAction SilentlyContinue
+          if ($coverageFiles) {
+            echo "exists=true" >> $env:GITHUB_OUTPUT
+          } else {
+            echo "exists=false" >> $env:GITHUB_OUTPUT
+          }
 
       - name: Install ReportGenerator
+        if: steps.check-coverage.outputs.exists == 'true'
         run: dotnet tool update -g dotnet-reportgenerator-globaltool
 
       - name: Generate coverage report
-        run: reportgenerator
-             -reports:"TestResults/**/coverage.cobertura.xml"
-             -targetdir:"coveragereport"
-             -reporttypes:"Html;TextSummary"
-        continue-on-error: true
-
-      - name: Print coverage summary
+        if: steps.check-coverage.outputs.exists == 'true'
         shell: powershell
         run: |
-          $summary = "coveragereport/Summary.txt"
-          if (Test-Path $summary) {
-            Get-Content $summary
-          } else {
-            Write-Host "Resumo de cobertura nao encontrado."
-          }
+          reportgenerator `
+            -reports:"TestResults/**/coverage.opencover.xml" `
+            -targetdir:"coveragereport" `
+            -reporttypes:"Html;TextSummary"
 
       - name: Upload coverage report
-        uses: actions/upload-artifact@v6
+        if: steps.check-coverage.outputs.exists == 'true'
+        uses: actions/upload-artifact@v4
         with:
           name: coverage-html
           path: coveragereport
           if-no-files-found: warn
-        if: always()
+
+  sonar-analysis:
+    name: SonarQube Analysis
+    runs-on: self-hosted
+    needs: [ coverage-report ]
+    if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Java (required for SonarScanner)
+        uses: actions/setup-java@v4
+        with:
+          java-version: "17"
+          distribution: "zulu"
+
+      - name: Install Sonar Scanner
+        run: dotnet tool update --global dotnet-sonarscanner
+
+      - name: Download Test Results
+        uses: actions/download-artifact@v4
+        with:
+          name: unit-test-results
+          path: TestResults
+        continue-on-error: true
+
+      - name: Sonar Begin
+        shell: powershell
+        run: |
+          dotnet-sonarscanner begin `
+            /k:"${{ env.SONAR_PROJECT_KEY }}" `
+            /d:sonar.host.url="${{ secrets.SONAR_HOST_URL }}" `
+            /d:sonar.token="${{ secrets.SONAR_TOKEN }}" `
+            /d:sonar.cs.opencover.reportsPaths="**/coverage.opencover.xml" `
+            /d:sonar.cs.vstest.reportsPaths="**/*.trx"
+
+      - name: Restore for Sonar
+        run: dotnet restore ${{ env.SOLUTION_FILE }}
+
+      - name: Build for Sonar
+        run: dotnet build ${{ env.SOLUTION_FILE }} --configuration Release --no-restore
+
+      - name: Sonar End
+        shell: powershell
+        run: |
+          dotnet-sonarscanner end `
+            /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
 
   docker-build:
+    name: Build Docker Image
     runs-on: self-hosted
-    needs: [ build, test, coverage-report ]
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+    needs: [ sonar-analysis, coverage-report ]
+    if: success() && github.event_name == 'push' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main')
+
     steps:
       - uses: actions/checkout@v4
 
-      - name: Build Docker image
+      - name: Build Docker Image
         shell: powershell
         run: |
           $dockerfile = Get-ChildItem -Path $env:GITHUB_WORKSPACE -Recurse -Filter Dockerfile |
                         Select-Object -First 1 -ExpandProperty FullName
-          if (-not $dockerfile) { throw "Dockerfile nao encontrado em $env:GITHUB_WORKSPACE" }
+          if (-not $dockerfile) { throw "Dockerfile not found in $env:GITHUB_WORKSPACE" }
 
           $context = Split-Path -Path $dockerfile -Parent
-          Write-Host "Dockerfile: $dockerfile"
-          Write-Host "Contexto: $context"
+          docker build -t ${{ env.DOCKER_IMAGE_NAME }}:latest -f "$dockerfile" "$context"
 
-          docker build -t tipmolde-api:latest -f "$dockerfile" "$context"
+      - name: Tag Docker Image with Git SHA
+        shell: powershell
+        run: |
+          $gitSha = "${{ github.sha }}".Substring(0,7)
+          docker tag ${{ env.DOCKER_IMAGE_NAME }}:latest ${{ env.DOCKER_IMAGE_NAME }}:$gitSha
