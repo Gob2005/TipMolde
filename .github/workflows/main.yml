@@ -7,7 +7,6 @@ on:
     branches: [ "main", "master" ]
 
 env:
-  DOTNET_VERSION: "8.0.x"
   SOLUTION_FILE: "TipMolde.sln"
   TEST_PROJECT: "TipMolde.Tests/TipMolde.Tests.csproj"
   TEST_RESULTS_DIR: "TestResults"
@@ -23,11 +22,6 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: ${{ env.DOTNET_VERSION }}
 
       - name: Check local .NET SDK
         shell: powershell
@@ -66,10 +60,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: ${{ env.DOTNET_VERSION }}
+      - name: Check local .NET SDK
+        shell: powershell
+        run: |
+          dotnet --info
+          dotnet --list-sdks
 
       - name: Cache NuGet
         uses: actions/cache@v4
@@ -118,11 +113,8 @@ jobs:
         run: |
           $coverageFiles = Get-ChildItem -Path TestResults -Recurse -Filter "coverage.opencover.xml" -ErrorAction SilentlyContinue
           if ($coverageFiles) {
-            Write-Host "Coverage files found: $($coverageFiles.Count)"
-            $coverageFiles | ForEach-Object { Write-Host " - $($_.FullName)" }
             echo "exists=true" >> $env:GITHUB_OUTPUT
           } else {
-            Write-Host "No coverage files found."
             echo "exists=false" >> $env:GITHUB_OUTPUT
           }
 
@@ -138,18 +130,6 @@ jobs:
             -reports:"TestResults/**/coverage.opencover.xml" `
             -targetdir:"coveragereport" `
             -reporttypes:"Html;TextSummary"
-        continue-on-error: true
-
-      - name: Print coverage summary
-        if: steps.check-coverage.outputs.exists == 'true'
-        shell: powershell
-        run: |
-          $summary = "coveragereport/Summary.txt"
-          if (Test-Path $summary) {
-            Get-Content $summary
-          } else {
-            Write-Host "Coverage summary not found."
-          }
 
       - name: Upload coverage report
         if: steps.check-coverage.outputs.exists == 'true'
@@ -162,18 +142,13 @@ jobs:
   sonar-analysis:
     name: SonarQube Analysis
     runs-on: self-hosted
-    needs: [ coverage-report ]
+    needs: [ build, unit-tests ]
     if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
 
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: ${{ env.DOTNET_VERSION }}
 
       - name: Setup Java (required for SonarScanner)
         uses: actions/setup-java@v4
@@ -199,8 +174,7 @@ jobs:
             /d:sonar.host.url="${{ secrets.SONAR_HOST_URL }}" `
             /d:sonar.token="${{ secrets.SONAR_TOKEN }}" `
             /d:sonar.cs.opencover.reportsPaths="**/coverage.opencover.xml" `
-            /d:sonar.cs.vstest.reportsPaths="**/*.trx" `
-            /d:sonar.verbose=true
+            /d:sonar.cs.vstest.reportsPaths="**/*.trx"
 
       - name: Restore for Sonar
         run: dotnet restore ${{ env.SOLUTION_FILE }}
@@ -218,7 +192,7 @@ jobs:
     name: Build Docker Image
     runs-on: self-hosted
     needs: [ sonar-analysis, coverage-report ]
-    if: success() && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main') && contains(github.event.head_commit.message, '[build]')
+    if: success() && github.event_name == 'push' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main')
 
     steps:
       - uses: actions/checkout@v4
@@ -228,15 +202,9 @@ jobs:
         run: |
           $dockerfile = Get-ChildItem -Path $env:GITHUB_WORKSPACE -Recurse -Filter Dockerfile |
                         Select-Object -First 1 -ExpandProperty FullName
-
-          if (-not $dockerfile) {
-            throw "Dockerfile not found in $env:GITHUB_WORKSPACE"
-          }
+          if (-not $dockerfile) { throw "Dockerfile not found in $env:GITHUB_WORKSPACE" }
 
           $context = Split-Path -Path $dockerfile -Parent
-          Write-Host "Dockerfile: $dockerfile"
-          Write-Host "Context: $context"
-
           docker build -t ${{ env.DOCKER_IMAGE_NAME }}:latest -f "$dockerfile" "$context"
 
       - name: Tag Docker Image with Git SHA
@@ -244,4 +212,3 @@ jobs:
         run: |
           $gitSha = "${{ github.sha }}".Substring(0,7)
           docker tag ${{ env.DOCKER_IMAGE_NAME }}:latest ${{ env.DOCKER_IMAGE_NAME }}:$gitSha
-          Write-Host "Tagged image as: ${{ env.DOCKER_IMAGE_NAME }}:$gitSha"
