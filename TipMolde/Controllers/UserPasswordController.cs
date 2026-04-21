@@ -5,6 +5,12 @@ using TipMolde.Application.Interface.Utilizador.IUser;
 
 namespace TipMolde.API.Controllers
 {
+    /// <summary>
+    /// Disponibiliza endpoints para operacoes de password de utilizador.
+    /// </summary>
+    /// <remarks>
+    /// Separa alteracoes de credenciais das restantes operacoes de gestao de utilizadores.
+    /// </remarks>
     [ApiController]
     [Route("api/users")]
     public class UserPasswordController : AuthenticatedControllerBase
@@ -12,12 +18,22 @@ namespace TipMolde.API.Controllers
         private readonly IPasswordService _passwordService;
         private readonly ILogger<UserPasswordController> _logger;
 
+        /// <summary>
+        /// Construtor de UserPasswordController.
+        /// </summary>
+        /// <param name="passwordService">Servico responsavel pela alteracao e reposicao de passwords.</param>
+        /// <param name="logger">Logger para auditoria das operacoes de credenciais.</param>
         public UserPasswordController(IPasswordService passwordService, ILogger<UserPasswordController> logger)
         {
             _passwordService = passwordService;
             _logger = logger;
         }
 
+        /// <summary>
+        /// Permite ao utilizador autenticado alterar a propria password.
+        /// </summary>
+        /// <param name="dto">Dados com password atual e nova password pretendida.</param>
+        /// <returns>Resultado HTTP da operacao de alteracao de password.</returns>
         [Authorize]
         [HttpPut("me/password")]
         public async Task<IActionResult> ChangePassword([FromBody] ChangeUserPasswordDTO dto)
@@ -45,6 +61,12 @@ namespace TipMolde.API.Controllers
             }
         }
 
+        /// <summary>
+        /// Permite a um administrador repor a password de um utilizador.
+        /// </summary>
+        /// <param name="id">Identificador do utilizador alvo da reposicao.</param>
+        /// <param name="dto">Dados com a nova password a aplicar.</param>
+        /// <returns>Resultado HTTP sem conteudo quando a reposicao e concluida.</returns>
         [Authorize(Roles = "ADMIN")]
         [HttpPut("{id:int}/password/reset")]
         public async Task<IActionResult> ResetPassword(int id, [FromBody] ResetUserPasswordDTO dto)

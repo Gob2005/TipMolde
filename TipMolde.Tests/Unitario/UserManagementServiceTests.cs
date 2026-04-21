@@ -27,6 +27,14 @@ public class UserManagementServiceTests
         _sut = new UserManagementService(_userRepository.Object, _passwordHasher.Object, _logger.Object);
     }
 
+    /// <summary>
+    /// Helper para criar entidades User em cenarios de teste.
+    /// </summary>
+    /// <param name="id">Identificador do utilizador.</param>
+    /// <param name="nome">Nome do utilizador.</param>
+    /// <param name="email">Email do utilizador.</param>
+    /// <param name="password">Password inicial do utilizador.</param>
+    /// <returns>Instancia de User para composicao dos testes.</returns>
     private static User BuildUser(int id = 1, string nome = "Operador", string email = "operador@tipmolde.pt", string password = "Passw0rd!") => new()
     {
         User_id = id,
@@ -36,10 +44,10 @@ public class UserManagementServiceTests
         Role = UserRole.GESTOR_PRODUCAO
     };
 
-    [Test]
-    public async Task shouldReturnAllUsersWhenGettingAllUsers()
+    [Test(Description = "T1USR - GetAll deve devolver lista paginada de utilizadores.")]
+    public async Task GetAllAsync_Should_ReturnPagedUsers_When_UsersExist()
     {
-        // Arrange
+        // ARRANGE
         var users = new List<User>
         {
             BuildUser(id: 1, nome: "Ana", email: "ana@tipmolde.pt"),
@@ -49,10 +57,10 @@ public class UserManagementServiceTests
         var pagedResult = new PagedResult<User>(users, users.Count, 1, 10);
         _userRepository.Setup(r => r.GetAllAsync(1, 10)).ReturnsAsync(pagedResult);
 
-        // Act
+        // ACT
         var result = await _sut.GetAllAsync();
 
-        // Assert
+        // ASSERT
         result.Items.Should().HaveCount(2);
         result.TotalCount.Should().Be(2);
         result.CurrentPage.Should().Be(1);
@@ -60,135 +68,135 @@ public class UserManagementServiceTests
         _userRepository.Verify(r => r.GetAllAsync(1, 10), Times.Once);
     }
 
-    [Test]
-    public async Task shouldThrowArgumentExceptionWhenCreatingUserWithDuplicateEmail()
+    [Test(Description = "T2USR - Create deve falhar quando email ja existe.")]
+    public async Task CreateAsync_Should_ThrowArgumentException_When_EmailAlreadyExists()
     {
-        // Arrange
+        // ARRANGE
         var user = BuildUser(email: "duplicado@tipmolde.pt");
         _userRepository.Setup(r => r.GetByEmailAsync("duplicado@tipmolde.pt")).ReturnsAsync(BuildUser(id: 2));
 
-        // Act
+        // ACT
         Func<Task> act = () => _sut.CreateAsync(user);
 
-        // Assert
+        // ASSERT
         await act.Should().ThrowAsync<ArgumentException>();
     }
 
-    [Test]
-    public async Task shouldThrowArgumentExceptionWhenCreatingUserWithWeakPassword()
+    [Test(Description = "T3USR - Create deve falhar quando password e fraca.")]
+    public async Task CreateAsync_Should_ThrowArgumentException_When_PasswordIsWeak()
     {
-        // Arrange
+        // ARRANGE
         var user = BuildUser(password: "fraca");
         _userRepository.Setup(r => r.GetByEmailAsync("operador@tipmolde.pt")).ReturnsAsync((User?)null);
 
-        // Act
+        // ACT
         Func<Task> act = () => _sut.CreateAsync(user);
 
-        // Assert
+        // ASSERT
         await act.Should().ThrowAsync<ArgumentException>();
     }
 
-    [Test]
-    public async Task shouldTrimNormalizeAndHashWhenCreatingValidUser()
+    [Test(Description = "T4USR - Create deve normalizar dados e aplicar hash quando utilizador e valido.")]
+    public async Task CreateAsync_Should_TrimNormalizeAndHash_When_UserIsValid()
     {
-        // Arrange
+        // ARRANGE
         var user = BuildUser(nome: "  Operador  ", email: "  OP@TipMolde.PT  ", password: "Valida123!");
         _userRepository.Setup(r => r.GetByEmailAsync("op@tipmolde.pt")).ReturnsAsync((User?)null);
         _passwordHasher.Setup(h => h.Hash("Valida123!")).Returns("hash_gerado");
 
-        // Act
+        // ACT
         var result = await _sut.CreateAsync(user);
 
-        // Assert
+        // ASSERT
         result.Nome.Should().Be("Operador");
         result.Email.Should().Be("op@tipmolde.pt");
         result.Password.Should().Be("hash_gerado");
         _userRepository.Verify(r => r.AddAsync(It.IsAny<User>()), Times.Once);
     }
 
-    [Test]
-    public async Task shouldThrowKeyNotFoundExceptionWhenUpdatingUnknownUser()
+    [Test(Description = "T5USR - Update deve falhar quando utilizador nao existe.")]
+    public async Task UpdateAsync_Should_ThrowKeyNotFoundException_When_UserDoesNotExist()
     {
-        // Arrange
+        // ARRANGE
         _userRepository.Setup(r => r.GetByIdAsync(404)).ReturnsAsync((User?)null);
 
-        // Act
+        // ACT
         Func<Task> act = () => _sut.UpdateAsync(BuildUser(id: 404));
 
-        // Assert
+        // ASSERT
         await act.Should().ThrowAsync<KeyNotFoundException>();
     }
 
-    [Test]
-    public async Task shouldUpdateOnlyProvidedFieldsWhenUpdatingUser()
+    [Test(Description = "T6USR - Update deve atualizar apenas campos informados.")]
+    public async Task UpdateAsync_Should_UpdateOnlyProvidedFields_When_UserExists()
     {
-        // Arrange
+        // ARRANGE
         var existing = BuildUser(id: 5, nome: "Nome Antigo", email: "antigo@tipmolde.pt");
         _userRepository.Setup(r => r.GetByIdAsync(5)).ReturnsAsync(existing);
 
         var update = BuildUser(id: 5, nome: "  Nome Novo  ", email: "  NOVO@TipMolde.PT ");
 
-        // Act
+        // ACT
         await _sut.UpdateAsync(update);
 
-        // Assert
+        // ASSERT
         _userRepository.Verify(r => r.UpdateAsync(It.Is<User>(u =>
             u.User_id == 5 &&
             u.Nome == "Nome Novo" &&
             u.Email == "novo@tipmolde.pt")), Times.Once);
     }
 
-    [Test]
-    public async Task shouldThrowKeyNotFoundExceptionWhenChangingRoleForUnknownUser()
+    [Test(Description = "T7USR - ChangeRole deve falhar quando utilizador nao existe.")]
+    public async Task ChangeRoleAsync_Should_ThrowKeyNotFoundException_When_UserDoesNotExist()
     {
-        // Arrange
+        // ARRANGE
         _userRepository.Setup(r => r.GetByIdAsync(777)).ReturnsAsync((User?)null);
 
-        // Act
+        // ACT
         Func<Task> act = () => _sut.ChangeRoleAsync(777, UserRole.ADMIN);
 
-        // Assert
+        // ASSERT
         await act.Should().ThrowAsync<KeyNotFoundException>();
     }
 
-    [Test]
-    public async Task shouldChangeRoleWhenUserExists()
+    [Test(Description = "T8USR - ChangeRole deve atualizar perfil quando utilizador existe.")]
+    public async Task ChangeRoleAsync_Should_ChangeRole_When_UserExists()
     {
-        // Arrange
+        // ARRANGE
         var user = BuildUser(id: 3);
         _userRepository.Setup(r => r.GetByIdAsync(3)).ReturnsAsync(user);
 
-        // Act
+        // ACT
         await _sut.ChangeRoleAsync(3, UserRole.ADMIN);
 
-        // Assert
+        // ASSERT
         user.Role.Should().Be(UserRole.ADMIN);
         _userRepository.Verify(r => r.UpdateAsync(It.Is<User>(u => u.Role == UserRole.ADMIN)), Times.Once);
     }
 
-    [Test]
-    public async Task shouldThrowKeyNotFoundExceptionWhenDeletingUnknownUser()
+    [Test(Description = "T9USR - Delete deve falhar quando utilizador nao existe.")]
+    public async Task DeleteAsync_Should_ThrowKeyNotFoundException_When_UserDoesNotExist()
     {
-        // Arrange
+        // ARRANGE
         _userRepository.Setup(r => r.GetByIdAsync(1000)).ReturnsAsync((User?)null);
 
-        // Act
+        // ACT
         Func<Task> act = () => _sut.DeleteAsync(1000);
 
-        // Assert
+        // ASSERT
         await act.Should().ThrowAsync<KeyNotFoundException>();
     }
 
-    [Test]
-    public async Task shouldDeleteUserWhenUserExists()
+    [Test(Description = "T10USR - Delete deve remover utilizador quando registo existe.")]
+    public async Task DeleteAsync_Should_DeleteUser_When_UserExists()
     {
-        // Arrange
+        // ARRANGE
         _userRepository.Setup(r => r.GetByIdAsync(7)).ReturnsAsync(BuildUser(id: 7));
 
-        // Act
+        // ACT
         await _sut.DeleteAsync(7);
 
-        // Assert
+        // ASSERT
         _userRepository.Verify(r => r.DeleteAsync(7), Times.Once);
     }
 }

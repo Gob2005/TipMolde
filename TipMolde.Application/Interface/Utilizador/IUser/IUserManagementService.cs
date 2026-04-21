@@ -1,25 +1,72 @@
 ﻿using TipMolde.Domain.Entities;
 using TipMolde.Domain.Enums;
 
-/// <summary>
-/// Serviço de gestão de utilizadores.
-/// Responsável exclusivamente por operações CRUD e pesquisa de utilizadores.
-/// </summary>
-/// <remarks>
-/// Operações relacionadas com passwords foram movidas para IPasswordService
-/// para respeitar o Princípio da Responsabilidade Única.
-/// </remarks>
 namespace TipMolde.Application.Interface.Utilizador.IUser
 {
+    /// <summary>
+    /// Define os casos de uso de gestao de utilizadores.
+    /// </summary>
+    /// <remarks>
+    /// Responsavel por consultas, pesquisa, criacao, atualizacao, alteracao de perfil e remocao de utilizadores.
+    /// </remarks>
     public interface IUserManagementService
     {
+        /// <summary>
+        /// Lista utilizadores com paginacao.
+        /// </summary>
+        /// <param name="page">Numero da pagina solicitada.</param>
+        /// <param name="pageSize">Quantidade de itens por pagina.</param>
+        /// <returns>Resultado paginado com utilizadores e metadados de navegacao.</returns>
         Task<PagedResult<User>> GetAllAsync(int page = 1, int pageSize = 10);
+
+        /// <summary>
+        /// Obtem um utilizador pelo identificador.
+        /// </summary>
+        /// <param name="id">Identificador unico do utilizador.</param>
+        /// <returns>Utilizador encontrado ou nulo quando nao existe registo.</returns>
         Task<User?> GetByIdAsync(int id);
+
+        /// <summary>
+        /// Obtem um utilizador pelo email.
+        /// </summary>
+        /// <param name="email">Email unico do utilizador.</param>
+        /// <returns>Utilizador encontrado ou nulo quando nao existe registo.</returns>
         Task<User?> GetByEmailAsync(string email);
+
+        /// <summary>
+        /// Pesquisa utilizadores por nome.
+        /// </summary>
+        /// <param name="searchTerm">Termo parcial para pesquisa no nome do utilizador.</param>
+        /// <returns>Colecao de utilizadores que correspondem ao termo informado.</returns>
         Task<IEnumerable<User>> SearchByNameAsync(string searchTerm);
+
+        /// <summary>
+        /// Cria um novo utilizador.
+        /// </summary>
+        /// <param name="user">Entidade com dados do utilizador a persistir.</param>
+        /// <returns>Utilizador criado apos validacao e persistencia.</returns>
         Task<User> CreateAsync(User user);
+
+        /// <summary>
+        /// Atualiza os dados de um utilizador existente.
+        /// </summary>
+        /// <param name="user">Entidade com identificador e dados a atualizar.</param>
+        /// <returns>Task assincrona concluida apos atualizacao do utilizador.</returns>
         Task UpdateAsync(User user);
+
+        /// <summary>
+        /// Altera o perfil de acesso de um utilizador.
+        /// </summary>
+        /// <param name="id">Identificador do utilizador alvo.</param>
+        /// <param name="newRole">Novo perfil de acesso a aplicar.</param>
+        /// <returns>Task assincrona concluida apos atualizacao do perfil.</returns>
         Task ChangeRoleAsync(int id, UserRole newRole);
+
+        /// <summary>
+        /// Remove um utilizador pelo identificador.
+        /// </summary>
+        /// <param name="id">Identificador unico do utilizador a remover.</param>
+        /// <returns>Task assincrona concluida apos remocao do utilizador.</returns>
         Task DeleteAsync(int id);
     }
 }

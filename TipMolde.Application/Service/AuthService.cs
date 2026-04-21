@@ -6,6 +6,12 @@ using TipMolde.Application.Interface.Utilizador.ISecurity;
 
 namespace TipMolde.Application.Service
 {
+    /// <summary>
+    /// Implementa os casos de uso de autenticacao de utilizadores.
+    /// </summary>
+    /// <remarks>
+    /// Coordena validacao de credenciais, emissao de JWT e revogacao de tokens em logout.
+    /// </remarks>
     public class AuthService : IAuthService
     {
         private readonly IAuthRepository _authRepository;
@@ -14,6 +20,14 @@ namespace TipMolde.Application.Service
         private readonly IRevokedTokenRepository _revokedTokenRepository;
         private readonly ILogger<AuthService> _logger;
 
+        /// <summary>
+        /// Construtor de AuthService.
+        /// </summary>
+        /// <param name="authRepository">Repositorio para consulta e atualizacao de utilizadores.</param>
+        /// <param name="passwordHasher">Servico para validacao e migracao de passwords.</param>
+        /// <param name="tokenService">Servico para emissao de tokens JWT.</param>
+        /// <param name="revokedTokenRepository">Repositorio para persistencia de tokens revogados.</param>
+        /// <param name="logger">Logger para rastreabilidade de eventos de autenticacao.</param>
         public AuthService(
             IAuthRepository authRepository,
             IPasswordHasherService passwordHasher,
@@ -28,6 +42,19 @@ namespace TipMolde.Application.Service
             _logger = logger;
         }
 
+        /// <summary>
+        /// Valida credenciais e cria uma sessao autenticada para o utilizador.
+        /// </summary>
+        /// <remarks>
+        /// Fluxo principal:
+        /// 1. Procura utilizador por email.
+        /// 2. Valida password com hash atual ou fluxo legacy em texto simples.
+        /// 3. Migra password legacy para hash quando a validacao e bem-sucedida.
+        /// 4. Emite token JWT e devolve instante de expiracao.
+        /// </remarks>
+        /// <param name="email">Email usado para identificar o utilizador.</param>
+        /// <param name="password">Password recebida no pedido de login.</param>
+        /// <returns>DTO com token de autenticacao e data de expiracao da sessao.</returns>
         public async Task<AuthResponseDTO> LoginAsync(string email, string password)
         {
             var user = await _authRepository.GetByEmailAsync(email);
@@ -46,8 +73,6 @@ namespace TipMolde.Application.Service
             }
             else
             {
-                // Porque: garantir compatibilidade com credenciais legacy em plaintext.
-                // Risco: remover isto pode bloquear login de utilizadores antigos.
                 valid = user.Password == password;
                 if (valid)
                 {
@@ -75,6 +100,17 @@ namespace TipMolde.Application.Service
             };
         }
 
+        /// <summary>
+        /// Revoga um token JWT para encerrar a sessao do utilizador.
+        /// </summary>
+        /// <remarks>
+        /// Fluxo principal:
+        /// 1. Valida presenca e formato do token.
+        /// 2. Extrai claims obrigatorias jti e exp.
+        /// 3. Persiste revogacao ate a expiracao original do token.
+        /// </remarks>
+        /// <param name="token">Token JWT bruto ou cabecalho Authorization no formato Bearer.</param>
+        /// <returns>Resultado funcional com sucesso ou motivo de falha do logout.</returns>
         public async Task<LogoutResultDTO> LogoutAsync(string token)
         {
             if (string.IsNullOrWhiteSpace(token))

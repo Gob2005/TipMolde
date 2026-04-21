@@ -12,8 +12,14 @@ namespace TipMolde.Domain.Entities
     /// </remarks>
     public class User
     {
+        /// <summary>
+        /// Identificador unico do utilizador.
+        /// </summary>
         public int User_id { get; set; }
 
+        /// <summary>
+        /// Nome completo do utilizador.
+        /// </summary>
         public required string Nome { get; set; }
 
         /// <summary>

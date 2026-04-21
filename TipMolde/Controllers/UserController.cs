@@ -10,8 +10,18 @@ using TipMolde.Domain.Enums;
 
 namespace TipMolde.API.Controllers
 {
+    /// <summary>
+    /// Fornece utilitarios comuns para controladores que dependem do utilizador autenticado.
+    /// </summary>
+    /// <remarks>
+    /// Centraliza a resolucao do identificador do utilizador a partir das claims do JWT.
+    /// </remarks>
     public abstract class AuthenticatedControllerBase : ControllerBase
     {
+        /// <summary>
+        /// Resolve o identificador do utilizador autenticado a partir das claims do token.
+        /// </summary>
+        /// <returns>ID do utilizador autenticado.</returns>
         protected int GetAuthenticatedUserId()
         {
             // Porque: suportamos emissores JWT diferentes que podem usar "sub" ou NameIdentifier.
@@ -26,6 +36,12 @@ namespace TipMolde.API.Controllers
         }
     }
 
+    /// <summary>
+    /// Disponibiliza endpoints para gestao de utilizadores.
+    /// </summary>
+    /// <remarks>
+    /// Implementa operacoes de consulta, criacao, atualizacao, alteracao de perfil e remocao de contas.
+    /// </remarks>
     [ApiController]
     [Route("api/users")]
     public class UserController : AuthenticatedControllerBase
@@ -34,6 +50,12 @@ namespace TipMolde.API.Controllers
         private readonly ILogger<UserController> _logger;
         private readonly IMapper _mapper;
 
+        /// <summary>
+        /// Construtor de UserController.
+        /// </summary>
+        /// <param name="userService">Servico responsavel pelos casos de uso de utilizador.</param>
+        /// <param name="logger">Logger para rastreabilidade de operacoes administrativas.</param>
+        /// <param name="mapper">Mapper para conversao entre DTOs e entidades de dominio.</param>
         public UserController(IUserManagementService userService, ILogger<UserController> logger, IMapper mapper)
         {
             _userService = userService;
@@ -41,6 +63,12 @@ namespace TipMolde.API.Controllers
             _mapper = mapper;
         }
 
+        /// <summary>
+        /// Lista utilizadores com paginacao.
+        /// </summary>
+        /// <param name="page">Numero da pagina a consultar.</param>
+        /// <param name="pageSize">Quantidade de itens por pagina.</param>
+        /// <returns>Resultado HTTP com metadados de paginacao e lista de utilizadores.</returns>
         [Authorize(Roles = "ADMIN")]
         [HttpGet]
         public async Task<IActionResult> GetAllUsers([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
@@ -65,6 +93,11 @@ namespace TipMolde.API.Controllers
             });
         }
 
+        /// <summary>
+        /// Obtem um utilizador pelo identificador.
+        /// </summary>
+        /// <param name="id">Identificador unico do utilizador.</param>
+        /// <returns>Resultado HTTP com utilizador encontrado ou erro de nao encontrado.</returns>
         [Authorize(Roles = "ADMIN")]
         [HttpGet("{id:int}")]
         public async Task<IActionResult> GetUserById(int id)
@@ -81,6 +114,11 @@ namespace TipMolde.API.Controllers
             return Ok(_mapper.Map<ResponseUserDTO>(user));
         }
 
+        /// <summary>
+        /// Pesquisa utilizadores por nome.
+        /// </summary>
+        /// <param name="searchTerm">Termo parcial de pesquisa aplicado ao nome do utilizador.</param>
+        /// <returns>Resultado HTTP com utilizadores correspondentes ao termo informado.</returns>
         [Authorize(Roles = "ADMIN")]
         [HttpGet("search")]
         public async Task<IActionResult> SearchByName([FromQuery] string searchTerm)
@@ -97,6 +135,14 @@ namespace TipMolde.API.Controllers
             return Ok(_mapper.Map<IEnumerable<ResponseUserDTO>>(users));
         }
 
+        /// <summary>
+        /// Cria um novo utilizador.
+        /// </summary>
+        /// <remarks>
+        /// Valida o body de entrada, mapeia para entidade de dominio e regista a operacao com o administrador autenticado.
+        /// </remarks>
+        /// <param name="dto">Dados de criacao do utilizador.</param>
+        /// <returns>Resultado HTTP de criacao com o recurso criado.</returns>
         [Authorize(Roles = "ADMIN")]
         [HttpPost]
         [ProducesResponseType(typeof(ResponseUserDTO), StatusCodes.Status201Created)]
@@ -122,6 +168,15 @@ namespace TipMolde.API.Controllers
                 _mapper.Map<ResponseUserDTO>(createdUser));
         }
 
+        /// <summary>
+        /// Atualiza os dados de um utilizador.
+        /// </summary>
+        /// <remarks>
+        /// Permite atualizacao apenas para administradores ou para o proprio utilizador autenticado.
+        /// </remarks>
+        /// <param name="id">Identificador do utilizador alvo da atualizacao.</param>
+        /// <param name="dto">Dados enviados para atualizacao do perfil.</param>
+        /// <returns>Resultado HTTP sem conteudo quando a atualizacao e concluida.</returns>
         [Authorize]
         [HttpPut("{id:int}")]
         public async Task<IActionResult> UpdateUser(int id, [FromBody] UpdateUserDTO dto)
@@ -180,6 +235,12 @@ namespace TipMolde.API.Controllers
             return NoContent();
         }
 
+        /// <summary>
+        /// Altera o perfil (role) de um utilizador.
+        /// </summary>
+        /// <param name="id">Identificador do utilizador alvo.</param>
+        /// <param name="dto">Dados com o novo perfil a atribuir.</param>
+        /// <returns>Resultado HTTP sem conteudo quando a alteracao e concluida.</returns>
         [Authorize(Roles = "ADMIN")]
         [HttpPut("{id:int}/role")]
         public async Task<IActionResult> ChangeRole(int id, [FromBody] ChangeUserRoleDTO dto)
@@ -196,6 +257,11 @@ namespace TipMolde.API.Controllers
             return NoContent();
         }
 
+        /// <summary>
+        /// Remove um utilizador pelo identificador.
+        /// </summary>
+        /// <param name="id">Identificador unico do utilizador a remover.</param>
+        /// <returns>Resultado HTTP sem conteudo quando a remocao e concluida.</returns>
         [Authorize(Roles = "ADMIN")]
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> DeleteUser(int id)
@@ -204,6 +270,13 @@ namespace TipMolde.API.Controllers
             return NoContent();
         }
 
+        /// <summary>
+        /// Cria uma resposta de erro padrao no formato ProblemDetails.
+        /// </summary>
+        /// <param name="status">Codigo de estado HTTP da resposta.</param>
+        /// <param name="title">Titulo curto do erro.</param>
+        /// <param name="detail">Descricao detalhada do problema.</param>
+        /// <returns>Instancia de ProblemDetails com o contexto da falha.</returns>
         private ProblemDetails CreateProblem(int status, string title, string detail)
         {
             return new ProblemDetails

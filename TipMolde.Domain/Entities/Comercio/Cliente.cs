@@ -10,8 +10,14 @@
     /// </remarks>
     public class Cliente
     {
+        /// <summary>
+        /// Identificador unico do cliente.
+        /// </summary>
         public int Cliente_id { get; set; }
 
+        /// <summary>
+        /// Nome comercial do cliente.
+        /// </summary>
         public required string Nome { get; set; }
 
         /// <summary>
@@ -26,8 +32,19 @@
         /// </summary>
         public required string Sigla { get; set; }
 
+        /// <summary>
+        /// Pais de localizacao principal do cliente.
+        /// </summary>
         public string? Pais { get; set; }
+
+        /// <summary>
+        /// Endereco de email de contacto comercial do cliente.
+        /// </summary>
         public string? Email { get; set; }
+
+        /// <summary>
+        /// Contacto telefonico principal do cliente.
+        /// </summary>
         public string? Telefone { get; set; }
 
         /// <summary>

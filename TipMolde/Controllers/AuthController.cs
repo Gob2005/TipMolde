@@ -4,6 +4,12 @@ using Microsoft.AspNetCore.Mvc;
 using TipMolde.Application.DTOs.AuthDTO;
 using TipMolde.Application.Interface.Utilizador.IAuth;
 
+/// <summary>
+/// Disponibiliza endpoints de autenticacao e encerramento de sessao.
+/// </summary>
+/// <remarks>
+/// Atua como camada de entrada HTTP, delegando regras de autenticacao no servico de aplicacao.
+/// </remarks>
 [ApiController]
 [Route("api/[controller]")]
 public class AuthController : ControllerBase
@@ -11,12 +17,26 @@ public class AuthController : ControllerBase
     private readonly IAuthService _authService;
     private readonly ILogger<AuthController> _logger;
 
+    /// <summary>
+    /// Construtor de AuthController.
+    /// </summary>
+    /// <param name="authService">Servico responsavel pelas operacoes de login e logout.</param>
+    /// <param name="logger">Logger para auditoria operacional de autenticacao.</param>
     public AuthController(IAuthService authService, ILogger<AuthController> logger)
     {
         _authService = authService;
         _logger = logger;
     }
 
+    /// <summary>
+    /// Autentica um utilizador com base em email e password.
+    /// </summary>
+    /// <remarks>
+    /// Valida o pedido HTTP e delega a verificacao de credenciais para o servico de autenticacao.
+    /// Em caso de falha devolve resposta de nao autorizado com detalhe funcional.
+    /// </remarks>
+    /// <param name="dto">Credenciais enviadas pelo cliente para autenticacao.</param>
+    /// <returns>Resultado HTTP com token de acesso quando as credenciais sao validas.</returns>
     [HttpPost("login")]
     [AllowAnonymous]
     [ProducesResponseType(typeof(AuthResponseDTO), StatusCodes.Status200OK)]
@@ -43,6 +63,14 @@ public class AuthController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Termina a sessao do utilizador autenticado e invalida o token atual.
+    /// </summary>
+    /// <remarks>
+    /// Extrai o token do cabecalho Authorization e delega a revogacao para o servico.
+    /// Quando a operacao falha devolve erro funcional com detalhes do motivo.
+    /// </remarks>
+    /// <returns>Resultado HTTP com estado de sucesso ou erro de logout.</returns>
     [HttpPost("logout")]
     [Authorize]
     [ProducesResponseType(typeof(LogoutResultDTO), StatusCodes.Status200OK)]
@@ -64,6 +92,13 @@ public class AuthController : ControllerBase
         return Ok(result);
     }
 
+    /// <summary>
+    /// Cria um objeto de erro padrao para respostas ProblemDetails.
+    /// </summary>
+    /// <param name="status">Codigo de estado HTTP a devolver.</param>
+    /// <param name="title">Titulo curto do problema funcional.</param>
+    /// <param name="detail">Descricao detalhada do erro.</param>
+    /// <returns>Instancia de ProblemDetails preenchida com os dados do erro.</returns>
     private ProblemDetails CreateProblem(int status, string title, string detail)
     {
         return new ProblemDetails

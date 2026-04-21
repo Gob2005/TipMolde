@@ -26,7 +26,16 @@ namespace TipMolde.Domain.Entities.Comercio
         /// </summary>
         public string? NumeroProjetoCliente { get; set; }
 
+        /// <summary>
+        /// Nome do serviço no sistema do cliente (se aplicável).
+        /// Usado para rastreabilidade documental.
+        /// </summary>
         public string? NomeServicoCliente { get; set; }
+
+        /// <summary>
+        /// Nome do responsável do cliente para associado a encomenda (se aplicável).
+        /// Usado para rastreabilidade documental.
+        /// </summary>
         public string? NomeResponsavelCliente { get; set; }
 
         /// <summary>

@@ -19,6 +19,14 @@ public class ClienteServiceTests
         _sut = new ClienteService(_clienteRepository.Object);
     }
 
+    /// <summary>
+    /// Helper de teste para criar entidades Cliente com valores predefinidos.
+    /// </summary>
+    /// <param name="id">Identificador do cliente.</param>
+    /// <param name="nome">Nome do cliente.</param>
+    /// <param name="nif">NIF do cliente.</param>
+    /// <param name="sigla">Sigla do cliente.</param>
+    /// <returns>Instancia de Cliente para composicao de cenarios de teste.</returns>
     private static Cliente BuildCliente(
         int id = 1,
         string nome = "Cliente A",
@@ -34,85 +42,85 @@ public class ClienteServiceTests
             Telefone = "910000000"
         };
 
-    [Test]
-    public async Task shouldTrimAndCreateClienteWhenDataIsValid()
+    [Test(Description = "T1CLI - Create deve normalizar campos e criar cliente quando dados sao validos.")]
+    public async Task CreateAsync_Should_TrimAndCreateCliente_When_DataIsValid()
     {
-        // Arrange
+        // ARRANGE
         var cliente = BuildCliente(nome: "  Cliente A  ", nif: " 123456789 ", sigla: " cla ");
         _clienteRepository.Setup(r => r.GetByNifAsync("123456789")).ReturnsAsync((Cliente?)null);
         _clienteRepository.Setup(r => r.GetBySiglaAsync("cla")).ReturnsAsync((Cliente?)null);
 
-        // Act
+        // ACT
         var result = await _sut.CreateAsync(cliente);
 
-        // Assert
+        // ASSERT
         result.Nome.Should().Be("Cliente A");
         result.NIF.Should().Be("123456789");
         result.Sigla.Should().Be("cla");
         _clienteRepository.Verify(r => r.AddAsync(It.IsAny<Cliente>()), Times.Once);
     }
 
-    [Test]
-    public async Task shouldThrowArgumentExceptionWhenNifAlreadyExists()
+    [Test(Description = "T2CLI - Create deve falhar quando NIF ja existe.")]
+    public async Task CreateAsync_Should_ThrowArgumentException_When_NifAlreadyExists()
     {
-        // Arrange
+        // ARRANGE
         var cliente = BuildCliente();
         _clienteRepository.Setup(r => r.GetByNifAsync(cliente.NIF)).ReturnsAsync(BuildCliente(id: 7));
 
-        // Act
+        // ACT
         Func<Task> act = () => _sut.CreateAsync(cliente);
 
-        // Assert
+        // ASSERT
         await act.Should().ThrowAsync<ArgumentException>();
     }
 
-    [Test]
-    public async Task shouldThrowArgumentExceptionWhenSiglaAlreadyExists()
+    [Test(Description = "T3CLI - Create deve falhar quando sigla ja existe.")]
+    public async Task CreateAsync_Should_ThrowArgumentException_When_SiglaAlreadyExists()
     {
-        // Arrange
+        // ARRANGE
         var cliente = BuildCliente();
         _clienteRepository.Setup(r => r.GetByNifAsync(cliente.NIF)).ReturnsAsync((Cliente?)null);
         _clienteRepository.Setup(r => r.GetBySiglaAsync(cliente.Sigla)).ReturnsAsync(BuildCliente(id: 7));
 
-        // Act
+        // ACT
         Func<Task> act = () => _sut.CreateAsync(cliente);
 
-        // Assert
+        // ASSERT
         await act.Should().ThrowAsync<ArgumentException>();
     }
 
-    [TestCase("", "123456789", "SIG")]
-    [TestCase("Cliente", "", "SIG")]
-    [TestCase("Cliente", "123456789", "")]
-    public async Task shouldThrowArgumentExceptionWhenRequiredFieldIsMissing(string nome, string nif, string sigla)
+    [TestCase("", "123456789", "SIG", Description = "T4CLI-A - Create deve falhar quando nome obrigatorio esta em falta.")]
+    [TestCase("Cliente", "", "SIG", Description = "T4CLI-B - Create deve falhar quando NIF obrigatorio esta em falta.")]
+    [TestCase("Cliente", "123456789", "", Description = "T4CLI-C - Create deve falhar quando sigla obrigatoria esta em falta.")]
+    public async Task CreateAsync_Should_ThrowArgumentException_When_RequiredFieldIsMissing(string nome, string nif, string sigla)
     {
-        // Arrange
+        // ARRANGE
         var cliente = BuildCliente(nome: nome, nif: nif, sigla: sigla);
 
-        // Act
+        // ACT
         Func<Task> act = () => _sut.CreateAsync(cliente);
 
-        // Assert
+        // ASSERT
         await act.Should().ThrowAsync<ArgumentException>();
     }
 
-    [Test]
-    public async Task shouldThrowKeyNotFoundExceptionWhenUpdatingUnknownCliente()
+    [Test(Description = "T5CLI - Update deve falhar quando cliente nao existe.")]
+    public async Task UpdateAsync_Should_ThrowKeyNotFoundException_When_ClienteDoesNotExist()
     {
-        // Arrange
+        // ARRANGE
         _clienteRepository.Setup(r => r.GetByIdAsync(99)).ReturnsAsync((Cliente?)null);
 
-        // Act
+        // ACT
         Func<Task> act = () => _sut.UpdateAsync(BuildCliente(id: 99));
 
-        // Assert
+        // ASSERT
         await act.Should().ThrowAsync<KeyNotFoundException>();
     }
 
-    [Test]
-    public async Task shouldUpdateExistingClienteWhenDataIsValid()
+    [Test(Description = "T6CLI - Update deve persistir dados normalizados quando cliente existe.")]
+    public async Task UpdateAsync_Should_UpdateExistingCliente_When_DataIsValid()
     {
-        // Arrange
+        // ARRANGE
         var existing = BuildCliente(id: 1, nome: "Old Name", nif: "123456789", sigla: "OLD");
         _clienteRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(existing);
         _clienteRepository.Setup(r => r.GetByNifAsync("987654321")).ReturnsAsync((Cliente?)null);
@@ -121,10 +129,10 @@ public class ClienteServiceTests
         var update = BuildCliente(id: 1, nome: "  New Name  ", nif: "987654321", sigla: "NEW");
         update.Pais = "  Portugal  ";
 
-        // Act
+        // ACT
         await _sut.UpdateAsync(update);
 
-        // Assert
+        // ASSERT
         _clienteRepository.Verify(r => r.UpdateAsync(It.Is<Cliente>(c =>
             c.Cliente_id == 1 &&
             c.Nome == "New Name" &&
@@ -133,56 +141,54 @@ public class ClienteServiceTests
             c.Pais == "Portugal")), Times.Once);
     }
 
-    [Test]
-    public async Task shouldThrowKeyNotFoundExceptionWhenDeletingUnknownCliente()
+    [Test(Description = "T7CLI - Delete deve falhar quando cliente nao existe.")]
+    public async Task DeleteAsync_Should_ThrowKeyNotFoundException_When_ClienteDoesNotExist()
     {
-        // Arrange
+        // ARRANGE
         _clienteRepository.Setup(r => r.GetByIdAsync(50)).ReturnsAsync((Cliente?)null);
 
-        // Act
+        // ACT
         Func<Task> act = () => _sut.DeleteAsync(50);
 
-        // Assert
+        // ASSERT
         await act.Should().ThrowAsync<KeyNotFoundException>();
     }
 
-    [Test]
-    public async Task shouldDeleteClienteWhenClienteExists()
+    [Test(Description = "T8CLI - Delete deve remover cliente quando registo existe.")]
+    public async Task DeleteAsync_Should_DeleteCliente_When_ClienteExists()
     {
-        // Arrange
+        // ARRANGE
         _clienteRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(BuildCliente());
 
-        // Act
+        // ACT
         await _sut.DeleteAsync(1);
 
-        // Assert
+        // ASSERT
         _clienteRepository.Verify(r => r.DeleteAsync(1), Times.Once);
     }
 
-    [Test]
-    public async Task shouldReturnEmptyWhenSearchByNameTermIsBlank()
+    [Test(Description = "T9CLI - Search por nome deve devolver vazio quando termo e branco.")]
+    public async Task SearchByNameAsync_Should_ReturnEmpty_When_SearchTermIsBlank()
     {
-        // Arrange
-        // no setup needed
+        // ARRANGE
 
-        // Act
+        // ACT
         var result = await _sut.SearchByNameAsync("   ");
 
-        // Assert
+        // ASSERT
         result.Should().BeEmpty();
         _clienteRepository.Verify(r => r.SearchByNameAsync(It.IsAny<string>()), Times.Never);
     }
 
-    [Test]
-    public async Task shouldReturnEmptyWhenSearchBySiglaTermIsBlank()
+    [Test(Description = "T10CLI - Search por sigla deve devolver vazio quando termo e branco.")]
+    public async Task SearchBySiglaAsync_Should_ReturnEmpty_When_SearchTermIsBlank()
     {
-        // Arrange
-        // no setup needed
+        // ARRANGE
 
-        // Act
+        // ACT
         var result = await _sut.SearchBySiglaAsync(string.Empty);
 
-        // Assert
+        // ASSERT
         result.Should().BeEmpty();
         _clienteRepository.Verify(r => r.SearchBySiglaAsync(It.IsAny<string>()), Times.Never);
     }
