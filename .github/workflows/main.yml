@@ -142,7 +142,7 @@ jobs:
   sonar-analysis:
     name: SonarQube Analysis
     runs-on: self-hosted
-    needs: [ build, unit-tests ]
+    needs: [ coverage-report ]
     if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
 
     steps:
