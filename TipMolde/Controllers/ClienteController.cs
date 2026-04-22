@@ -18,22 +18,18 @@ namespace TipMolde.API.Controllers
     public class ClienteController : ControllerBase
     {
         private readonly IClienteService _clienteService;
-        private readonly IMapper _mapper;
         private readonly ILogger<ClienteController> _logger;
 
         /// <summary>
         /// Construtor de ClienteController.
         /// </summary>
         /// <param name="clienteService">Servico responsavel pelos casos de uso de cliente.</param>
-        /// <param name="mapper">Mapper para conversao entre entidades de dominio e DTOs.</param>
         /// <param name="logger">Logger para registo de operacoes do controlador.</param>
         public ClienteController(
             IClienteService clienteService,
-            IMapper mapper,
             ILogger<ClienteController> logger)
         {
             _clienteService = clienteService;
-            _mapper = mapper;
             _logger = logger;
         }
 
@@ -56,16 +52,9 @@ namespace TipMolde.API.Controllers
                     "Pedido invalido",
                     "Page e pageSize devem ser >= 1."));
 
-            var result = await _clienteService.GetAllAsync(page, pageSize);
-            var response = _mapper.Map<IEnumerable<ResponseClienteDTO>>(result.Items);
+            var clientes = await _clienteService.GetAllAsync(page, pageSize);
 
-            return Ok(new
-            {
-                result.TotalCount,
-                result.CurrentPage,
-                result.PageSize,
-                Items = response
-            });
+            return Ok(clientes);
         }
 
         /// <summary>
@@ -86,8 +75,7 @@ namespace TipMolde.API.Controllers
                     $"Cliente com ID {id} nao encontrado."));
             }
 
-            var response = _mapper.Map<ResponseClienteDTO>(cliente);
-            return Ok(response);
+            return Ok(cliente);
         }
 
         /// <summary>
@@ -108,18 +96,19 @@ namespace TipMolde.API.Controllers
                     $"Cliente com ID {id} nao encontrado."));
             }
 
-            var response = _mapper.Map<ResponseClienteWithEncomendasDTO>(cliente);
-            return Ok(response);
+            return Ok(cliente);
         }
 
         /// <summary>
         /// Pesquisa clientes por nome.
         /// </summary>
         /// <param name="searchTerm">Termo parcial de pesquisa aplicado ao nome do cliente.</param>
+        /// <param name="page">Numero da pagina a consultar.</param>
+        /// <param name="pageSize">Quantidade de itens por pagina.</param>
         /// <returns>Resultado HTTP com clientes que correspondem ao termo informado.</returns>
         [Authorize(Roles = "ADMIN,GESTOR_COMERCIAL,GESTOR_DESENHO")]
         [HttpGet("search/by-name")]
-        public async Task<IActionResult> SearchByName([FromQuery] string searchTerm)
+        public async Task<IActionResult> SearchByName([FromQuery] string searchTerm, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
             if (string.IsNullOrWhiteSpace(searchTerm))
             {
@@ -129,19 +118,26 @@ namespace TipMolde.API.Controllers
                     "O parametro searchTerm e obrigatorio."));
             }
 
+            if (page < 1 || pageSize < 1)
+                return BadRequest(CreateProblem(
+                    StatusCodes.Status400BadRequest,
+                    "Pedido invalido",
+                    "Page e pageSize devem ser >= 1."));
+
             var clientes = await _clienteService.SearchByNameAsync(searchTerm);
-            var response = _mapper.Map<IEnumerable<ResponseClienteDTO>>(clientes);
-            return Ok(response);
+            return Ok(clientes);
         }
 
         /// <summary>
         /// Pesquisa clientes por sigla.
         /// </summary>
         /// <param name="searchTerm">Termo parcial de pesquisa aplicado a sigla do cliente.</param>
+        /// <param name="page">Numero da pagina a consultar.</param>
+        /// <param name="pageSize">Quantidade de itens por pagina.</param>
         /// <returns>Resultado HTTP com clientes que correspondem ao termo informado.</returns>
         [Authorize(Roles = "ADMIN,GESTOR_COMERCIAL,GESTOR_DESENHO")]
         [HttpGet("search/by-sigla")]
-        public async Task<IActionResult> SearchBySigla([FromQuery] string searchTerm)
+        public async Task<IActionResult> SearchBySigla([FromQuery] string searchTerm, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
             if (string.IsNullOrWhiteSpace(searchTerm))
             {
@@ -151,9 +147,14 @@ namespace TipMolde.API.Controllers
                     "O parametro searchTerm e obrigatorio."));
             }
 
+            if (page < 1 || pageSize < 1)
+                return BadRequest(CreateProblem(
+                    StatusCodes.Status400BadRequest,
+                    "Pedido invalido",
+                    "Page e pageSize devem ser >= 1."));
+
             var clientes = await _clienteService.SearchBySiglaAsync(searchTerm);
-            var response = _mapper.Map<IEnumerable<ResponseClienteDTO>>(clientes);
-            return Ok(response);
+            return Ok(clientes);
         }
 
         /// <summary>
@@ -168,13 +169,14 @@ namespace TipMolde.API.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateCliente([FromBody] CreateClienteDTO dto)
         {
-            var cliente = _mapper.Map<Cliente>(dto);
-            var created = await _clienteService.CreateAsync(cliente);
-            var response = _mapper.Map<ResponseClienteDTO>(created);
+            if (!ModelState.IsValid)
+                return BadRequest(CreateProblem(StatusCodes.Status400BadRequest, "Pedido invalido", "Dados de criacao invalidos."));
+
+            var created = await _clienteService.CreateAsync(dto);
 
             _logger.LogInformation("Cliente {ClienteId} criado com sucesso", created.Cliente_id);
 
-            return CreatedAtAction(nameof(GetClienteById), new { id = created.Cliente_id }, response);
+            return CreatedAtAction(nameof(GetClienteById), new { id = created.Cliente_id }, created);
         }
 
         /// <summary>
@@ -197,10 +199,7 @@ namespace TipMolde.API.Controllers
                     $"Cliente com ID {id} nao encontrado."));
             }
 
-            var cliente = _mapper.Map<Cliente>(dto);
-            cliente.Cliente_id = id;
-
-            await _clienteService.UpdateAsync(cliente);
+            await _clienteService.UpdateAsync(id, dto);
 
             _logger.LogInformation("Cliente {ClienteId} atualizado com sucesso", id);
 

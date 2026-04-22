@@ -1,8 +1,12 @@
+using AutoMapper;
 using FluentAssertions;
 using Moq;
+using TipMolde.Application.DTOs.ClienteDTO;
+using TipMolde.Application.Interface;
 using TipMolde.Application.Interface.Comercio.ICliente;
-using TipMolde.Domain.Entities.Comercio;
+using TipMolde.Application.Mappings;
 using TipMolde.Application.Service;
+using TipMolde.Domain.Entities.Comercio;
 
 namespace TipMolde.Tests.Unitario.Service;
 
@@ -15,18 +19,19 @@ public class ClienteServiceTests
     [SetUp]
     public void SetUp()
     {
+        // ARRANGE
         _clienteRepository = new Mock<IClienteRepository>();
-        _sut = new ClienteService(_clienteRepository.Object);
+
+        var mapperConfig = new MapperConfiguration(cfg =>
+        {
+            cfg.AddProfile<ClienteProfile>();
+            cfg.AddProfile<EncomendaProfile>();
+        });
+
+        var mapper = mapperConfig.CreateMapper();
+        _sut = new ClienteService(_clienteRepository.Object, mapper);
     }
 
-    /// <summary>
-    /// Helper de teste para criar entidades Cliente com valores predefinidos.
-    /// </summary>
-    /// <param name="id">Identificador do cliente.</param>
-    /// <param name="nome">Nome do cliente.</param>
-    /// <param name="nif">NIF do cliente.</param>
-    /// <param name="sigla">Sigla do cliente.</param>
-    /// <returns>Instancia de Cliente para composicao de cenarios de teste.</returns>
     private static Cliente BuildCliente(
         int id = 1,
         string nome = "Cliente A",
@@ -42,33 +47,70 @@ public class ClienteServiceTests
             Telefone = "910000000"
         };
 
+    private static CreateClienteDTO BuildCreateDto(
+        string nome = "Cliente A",
+        string nif = "123456789",
+        string sigla = "CLA") => new()
+        {
+            Nome = nome,
+            NIF = nif,
+            Sigla = sigla,
+            Pais = "PT",
+            Email = "cliente@a.pt",
+            Telefone = "910000000"
+        };
+
+    private static UpdateClienteDTO BuildUpdateDto(
+        string? nome = "Cliente A",
+        string? nif = "123456789",
+        string? sigla = "CLA") => new()
+        {
+            Nome = nome,
+            NIF = nif,
+            Sigla = sigla,
+            Pais = "PT",
+            Email = "cliente@a.pt",
+            Telefone = "910000000"
+        };
+
     [Test(Description = "T1CLI - Create deve normalizar campos e criar cliente quando dados sao validos.")]
     public async Task CreateAsync_Should_TrimAndCreateCliente_When_DataIsValid()
     {
         // ARRANGE
-        var cliente = BuildCliente(nome: "  Cliente A  ", nif: " 123456789 ", sigla: " cla ");
+        var dto = BuildCreateDto(nome: "  Cliente A  ", nif: " 123456789 ", sigla: " cla ");
+        dto.Pais = "  PT  ";
+        dto.Email = "  cliente@a.pt  ";
+        dto.Telefone = " 910000000 ";
+
         _clienteRepository.Setup(r => r.GetByNifAsync("123456789")).ReturnsAsync((Cliente?)null);
         _clienteRepository.Setup(r => r.GetBySiglaAsync("cla")).ReturnsAsync((Cliente?)null);
 
         // ACT
-        var result = await _sut.CreateAsync(cliente);
+        var result = await _sut.CreateAsync(dto);
 
         // ASSERT
         result.Nome.Should().Be("Cliente A");
         result.NIF.Should().Be("123456789");
         result.Sigla.Should().Be("cla");
-        _clienteRepository.Verify(r => r.AddAsync(It.IsAny<Cliente>()), Times.Once);
+
+        _clienteRepository.Verify(r => r.AddAsync(It.Is<Cliente>(c =>
+            c.Nome == "Cliente A" &&
+            c.NIF == "123456789" &&
+            c.Sigla == "cla" &&
+            c.Pais == "PT" &&
+            c.Email == "cliente@a.pt" &&
+            c.Telefone == "910000000")), Times.Once);
     }
 
     [Test(Description = "T2CLI - Create deve falhar quando NIF ja existe.")]
     public async Task CreateAsync_Should_ThrowArgumentException_When_NifAlreadyExists()
     {
         // ARRANGE
-        var cliente = BuildCliente();
-        _clienteRepository.Setup(r => r.GetByNifAsync(cliente.NIF)).ReturnsAsync(BuildCliente(id: 7));
+        var dto = BuildCreateDto();
+        _clienteRepository.Setup(r => r.GetByNifAsync(dto.NIF)).ReturnsAsync(BuildCliente(id: 7));
 
         // ACT
-        Func<Task> act = () => _sut.CreateAsync(cliente);
+        Func<Task> act = () => _sut.CreateAsync(dto);
 
         // ASSERT
         await act.Should().ThrowAsync<ArgumentException>();
@@ -78,12 +120,12 @@ public class ClienteServiceTests
     public async Task CreateAsync_Should_ThrowArgumentException_When_SiglaAlreadyExists()
     {
         // ARRANGE
-        var cliente = BuildCliente();
-        _clienteRepository.Setup(r => r.GetByNifAsync(cliente.NIF)).ReturnsAsync((Cliente?)null);
-        _clienteRepository.Setup(r => r.GetBySiglaAsync(cliente.Sigla)).ReturnsAsync(BuildCliente(id: 7));
+        var dto = BuildCreateDto();
+        _clienteRepository.Setup(r => r.GetByNifAsync(dto.NIF)).ReturnsAsync((Cliente?)null);
+        _clienteRepository.Setup(r => r.GetBySiglaAsync(dto.Sigla)).ReturnsAsync(BuildCliente(id: 7));
 
         // ACT
-        Func<Task> act = () => _sut.CreateAsync(cliente);
+        Func<Task> act = () => _sut.CreateAsync(dto);
 
         // ASSERT
         await act.Should().ThrowAsync<ArgumentException>();
@@ -95,10 +137,10 @@ public class ClienteServiceTests
     public async Task CreateAsync_Should_ThrowArgumentException_When_RequiredFieldIsMissing(string nome, string nif, string sigla)
     {
         // ARRANGE
-        var cliente = BuildCliente(nome: nome, nif: nif, sigla: sigla);
+        var dto = BuildCreateDto(nome: nome, nif: nif, sigla: sigla);
 
         // ACT
-        Func<Task> act = () => _sut.CreateAsync(cliente);
+        Func<Task> act = () => _sut.CreateAsync(dto);
 
         // ASSERT
         await act.Should().ThrowAsync<ArgumentException>();
@@ -109,9 +151,10 @@ public class ClienteServiceTests
     {
         // ARRANGE
         _clienteRepository.Setup(r => r.GetByIdAsync(99)).ReturnsAsync((Cliente?)null);
+        var dto = BuildUpdateDto();
 
         // ACT
-        Func<Task> act = () => _sut.UpdateAsync(BuildCliente(id: 99));
+        Func<Task> act = () => _sut.UpdateAsync(99, dto);
 
         // ASSERT
         await act.Should().ThrowAsync<KeyNotFoundException>();
@@ -126,11 +169,13 @@ public class ClienteServiceTests
         _clienteRepository.Setup(r => r.GetByNifAsync("987654321")).ReturnsAsync((Cliente?)null);
         _clienteRepository.Setup(r => r.GetBySiglaAsync("NEW")).ReturnsAsync((Cliente?)null);
 
-        var update = BuildCliente(id: 1, nome: "  New Name  ", nif: "987654321", sigla: "NEW");
-        update.Pais = "  Portugal  ";
+        var dto = BuildUpdateDto(nome: "  New Name  ", nif: "987654321", sigla: "NEW");
+        dto.Pais = "  Portugal  ";
+        dto.Email = "  novo@tipmolde.pt  ";
+        dto.Telefone = " 919999999 ";
 
         // ACT
-        await _sut.UpdateAsync(update);
+        await _sut.UpdateAsync(1, dto);
 
         // ASSERT
         _clienteRepository.Verify(r => r.UpdateAsync(It.Is<Cliente>(c =>
@@ -138,7 +183,9 @@ public class ClienteServiceTests
             c.Nome == "New Name" &&
             c.NIF == "987654321" &&
             c.Sigla == "NEW" &&
-            c.Pais == "Portugal")), Times.Once);
+            c.Pais == "Portugal" &&
+            c.Email == "novo@tipmolde.pt" &&
+            c.Telefone == "919999999")), Times.Once);
     }
 
     [Test(Description = "T7CLI - Delete deve falhar quando cliente nao existe.")]
@@ -176,8 +223,9 @@ public class ClienteServiceTests
         var result = await _sut.SearchByNameAsync("   ");
 
         // ASSERT
-        result.Should().BeEmpty();
-        _clienteRepository.Verify(r => r.SearchByNameAsync(It.IsAny<string>()), Times.Never);
+        result.Items.Should().BeEmpty();
+        result.TotalCount.Should().Be(0);
+        _clienteRepository.Verify(r => r.SearchByNameAsync(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<int>()), Times.Never);
     }
 
     [Test(Description = "T10CLI - Search por sigla deve devolver vazio quando termo e branco.")]
@@ -189,8 +237,33 @@ public class ClienteServiceTests
         var result = await _sut.SearchBySiglaAsync(string.Empty);
 
         // ASSERT
-        result.Should().BeEmpty();
-        _clienteRepository.Verify(r => r.SearchBySiglaAsync(It.IsAny<string>()), Times.Never);
+        result.Items.Should().BeEmpty();
+        result.TotalCount.Should().Be(0);
+        _clienteRepository.Verify(r => r.SearchBySiglaAsync(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<int>()), Times.Never);
+    }
+
+    [Test(Description = "T11CLI - Search por nome deve mapear clientes para DTO paginado quando ha resultados.")]
+    public async Task SearchByNameAsync_Should_MapPagedResult_When_RepositoryReturnsItems()
+    {
+        // ARRANGE
+        var clientes = new[] { BuildCliente(id: 10, nome: " Cliente X ", nif: "111111111", sigla: " CX ") };
+        var paged = new PagedResult<Cliente>(clientes, 1, 2, 5);
+
+        _clienteRepository
+            .Setup(r => r.SearchByNameAsync("Cliente", 2, 5))
+            .ReturnsAsync(paged);
+
+        // ACT
+        var result = await _sut.SearchByNameAsync(" Cliente ", 2, 5);
+
+        // ASSERT
+        result.TotalCount.Should().Be(1);
+        result.CurrentPage.Should().Be(2);
+        result.PageSize.Should().Be(5);
+        result.Items.Should().ContainSingle();
+        result.Items.Single().Cliente_id.Should().Be(10);
+        result.Items.Single().Nome.Should().Be("Cliente X");
+        result.Items.Single().Sigla.Should().Be("CX");
     }
 }
 

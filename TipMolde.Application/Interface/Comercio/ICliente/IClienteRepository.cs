@@ -14,15 +14,19 @@ namespace TipMolde.Application.Interface.Comercio.ICliente
         /// Pesquisa clientes por nome.
         /// </summary>
         /// <param name="searchTerm">Termo parcial para pesquisa no nome do cliente.</param>
+        /// <param name="page">Numero da pagina a consultar.</param>
+        /// <param name="pageSize">Quantidade de itens por pagina.</param>
         /// <returns>Colecao de clientes ordenada por nome.</returns>
-        Task<IEnumerable<Cliente>> SearchByNameAsync(string searchTerm);
+        Task<PagedResult<Cliente>> SearchByNameAsync(string searchTerm, int page, int pageSize);
 
         /// <summary>
         /// Pesquisa clientes por sigla.
         /// </summary>
         /// <param name="searchTerm">Termo parcial para pesquisa na sigla do cliente.</param>
+        /// <param name="page">Numero da pagina a consultar.</param>
+        /// <param name="pageSize">Quantidade de itens por pagina.</param>
         /// <returns>Colecao de clientes ordenada por sigla.</returns>
-        Task<IEnumerable<Cliente>> SearchBySiglaAsync(string searchTerm);
+        Task<PagedResult<Cliente>> SearchBySiglaAsync(string searchTerm, int page, int pageSize);
 
         /// <summary>
         /// Obtem um cliente com a respetiva colecao de encomendas.

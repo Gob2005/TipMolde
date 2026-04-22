@@ -50,9 +50,8 @@ namespace TipMolde.Application.Service
         /// Obtem associacao Encomenda-Molde por ID.
         /// </summary>
         /// <param name="id">Identificador da associacao.</param>
-        /// <param name="cancellationToken">Token de cancelamento da operacao assicrona.</param>
         /// <returns>DTO de resposta quando encontrado; nulo caso nao exista.</returns>
-        public async Task<ResponseEncomendaMoldeDTO?> GetByIdAsync(int id, CancellationToken cancellationToken = default)
+        public async Task<ResponseEncomendaMoldeDTO?> GetByIdAsync(int id)
         {
             var entity = await _repo.GetByIdAsync(id);
             return entity == null ? null : _mapper.Map<ResponseEncomendaMoldeDTO>(entity);
@@ -64,15 +63,13 @@ namespace TipMolde.Application.Service
         /// <param name="encomendaId">Identificador da encomenda para filtro.</param>
         /// <param name="page">Pagina atual (>= 1).</param>
         /// <param name="pageSize">Tamanho da pagina (>= 1).</param>
-        /// <param name="cancellationToken">Token de cancelamento da operacao assicrona.</param>
         /// <returns>Resultado paginado com DTOs de associacao.</returns>
         public async Task<PagedResult<ResponseEncomendaMoldeDTO>> GetByEncomendaIdAsync(
             int encomendaId,
             int page = 1,
-            int pageSize = 10,
-            CancellationToken cancellationToken = default)
+            int pageSize = 10)
         {
-            var result = await _repo.GetByEncomendaIdAsync(encomendaId, page, pageSize, cancellationToken);
+            var result = await _repo.GetByEncomendaIdAsync(encomendaId, page, pageSize);
             var mapped = _mapper.Map<IEnumerable<ResponseEncomendaMoldeDTO>>(result.Items);
             return new PagedResult<ResponseEncomendaMoldeDTO>(mapped, result.TotalCount, result.CurrentPage, result.PageSize);
         }
@@ -83,15 +80,13 @@ namespace TipMolde.Application.Service
         /// <param name="moldeId">Identificador do molde para filtro.</param>
         /// <param name="page">Pagina atual (>= 1).</param>
         /// <param name="pageSize">Tamanho da pagina (>= 1).</param>
-        /// <param name="cancellationToken">Token de cancelamento da operacao assicrona.</param>
         /// <returns>Resultado paginado com DTOs de associacao.</returns>
         public async Task<PagedResult<ResponseEncomendaMoldeDTO>> GetByMoldeIdAsync(
             int moldeId,
             int page = 1,
-            int pageSize = 10,
-            CancellationToken cancellationToken = default)
+            int pageSize = 10)
         {
-            var result = await _repo.GetByMoldeIdAsync(moldeId, page, pageSize, cancellationToken);
+            var result = await _repo.GetByMoldeIdAsync(moldeId, page, pageSize);
             var mapped = _mapper.Map<IEnumerable<ResponseEncomendaMoldeDTO>>(result.Items);
             return new PagedResult<ResponseEncomendaMoldeDTO>(mapped, result.TotalCount, result.CurrentPage, result.PageSize);
         }
@@ -106,11 +101,8 @@ namespace TipMolde.Application.Service
         /// 3. Persiste associacao.
         /// </remarks>
         /// <param name="dto">Dados de criacao da associacao.</param>
-        /// <param name="cancellationToken">Token de cancelamento da operacao assicrona.</param>
         /// <returns>DTO da associacao criada e persistida.</returns>
-        public async Task<ResponseEncomendaMoldeDTO> CreateAsync(
-            CreateEncomendaMoldeDTO dto,
-            CancellationToken cancellationToken = default)
+        public async Task<ResponseEncomendaMoldeDTO> CreateAsync(CreateEncomendaMoldeDTO dto)
         {
             var encomenda = await _encomendaRepo.GetByIdAsync(dto.Encomenda_id);
             if (encomenda == null)
@@ -120,7 +112,7 @@ namespace TipMolde.Application.Service
             if (molde == null)
                 throw new KeyNotFoundException($"Molde com ID {dto.Molde_id} nao encontrado.");
 
-            var duplicated = await _repo.ExistsAssociationAsync(dto.Encomenda_id, dto.Molde_id, null, cancellationToken);
+            var duplicated = await _repo.ExistsAssociationAsync(dto.Encomenda_id, dto.Molde_id, null);
             if (duplicated)
                 throw new BusinessConflictException($"Ja existe associacao para Encomenda_id={dto.Encomenda_id} e Molde_id={dto.Molde_id}.");
 
@@ -144,9 +136,8 @@ namespace TipMolde.Application.Service
         /// </remarks>
         /// <param name="id">Identificador da associacao a atualizar.</param>
         /// <param name="dto">Dados de atualizacao parcial.</param>
-        /// <param name="cancellationToken">Token de cancelamento da operacao assicrona.</param>
         /// <returns>Task de conclusao da atualizacao.</returns>
-        public async Task UpdateAsync(int id, UpdateEncomendaMoldeDTO dto, CancellationToken cancellationToken = default)
+        public async Task UpdateAsync(int id, UpdateEncomendaMoldeDTO dto)
         {
             var existente = await _repo.GetByIdAsync(id);
             if (existente == null)
@@ -168,9 +159,8 @@ namespace TipMolde.Application.Service
         /// Remove uma associacao Encomenda-Molde.
         /// </summary>
         /// <param name="id">Identificador da associacao a remover.</param>
-        /// <param name="cancellationToken">Token de cancelamento da operacao assicrona.</param>
         /// <returns>Task de conclusao da remocao.</returns>
-        public async Task DeleteAsync(int id, CancellationToken cancellationToken = default)
+        public async Task DeleteAsync(int id)
         {
             var existente = await _repo.GetByIdAsync(id);
             if (existente == null)

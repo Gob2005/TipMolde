@@ -1,70 +1,98 @@
-﻿using TipMolde.Domain.Enums;
-using TipMolde.Domain.Entities.Comercio;
+﻿using TipMolde.Domain.Entities.Comercio;
+using TipMolde.Domain.Enums;
 
 namespace TipMolde.Domain.Entities.Producao
 {
     /// <summary>
-    /// Representa um molde para injeção de plástico em produção.
-    /// Entidade central do sistema, ligada a encomendas, peças e projetos.
+    /// Representa o agregado principal de um molde no dominio de producao.
     /// </summary>
     /// <remarks>
-    /// O Numero é único e usado como identificador principal pelos operadores.
-    /// NumeroMoldeCliente permite rastreabilidade com sistemas externos do cliente.
+    /// O molde centraliza os dados de identificacao funcional, caracterizacao tecnica
+    /// e relacoes com encomendas e pecas do processo produtivo.
     /// </remarks>
     public class Molde
     {
+        /// <summary>
+        /// Identificador interno do molde.
+        /// </summary>
         public int Molde_id { get; set; }
 
         /// <summary>
-        /// Número interno único do molde (ex: "M-001").
-        /// Indexado para pesquisas rápidas.
+        /// Numero funcional unico do molde.
         /// </summary>
+        /// <remarks>
+        /// Este numero e o identificador mais usado pelos utilizadores nas pesquisas
+        /// e na comunicacao operacional entre equipas.
+        /// </remarks>
         public required string Numero { get; set; }
 
         /// <summary>
-        /// Número de referência do molde no sistema do cliente.
-        /// Pode ser null se não fornecido.
+        /// Referencia do molde no sistema do cliente.
         /// </summary>
+        /// <remarks>
+        /// Permite manter rastreabilidade entre o identificador interno da TipMolde
+        /// e o codigo de negocio usado externamente pelo cliente.
+        /// </remarks>
         public string? NumeroMoldeCliente { get; set; }
 
+        /// <summary>
+        /// Nome curto ou designacao funcional do molde.
+        /// </summary>
         public string? Nome { get; set; }
+
+        /// <summary>
+        /// Descricao funcional ou tecnica adicional do molde.
+        /// </summary>
         public string? Descricao { get; set; }
 
         /// <summary>
-        /// Número de cavidades do molde.
-        /// Determina a capacidade de produção em série.
-        /// Validado >= 1 nos DTOs.
+        /// Numero de cavidades do molde.
         /// </summary>
+        /// <remarks>
+        /// Este valor influencia a capacidade produtiva e e validado no contrato de entrada.
+        /// </remarks>
         public int Numero_cavidades { get; set; }
 
         /// <summary>
-        /// Tipo de trabalho a realizar: novo molde, reparação ou alteração.
-        /// Determina o fluxo de aprovação e fases aplicáveis.
+        /// Tipo de pedido associado ao molde.
         /// </summary>
+        /// <remarks>
+        /// Distingue se o trabalho corresponde a um novo molde, reparacao ou alteracao,
+        /// condicionando o contexto funcional do registo.
+        /// </remarks>
         public TipoPedido TipoPedido { get; set; }
 
         /// <summary>
-        /// Caminho relativo para a imagem de capa do molde.
-        /// Usado em relatórios e fichas de produção (FLT, FRE).
+        /// Caminho da imagem de capa do molde.
         /// </summary>
+        /// <remarks>
+        /// A imagem e usada em fichas, consultas e relatorios do agregado.
+        /// </remarks>
         public string? ImagemCapaPath { get; set; }
 
         /// <summary>
-        /// Especificações técnicas detalhadas (relação 1:1).
-        /// Separadas para evitar poluição desta tabela.
+        /// Especificacoes tecnicas detalhadas do molde.
         /// </summary>
+        /// <remarks>
+        /// Relacao 1:1 usada para separar os atributos tecnicos da tabela principal do molde.
+        /// </remarks>
         public EspecificacoesTecnicas? Especificacoes { get; set; }
 
         /// <summary>
-        /// Peças que compõem este molde.
-        /// Cada peça passa por fases de produção independentemente.
+        /// Pecas que pertencem ao molde.
         /// </summary>
+        /// <remarks>
+        /// Cada peca pode seguir o seu proprio ciclo dentro das fases de producao.
+        /// </remarks>
         public ICollection<Peca> Pecas { get; set; } = new List<Peca>();
 
         /// <summary>
-        /// Ligação N:M com encomendas através de EncomendaMolde.
-        /// Permite molde em múltiplas encomendas (reparações, alterações).
+        /// Associacoes entre o molde e as encomendas.
         /// </summary>
+        /// <remarks>
+        /// A relacao e materializada por EncomendaMolde para guardar dados de negocio
+        /// da associacao, como quantidade, prioridade e prazo previsto.
+        /// </remarks>
         public ICollection<EncomendaMolde> EncomendasMoldes { get; set; } = new List<EncomendaMolde>();
     }
 }

@@ -3,11 +3,20 @@ using TipMolde.Domain.Enums;
 
 namespace TipMolde.Application.DTOs.MoldeDTO
 {
+    /// <summary>
+    /// Representa os dados de atualizacao parcial de um molde.
+    /// </summary>
+    /// <remarks>
+    /// Campos nao enviados devem ser preservados no registo atual.
+    /// </remarks>
     public class UpdateMoldeDTO
     {
         [MinLength(1)]
         [MaxLength(20)]
         public string? Numero { get; set; }
+
+        [MaxLength(50)]
+        public string? NumeroMoldeCliente { get; set; }
 
         [MaxLength(100)]
         public string? Nome { get; set; }

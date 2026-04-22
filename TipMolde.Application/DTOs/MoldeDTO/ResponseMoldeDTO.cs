@@ -2,17 +2,19 @@ using TipMolde.Domain.Enums;
 
 namespace TipMolde.Application.DTOs.MoldeDTO
 {
+    /// <summary>
+    /// Representa a resposta publica da feature Molde.
+    /// </summary>
     public class ResponseMoldeDTO
     {
         public int MoldeId { get; set; }
         public string? Numero { get; set; }
+        public string? NumeroMoldeCliente { get; set; }
         public string? Nome { get; set; }
-
         public string? ImagemCapaPath { get; set; }
         public string? Descricao { get; set; }
         public int Numero_cavidades { get; set; }
         public TipoPedido TipoPedido { get; set; }
-
         public decimal? Largura { get; set; }
         public decimal? Comprimento { get; set; }
         public decimal? Altura { get; set; }
@@ -28,4 +30,3 @@ namespace TipMolde.Application.DTOs.MoldeDTO
         public string? MaterialInjecao { get; set; }
     }
 }
-

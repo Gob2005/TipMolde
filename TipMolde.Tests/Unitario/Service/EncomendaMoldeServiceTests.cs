@@ -50,7 +50,7 @@ public class EncomendaMoldeServiceTests
 
         _encomendaRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(new Encomenda { Encomenda_id = 1, NumeroEncomendaCliente = "ENC-1" });
         _moldeRepo.Setup(r => r.GetByIdAsync(2)).ReturnsAsync(new Molde { Molde_id = 2, Numero = "M-1" });
-        _repo.Setup(r => r.ExistsAssociationAsync(1, 2, null, It.IsAny<CancellationToken>())).ReturnsAsync(true);
+        _repo.Setup(r => r.ExistsAssociationAsync(1, 2, null)).ReturnsAsync(true);
 
         // ACT
         Func<Task> act = () => _sut.CreateAsync(dto);

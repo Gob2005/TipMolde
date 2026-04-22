@@ -5,8 +5,17 @@ using TipMolde.Domain.Entities.Comercio;
 
 namespace TipMolde.Application.Mappings
 {
+    /// <summary>
+    /// Define os mapeamentos AutoMapper do agregado Cliente.
+    /// </summary>
+    /// <remarks>
+    /// Centraliza conversoes entre DTOs de cliente e a entidade de dominio, incluindo normalizacao de campos textuais.
+    /// </remarks>
     public class ClienteProfile : Profile
     {
+        /// <summary>
+        /// Construtor de ClienteProfile.
+        /// </summary>
         public ClienteProfile()
         {
             CreateMap<CreateClienteDTO, Cliente>()
@@ -56,7 +65,7 @@ namespace TipMolde.Application.Mappings
                 .ForMember(dest => dest.Encomendas, opt => opt.Ignore());
 
             CreateMap<Cliente, ResponseClienteDTO>()
-                .ForMember(dest => dest.ClienteId, opt => opt.MapFrom(src => src.Cliente_id))
+                .ForMember(dest => dest.Cliente_id, opt => opt.MapFrom(src => src.Cliente_id))
                 .ForMember(dest => dest.Nome, opt => opt.MapFrom(src => src.Nome.Trim()))
                 .ForMember(dest => dest.NIF, opt => opt.MapFrom(src => src.NIF.Trim()))
                 .ForMember(dest => dest.Sigla, opt => opt.MapFrom(src => src.Sigla.Trim()))

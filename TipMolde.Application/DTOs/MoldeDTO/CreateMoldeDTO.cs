@@ -3,6 +3,13 @@ using TipMolde.Domain.Enums;
 
 namespace TipMolde.Application.DTOs.MoldeDTO
 {
+    /// <summary>
+    /// Representa os dados de criacao do agregado Molde.
+    /// </summary>
+    /// <remarks>
+    /// O contrato de criacao inclui os dados do molde, as especificacoes tecnicas
+    /// e a associacao inicial a uma encomenda.
+    /// </remarks>
     public class CreateMoldeDTO
     {
         [Required]

@@ -162,7 +162,7 @@ namespace TipMolde.Tests.Unitario.Mapping
             var result = _mapper.Map<ResponseClienteDTO>(source);
 
             // ASSERT
-            result.ClienteId.Should().Be(42);
+            result.Cliente_id.Should().Be(42);
             result.Nome.Should().Be("Cliente A");
             result.NIF.Should().Be("123456789");
             result.Sigla.Should().Be("CA");

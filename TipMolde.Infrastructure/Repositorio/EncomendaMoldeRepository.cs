@@ -29,13 +29,11 @@ namespace TipMolde.Infrastructure.Repositorio
         /// <param name="encomendaId">Identificador da encomenda para filtro.</param>
         /// <param name="page">Pagina atual (>= 1).</param>
         /// <param name="pageSize">Tamanho da pagina (>= 1).</param>
-        /// <param name="cancellationToken">Token de cancelamento da operacao assicrona.</param>
         /// <returns>Resultado paginado com associacoes da encomenda.</returns>
         public async Task<PagedResult<EncomendaMolde>> GetByEncomendaIdAsync(
             int encomendaId,
             int page = 1,
-            int pageSize = 10,
-            CancellationToken cancellationToken = default)
+            int pageSize = 10)
         {
             page = page < 1 ? 1 : page;
             pageSize = pageSize < 1 ? 10 : pageSize > 200 ? 200 : pageSize;
@@ -45,13 +43,13 @@ namespace TipMolde.Infrastructure.Repositorio
                 .Include(em => em.Molde)
                 .Where(em => em.Encomenda_id == encomendaId);
 
-            var totalCount = await query.CountAsync(cancellationToken);
+            var totalCount = await query.CountAsync();
 
             var items = await query
                 .OrderBy(em => em.EncomendaMolde_id)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
-                .ToListAsync(cancellationToken);
+                .ToListAsync();
 
             return new PagedResult<EncomendaMolde>(items, totalCount, page, pageSize);
         }
@@ -65,13 +63,11 @@ namespace TipMolde.Infrastructure.Repositorio
         /// <param name="moldeId">Identificador do molde para filtro.</param>
         /// <param name="page">Pagina atual (>= 1).</param>
         /// <param name="pageSize">Tamanho da pagina (>= 1).</param>
-        /// <param name="cancellationToken">Token de cancelamento da operacao assicrona.</param>
         /// <returns>Resultado paginado com associacoes do molde.</returns>
         public async Task<PagedResult<EncomendaMolde>> GetByMoldeIdAsync(
             int moldeId,
             int page = 1,
-            int pageSize = 10,
-            CancellationToken cancellationToken = default)
+            int pageSize = 10)
         {
             page = page < 1 ? 1 : page;
             pageSize = pageSize < 1 ? 10 : pageSize > 200 ? 200 : pageSize;
@@ -81,13 +77,13 @@ namespace TipMolde.Infrastructure.Repositorio
                 .Include(em => em.Encomenda)
                 .Where(em => em.Molde_id == moldeId);
 
-            var totalCount = await query.CountAsync(cancellationToken);
+            var totalCount = await query.CountAsync();
 
             var items = await query
                 .OrderBy(em => em.EncomendaMolde_id)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
-                .ToListAsync(cancellationToken);
+                .ToListAsync();
 
             return new PagedResult<EncomendaMolde>(items, totalCount, page, pageSize);
         }
@@ -98,19 +94,16 @@ namespace TipMolde.Infrastructure.Repositorio
         /// <param name="encomendaId">Identificador da encomenda.</param>
         /// <param name="moldeId">Identificador do molde.</param>
         /// <param name="excludeEncomendaMoldeId">ID opcional a excluir em cenarios de update.</param>
-        /// <param name="cancellationToken">Token de cancelamento da operacao assicrona.</param>
         /// <returns>True quando existe duplicado; caso contrario, false.</returns>
         public Task<bool> ExistsAssociationAsync(
             int encomendaId,
             int moldeId,
-            int? excludeEncomendaMoldeId = null,
-            CancellationToken cancellationToken = default)
+            int? excludeEncomendaMoldeId = null)
         {
             return _context.EncomendasMoldes.AnyAsync(
                 em => em.Encomenda_id == encomendaId &&
                       em.Molde_id == moldeId &&
-                      (!excludeEncomendaMoldeId.HasValue || em.EncomendaMolde_id != excludeEncomendaMoldeId.Value),
-                cancellationToken);
+                      (!excludeEncomendaMoldeId.HasValue || em.EncomendaMolde_id != excludeEncomendaMoldeId.Value));
         }
     }
 }

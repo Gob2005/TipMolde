@@ -1,37 +1,84 @@
-﻿using TipMolde.Domain.Entities.Producao;
+﻿using TipMolde.Application.DTOs.MoldeDTO;
+using TipMolde.Application.Interface;
 
-/// <summary>
-/// Serviço de gestão de moldes.
-/// </summary>
-/// <remarks>
-/// CreateAsync foi simplificado: recebe apenas Molde e Specs.
-/// A ligação com Encomenda é responsabilidade do IEncomendaMoldeService.
-/// Isto respeita SRP e facilita testes unitários.
-/// </remarks>
 namespace TipMolde.Application.Interface.Producao.IMolde
 {
+    /// <summary>
+    /// Define os casos de uso publicos da feature Molde.
+    /// </summary>
+    /// <remarks>
+    /// O contrato expoe DTOs para evitar acoplamento direto entre API e entidades de dominio.
+    /// </remarks>
     public interface IMoldeService
     {
-        Task<PagedResult<Molde>> GetAllAsync(int page = 1, int pageSize = 10);
-        Task<Molde?> GetByIdAsync(int id);
-        Task<Molde?> GetByIdWithSpecsAsync(int id);
-        Task<Molde?> GetByNumeroAsync(string numero);
-        Task<IEnumerable<Molde>> GetByEncomendaIdAsync(int encomendaId);
+        /// <summary>
+        /// Lista moldes de forma paginada.
+        /// </summary>
+        /// <param name="page">Pagina atual.</param>
+        /// <param name="pageSize">Tamanho da pagina.</param>
+        /// <returns>Resultado paginado com moldes.</returns>
+        Task<PagedResult<ResponseMoldeDTO>> GetAllAsync(int page = 1, int pageSize = 10);
 
         /// <summary>
-        /// Verifica se já existe molde com o número especificado.
+        /// Obtem um molde por identificador.
         /// </summary>
+        /// <param name="id">Identificador interno do molde.</param>
+        /// <returns>DTO do molde quando encontrado; nulo caso contrario.</returns>
+        Task<ResponseMoldeDTO?> GetByIdAsync(int id);
+
+
+        /// <summary>
+        /// Obtem um molde pelo numero funcional.
+        /// </summary>
+        /// <param name="numero">Numero funcional do molde.</param>
+        /// <returns>DTO do molde quando encontrado; nulo caso contrario.</returns>
+        Task<ResponseMoldeDTO?> GetByNumeroAsync(string numero);
+
+        /// <summary>
+        /// Lista moldes associados a uma encomenda.
+        /// </summary>
+        /// <param name="encomendaId">Identificador da encomenda.</param>
+        /// <param name="page">Pagina atual.</param>
+        /// <param name="pageSize">Tamanho da pagina.</param>
+        /// <returns>Colecao de moldes associados.</returns>
+        Task<PagedResult<ResponseMoldeDTO>> GetByEncomendaIdAsync(int encomendaId, int page = 1, int pageSize = 10);
+
+        /// <summary>
+        /// Verifica se ja existe um molde com o numero indicado.
+        /// </summary>
+        /// <param name="numero">Numero funcional a validar.</param>
+        /// <returns>True quando o numero ja existe; false caso contrario.</returns>
         Task<bool> ExistsByNumeroAsync(string numero);
 
         /// <summary>
-        /// Cria molde com especificações técnicas numa transação.
+        /// Cria um novo agregado Molde.
         /// </summary>
         /// <remarks>
-        /// Ligação com encomenda deve ser feita posteriormente via IEncomendaMoldeService.
+        /// Fluxo critico:
+        /// 1. Valida numero unico.
+        /// 2. Valida encomenda referenciada.
+        /// 3. Persiste molde, especificacoes e associacao EncomendaMolde na mesma transacao.
         /// </remarks>
-        Task<Molde> CreateAsync(Molde molde, EspecificacoesTecnicas specs);
+        /// <param name="dto">Dados de criacao do molde.</param>
+        /// <returns>DTO do molde criado.</returns>
+        Task<ResponseMoldeDTO> CreateAsync(CreateMoldeDTO dto);
 
-        Task UpdateAsync(Molde molde, EspecificacoesTecnicas? specs);
+        /// <summary>
+        /// Atualiza parcialmente um molde existente.
+        /// </summary>
+        /// <remarks>
+        /// Campos nao enviados no DTO devem manter o valor atual do agregado.
+        /// </remarks>
+        /// <param name="id">Identificador do molde a atualizar.</param>
+        /// <param name="dto">Dados de atualizacao parcial.</param>
+        /// <returns>Task de conclusao da atualizacao.</returns>
+        Task UpdateAsync(int id, UpdateMoldeDTO dto);
+
+        /// <summary>
+        /// Remove um molde existente.
+        /// </summary>
+        /// <param name="id">Identificador do molde a remover.</param>
+        /// <returns>Task de conclusao da remocao.</returns>
         Task DeleteAsync(int id);
     }
 }

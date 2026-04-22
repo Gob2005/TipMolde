@@ -2,6 +2,12 @@
 
 namespace TipMolde.Application.DTOs.ClienteDTO
 {
+    /// <summary>
+    /// DTO de entrada para atualizacao parcial de um cliente existente.
+    /// </summary>
+    /// <remarks>
+    /// Todos os campos sao opcionais para permitir alteracao apenas da informacao que foi enviada no pedido.
+    /// </remarks>
     public class UpdateClienteDTO
     {
         [MinLength(3)]

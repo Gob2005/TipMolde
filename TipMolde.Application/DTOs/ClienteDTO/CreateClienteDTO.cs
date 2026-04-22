@@ -2,6 +2,12 @@
 
 namespace TipMolde.Application.DTOs.ClienteDTO
 {
+    /// <summary>
+    /// DTO de entrada para criacao de um cliente no modulo comercial.
+    /// </summary>
+    /// <remarks>
+    /// Agrega os dados base de identificacao e contacto necessarios para registo inicial do cliente.
+    /// </remarks>
     public class CreateClienteDTO
     {
         [Required]

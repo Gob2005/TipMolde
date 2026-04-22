@@ -3,193 +3,197 @@ using Microsoft.AspNetCore.Mvc;
 using TipMolde.Application.DTOs.MoldeDTO;
 using TipMolde.Application.Interface.Producao.IMolde;
 using TipMolde.Application.Interface.Relatorios;
-using TipMolde.Domain.Entities.Comercio;
-using TipMolde.Domain.Entities.Producao;
 
 namespace TipMolde.API.Controllers
 {
+    /// <summary>
+    /// Disponibiliza endpoints HTTP para a feature Molde.
+    /// </summary>
+    /// <remarks>
+    /// O controller valida input HTTP e delega regras de negocio ao servico.
+    /// </remarks>
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/moldes")]
     public class MoldeController : ControllerBase
     {
         private readonly IMoldeService _moldeService;
         private readonly IRelatorioService _relatorioService;
+        private readonly ILogger<MoldeController> _logger;
 
-        public MoldeController(IMoldeService moldeService, IRelatorioService relatorioService)
+        /// <summary>
+        /// Construtor de MoldeController.
+        /// </summary>
+        /// <param name="moldeService">Servico responsavel pelos casos de uso da feature Molde.</param>
+        /// <param name="relatorioService">Servico responsavel pela geracao de relatorios do molde.</param>
+        /// <param name="logger">Logger para rastreabilidade das operacoes HTTP.</param>
+        public MoldeController(
+            IMoldeService moldeService,
+            IRelatorioService relatorioService,
+            ILogger<MoldeController> logger)
         {
             _moldeService = moldeService;
             _relatorioService = relatorioService;
+            _logger = logger;
         }
 
+        /// <summary>
+        /// Lista moldes com paginacao.
+        /// </summary>
+        /// <param name="page">Pagina atual.</param>
+        /// <param name="pageSize">Tamanho da pagina.</param>
+        /// <returns>HTTP 200 com resultado paginado; HTTP 400 para paginacao invalida.</returns>
         [Authorize(Roles = "ADMIN")]
-        [HttpGet("all-moldes")]
-        public async Task<IActionResult> GetAllMoldes()
+        [HttpGet]
+        public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
-            var result = await _moldeService.GetAllAsync();
-            return Ok(new
-            {
-                result.TotalCount,
-                result.CurrentPage,
-                result.PageSize,
-                Items = result.Items.Select(ToResponse)
-            });
+            if (page < 1 || pageSize < 1)
+                return BadRequest(CreateProblem(StatusCodes.Status400BadRequest, "Pedido invalido", "Page e pageSize devem ser >= 1."));
+
+            var result = await _moldeService.GetAllAsync(page, pageSize);
+            return Ok(result);
         }
 
+        /// <summary>
+        /// Obtem um molde por ID.
+        /// </summary>
+        /// <param name="id">Identificador interno do molde.</param>
+        /// <returns>HTTP 200 com o molde; HTTP 404 quando nao encontrado.</returns>
         [Authorize]
-        [HttpGet("molde-byID")]
-        public async Task<IActionResult> GetMoldeById(int id)
+        [HttpGet("{id:int}")]
+        public async Task<IActionResult> GetById(int id)
         {
             var molde = await _moldeService.GetByIdAsync(id);
-            if (molde == null) return NotFound();
-            return Ok(ToResponse(molde));
+            if (molde == null)
+                return NotFound(CreateProblem(StatusCodes.Status404NotFound, "Recurso nao encontrado", $"Molde com ID {id} nao encontrado."));
+
+            return Ok(molde);
         }
 
+        /// <summary>
+        /// Lista moldes associados a uma encomenda.
+        /// </summary>
+        /// <param name="encomendaId">Identificador da encomenda.</param>
+        /// <returns>HTTP 200 com a colecao de moldes associados.</returns>
         [Authorize(Roles = "ADMIN,GESTOR_COMERCIAL")]
-        [HttpGet("by-encomenda")]
+        [HttpGet("por-encomenda/{encomendaId:int}")]
         public async Task<IActionResult> GetByEncomendaId(int encomendaId)
         {
             var moldes = await _moldeService.GetByEncomendaIdAsync(encomendaId);
-            return Ok(moldes.Select(ToResponse));
+            return Ok(moldes);
         }
 
+        /// <summary>
+        /// Obtem um molde pelo numero funcional.
+        /// </summary>
+        /// <param name="numero">Numero funcional do molde.</param>
+        /// <returns>HTTP 200 com o molde; HTTP 400 quando o numero e invalido; HTTP 404 quando nao encontrado.</returns>
         [Authorize]
-        [HttpGet("by-numero")]
+        [HttpGet("por-numero")]
         public async Task<IActionResult> GetByNumero([FromQuery] string numero)
         {
             if (string.IsNullOrWhiteSpace(numero))
-                return BadRequest("Numero do molde e obrigatorio.");
+                return BadRequest(CreateProblem(StatusCodes.Status400BadRequest, "Pedido invalido", "Numero do molde e obrigatorio."));
 
-            var molde = await _moldeService.GetByNumeroAsync(numero.Trim());
-            if (molde == null) return NotFound();
-            return Ok(ToResponse(molde));
+            var molde = await _moldeService.GetByNumeroAsync(numero);
+            if (molde == null)
+                return NotFound(CreateProblem(StatusCodes.Status404NotFound, "Recurso nao encontrado", $"Molde com numero '{numero.Trim()}' nao encontrado."));
+
+            return Ok(molde);
         }
 
+        /// <summary>
+        /// Exporta o ciclo de vida do molde para PDF.
+        /// </summary>
+        /// <param name="id">Identificador interno do molde.</param>
+        /// <returns>Ficheiro PDF gerado para o molde indicado.</returns>
         [Authorize(Roles = "ADMIN")]
         [HttpGet("{id:int}/ciclo-vida-pdf")]
         public async Task<IActionResult> ExportCicloVidaPdf(int id)
         {
             var result = await _relatorioService.GerarCicloVidaMoldePdfAsync(id);
+
+            _logger.LogInformation("PDF de ciclo de vida exportado para o molde {MoldeId}", id);
+
             return File(result.Content, "application/pdf", result.FileName);
         }
 
+        /// <summary>
+        /// Cria um novo molde.
+        /// </summary>
+        /// <remarks>
+        /// O contrato cria o agregado Molde com especificacoes tecnicas e associacao inicial a uma encomenda.
+        /// </remarks>
+        /// <param name="dto">Dados de criacao do molde.</param>
+        /// <returns>HTTP 201 com o molde criado; HTTP 400 quando o body e invalido.</returns>
         [Authorize(Roles = "ADMIN,GESTOR_COMERCIAL")]
-        [HttpPost("create-molde")]
-        public async Task<IActionResult> CreateMolde([FromBody] CreateMoldeDTO dto)
+        [HttpPost]
+        public async Task<IActionResult> Create([FromBody] CreateMoldeDTO dto)
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
+            if (!ModelState.IsValid)
+                return BadRequest(CreateProblem(StatusCodes.Status400BadRequest, "Pedido invalido", "Dados de criacao invalidos."));
 
-            if (string.IsNullOrWhiteSpace(dto.Numero))
-                return BadRequest("Numero do molde e obrigatorio.");
+            var created = await _moldeService.CreateAsync(dto);
 
-            var molde = new Molde
-            {
-                Numero = dto.Numero.Trim(),
-                NumeroMoldeCliente = dto.NumeroMoldeCliente,
-                Nome = dto.Nome,
-                ImagemCapaPath = dto.ImagemCapaPath,
-                Descricao = dto.Descricao,
-                Numero_cavidades = dto.Numero_cavidades,
-                TipoPedido = dto.TipoPedido
-            };
+            _logger.LogInformation("Controller: Molde {MoldeId} criado", created.MoldeId);
 
-            var specs = new EspecificacoesTecnicas
-            {
-                Largura = dto.Largura,
-                Comprimento = dto.Comprimento,
-                Altura = dto.Altura,
-                PesoEstimado = dto.PesoEstimado,
-                TipoInjecao = dto.TipoInjecao,
-                SistemaInjecao = dto.SistemaInjecao,
-                Contracao = dto.Contracao,
-                AcabamentoPeca = dto.AcabamentoPeca,
-                Cor = dto.Cor,
-                MaterialMacho = dto.MaterialMacho,
-                MaterialCavidade = dto.MaterialCavidade,
-                MaterialMovimentos = dto.MaterialMovimentos,
-                MaterialInjecao = dto.MaterialInjecao
-            };
-
-            var link = new EncomendaMolde
-            {
-                Encomenda_id = dto.EncomendaId,
-                Quantidade = dto.Quantidade,
-                Prioridade = dto.Prioridade,
-                DataEntregaPrevista = dto.DataEntregaPrevista
-            };
-
-            var created = await _moldeService.CreateAsync(molde, specs);
-            return CreatedAtAction(nameof(GetMoldeById), new { id = created.Molde_id }, ToResponse(created));
+            return CreatedAtAction(nameof(GetById), new { id = created.MoldeId }, created);
         }
 
+        /// <summary>
+        /// Atualiza parcialmente um molde.
+        /// </summary>
+        /// <remarks>
+        /// Campos nao enviados sao preservados no registo atual.
+        /// </remarks>
+        /// <param name="id">Identificador do molde a atualizar.</param>
+        /// <param name="dto">Dados de atualizacao parcial.</param>
+        /// <returns>HTTP 204 quando a atualizacao e concluida; HTTP 400 quando o body e invalido.</returns>
         [Authorize(Roles = "ADMIN,GESTOR_DESENHO")]
-        [HttpPut("update-molde/{id:int}")]
-        public async Task<IActionResult> UpdateMolde(int id, [FromBody] UpdateMoldeDTO dto)
+        [HttpPut("{id:int}")]
+        public async Task<IActionResult> Update(int id, [FromBody] UpdateMoldeDTO dto)
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
+            if (!ModelState.IsValid)
+                return BadRequest(CreateProblem(StatusCodes.Status400BadRequest, "Pedido invalido", "Dados de criacao invalidos."));
 
-            var molde = new Molde
-            {
-                Molde_id = id,
-                Numero = dto.Numero ?? string.Empty,
-                Nome = dto.Nome,
-                ImagemCapaPath = dto.ImagemCapaPath,
-                Descricao = dto.Descricao,
-                Numero_cavidades = dto.Numero_cavidades ?? 0,
-                TipoPedido = dto.TipoPedido ?? default
-            };
+            await _moldeService.UpdateAsync(id, dto);
 
-            var specs = new EspecificacoesTecnicas
-            {
-                Largura = dto.Largura,
-                Comprimento = dto.Comprimento,
-                Altura = dto.Altura,
-                PesoEstimado = dto.PesoEstimado,
-                TipoInjecao = dto.TipoInjecao,
-                SistemaInjecao = dto.SistemaInjecao,
-                Contracao = dto.Contracao,
-                AcabamentoPeca = dto.AcabamentoPeca,
-                Cor = dto.Cor,
-                MaterialMacho = dto.MaterialMacho,
-                MaterialCavidade = dto.MaterialCavidade,
-                MaterialMovimentos = dto.MaterialMovimentos,
-                MaterialInjecao = dto.MaterialInjecao
-            };
+            _logger.LogInformation("Controller: Molde {MoldeId} atualizado", id);
 
-            await _moldeService.UpdateAsync(molde, specs);
             return NoContent();
         }
 
+        /// <summary>
+        /// Remove um molde.
+        /// </summary>
+        /// <param name="id">Identificador do molde a remover.</param>
+        /// <returns>HTTP 204 quando a remocao e concluida.</returns>
         [Authorize(Roles = "ADMIN")]
-        [HttpDelete("delete-molde/{id:int}")]
-        public async Task<IActionResult> DeleteMolde(int id)
+        [HttpDelete("{id:int}")]
+        public async Task<IActionResult> Delete(int id)
         {
             await _moldeService.DeleteAsync(id);
+
+            _logger.LogInformation("Controller: Molde {MoldeId} removido", id);
+
             return NoContent();
         }
 
-        private static ResponseMoldeDTO ToResponse(Molde m) => new()
+        /// <summary>
+        /// Cria objeto ProblemDetails para respostas de erro no controller.
+        /// </summary>
+        /// <param name="status">Codigo HTTP do erro.</param>
+        /// <param name="title">Titulo curto do erro.</param>
+        /// <param name="detail">Detalhe funcional do erro.</param>
+        /// <returns>Objeto ProblemDetails preenchido com contexto do request atual.</returns>
+        private ProblemDetails CreateProblem(int status, string title, string detail)
         {
-            MoldeId = m.Molde_id,
-            Numero = m.Numero,
-            Nome = m.Nome,
-            ImagemCapaPath = m.ImagemCapaPath,
-            Descricao = m.Descricao,
-            Numero_cavidades = m.Numero_cavidades,
-            TipoPedido = m.TipoPedido,
-            Largura = m.Especificacoes?.Largura,
-            Comprimento = m.Especificacoes?.Comprimento,
-            Altura = m.Especificacoes?.Altura,
-            PesoEstimado = m.Especificacoes?.PesoEstimado,
-            TipoInjecao = m.Especificacoes?.TipoInjecao,
-            SistemaInjecao = m.Especificacoes?.SistemaInjecao,
-            Contracao = m.Especificacoes?.Contracao,
-            AcabamentoPeca = m.Especificacoes?.AcabamentoPeca,
-            Cor = m.Especificacoes?.Cor,
-            MaterialMacho = m.Especificacoes?.MaterialMacho,
-            MaterialCavidade = m.Especificacoes?.MaterialCavidade,
-            MaterialMovimentos = m.Especificacoes?.MaterialMovimentos,
-            MaterialInjecao = m.Especificacoes?.MaterialInjecao
-        };
+            return new ProblemDetails
+            {
+                Status = status,
+                Title = title,
+                Detail = detail,
+                Instance = HttpContext?.Request?.Path
+            };
+        }
     }
 }
-

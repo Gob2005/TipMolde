@@ -34,7 +34,7 @@ public class EncomendaMoldeControllerTests
         // ARRANGE
 
         // ACT
-        var result = await _controller.GetByEncomendaId(1, 0, 10, CancellationToken.None);
+        var result = await _controller.GetByEncomendaId(1, 0, 10);
 
         // ASSERT
         result.Should().BeOfType<BadRequestObjectResult>();
@@ -63,10 +63,10 @@ public class EncomendaMoldeControllerTests
             DataEntregaPrevista = dto.DataEntregaPrevista
         };
 
-        _service.Setup(s => s.CreateAsync(dto, It.IsAny<CancellationToken>())).ReturnsAsync(response);
+        _service.Setup(s => s.CreateAsync(dto)).ReturnsAsync(response);
 
         // ACT
-        var result = await _controller.Create(dto, CancellationToken.None);
+        var result = await _controller.Create(dto);
 
         // ASSERT
         result.Should().BeOfType<CreatedAtActionResult>();

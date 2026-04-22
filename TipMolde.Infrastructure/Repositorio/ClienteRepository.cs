@@ -1,6 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using System.Threading;
+using TipMolde.Application.Interface;
 using TipMolde.Application.Interface.Comercio.ICliente;
 using TipMolde.Domain.Entities.Comercio;
+using TipMolde.Domain.Entities.Producao;
 using TipMolde.Infrastructure.DB;
 
 namespace TipMolde.Infrastructure.Repositorio
@@ -56,30 +59,56 @@ namespace TipMolde.Infrastructure.Repositorio
         /// Pesquisa clientes por nome.
         /// </summary>
         /// <param name="searchTerm">Termo parcial para pesquisa no nome do cliente.</param>
+        /// <param name="page">Numero da pagina a consultar.</param>
+        /// <param name="pageSize">Quantidade de itens por pagina.</param>
         /// <returns>Colecao de clientes ordenada alfabeticamente pelo nome.</returns>
-        public async Task<IEnumerable<Cliente>> SearchByNameAsync(string searchTerm)
+        public async Task<PagedResult<Cliente>> SearchByNameAsync(string searchTerm, int page = 1, int pageSize = 10)
         {
-            var term = searchTerm.Trim();
-            return await _context.Clientes
+            page = page < 1 ? 1 : page;
+            pageSize = pageSize < 1 ? 10 : pageSize > 200 ? 200 : pageSize;
+
+            var query = _context.Clientes
                 .AsNoTracking()
-                .Where(c => c.Nome.Contains(term))
+                .Where(c => c.Nome.Contains(searchTerm));
+                
+
+            var totalCount = await query.CountAsync();
+
+            var items = await query
                 .OrderBy(c => c.Nome)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
                 .ToListAsync();
+
+            return new PagedResult<Cliente>(items, totalCount, page, pageSize);
         }
 
         /// <summary>
         /// Pesquisa clientes por sigla.
         /// </summary>
         /// <param name="searchTerm">Termo parcial para pesquisa na sigla do cliente.</param>
+        /// <param name="page">Numero da pagina a consultar.</param>
+        /// <param name="pageSize">Quantidade de itens por pagina.</param>
         /// <returns>Colecao de clientes ordenada alfabeticamente pela sigla.</returns>
-        public async Task<IEnumerable<Cliente>> SearchBySiglaAsync(string searchTerm)
+        public async Task<PagedResult<Cliente>> SearchBySiglaAsync(string searchTerm, int page = 1, int pageSize = 10)
         {
-            var term = searchTerm.Trim();
-            return await _context.Clientes
+            page = page < 1 ? 1 : page;
+            pageSize = pageSize < 1 ? 10 : pageSize > 200 ? 200 : pageSize;
+
+            var query = _context.Clientes
                 .AsNoTracking()
-                .Where(c => c.Sigla.Contains(term))
+                .Where(c => c.Sigla.Contains(searchTerm));
+
+
+            var totalCount = await query.CountAsync();
+
+            var items = await query
                 .OrderBy(c => c.Sigla)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
                 .ToListAsync();
+
+            return new PagedResult<Cliente>(items, totalCount, page, pageSize);
         }
     }
 }

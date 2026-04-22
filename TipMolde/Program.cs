@@ -132,7 +132,12 @@ builder.Services.AddScoped<IFichaDocumentoService, FichaDocumentoService>();
 builder.Services.AddScoped<IFichaProducaoService, FichaProducaoService>();
 
 // AutoMapper
+builder.Services.AddAutoMapper(typeof(UserProfile).Assembly);
+builder.Services.AddAutoMapper(typeof(UserPasswordProfile).Assembly);
 builder.Services.AddAutoMapper(typeof(ClienteProfile).Assembly);
+builder.Services.AddAutoMapper(typeof(EncomendaProfile).Assembly);
+builder.Services.AddAutoMapper(typeof(EncomendaMoldeProfile).Assembly);
+builder.Services.AddAutoMapper(typeof(MoldeProfile).Assembly);
 
 
 var app = builder.Build();
