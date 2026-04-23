@@ -1,5 +1,11 @@
 ﻿namespace TipMolde.Application.DTOs.FornecedorDTO
 {
+    /// <summary>
+    /// DTO de resposta com os dados resumidos de um fornecedor.
+    /// </summary>
+    /// <remarks>
+    /// Usado em listagens e consultas simples onde nao e necessario devolver relacionamentos associados.
+    /// </remarks>
     public class ResponseFornecedorDTO
     {
         public int FornecedorId { get; set; }

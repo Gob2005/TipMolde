@@ -138,6 +138,9 @@ builder.Services.AddAutoMapper(typeof(ClienteProfile).Assembly);
 builder.Services.AddAutoMapper(typeof(EncomendaProfile).Assembly);
 builder.Services.AddAutoMapper(typeof(EncomendaMoldeProfile).Assembly);
 builder.Services.AddAutoMapper(typeof(MoldeProfile).Assembly);
+builder.Services.AddAutoMapper(typeof(ProjetoProfile).Assembly);
+
+builder.Services.AddAutoMapper(typeof(FornecedorProfile).Assembly);
 
 
 var app = builder.Build();

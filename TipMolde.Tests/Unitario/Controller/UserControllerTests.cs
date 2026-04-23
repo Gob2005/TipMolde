@@ -10,8 +10,6 @@ using TipMolde.API.Controllers;
 using TipMolde.Application.DTOs.UserDTO;
 using TipMolde.Application.Interface;
 using TipMolde.Application.Interface.Utilizador.IUser;
-using TipMolde.Application.Mappings;
-using TipMolde.Domain.Entities;
 using TipMolde.Domain.Enums;
 
 namespace TipMolde.Tests.Unitario.Controller;
@@ -21,7 +19,6 @@ public class UserControllerTests
 {
     private Mock<IUserManagementService> _userService = null!;
     private Mock<ILogger<UserController>> _logger = null!;
-    private IMapper _mapper = null!;
     private UserController _controller = null!;
 
     [SetUp]
@@ -29,9 +26,7 @@ public class UserControllerTests
     {
         _userService = new Mock<IUserManagementService>();
         _logger = new Mock<ILogger<UserController>>();
-        _mapper = new MapperConfiguration(cfg => cfg.AddProfile<UserProfile>()).CreateMapper();
-
-        _controller = new UserController(_userService.Object, _logger.Object, _mapper);
+        _controller = new UserController(_userService.Object, _logger.Object);
     }
 
     private static void SetAuthenticatedUser(ControllerBase controller, params Claim[] claims)
@@ -48,14 +43,12 @@ public class UserControllerTests
     [Test]
     public async Task shouldReturnResponseUserDtoWhenGettingById()
     {
-        _userService.Setup(s => s.GetByIdAsync(1)).ReturnsAsync(new User
+        _userService.Setup(s => s.GetByIdAsync(1)).ReturnsAsync(new ResponseUserDTO
         {
             User_id = 1,
             Nome = "Ana",
             Email = "ana@tipmolde.pt",
-            Password = "hash",
-            Role = UserRole.ADMIN,
-            CreatedAt = DateTime.UtcNow
+            Role = UserRole.ADMIN
         });
 
         var result = await _controller.GetUserById(1);
@@ -70,14 +63,12 @@ public class UserControllerTests
     {
         SetAuthenticatedUser(_controller, new Claim(JwtRegisteredClaimNames.Sub, "2"));
 
-        _userService.Setup(s => s.GetByIdAsync(2)).ReturnsAsync(new User
+        _userService.Setup(s => s.GetByIdAsync(2)).ReturnsAsync(new ResponseUserDTO
         {
             User_id = 2,
             Nome = "User2",
             Email = "u2@tipmolde.pt",
-            Password = "hash",
-            Role = UserRole.GESTOR_PRODUCAO,
-            CreatedAt = DateTime.UtcNow
+            Role = UserRole.GESTOR_PRODUCAO
         });
 
         var dto = new UpdateUserDTO { Nome = "Novo Nome", Email = "novo@tipmolde.pt" };
@@ -86,7 +77,7 @@ public class UserControllerTests
         var forbidden = result as ObjectResult;
         forbidden.Should().NotBeNull();
         forbidden!.StatusCode.Should().Be(StatusCodes.Status403Forbidden);
-        _userService.Verify(s => s.UpdateAsync(It.IsAny<User>()), Times.Never);
+        _userService.Verify(s => s.UpdateAsync(It.IsAny<int>(), It.IsAny<UpdateUserDTO>()), Times.Never);
     }
 
     [Test]
@@ -94,14 +85,12 @@ public class UserControllerTests
     {
         SetAuthenticatedUser(_controller, new Claim(JwtRegisteredClaimNames.Sub, "2"));
 
-        var sameUser = new User
+        var sameUser = new ResponseUserDTO
         {
             User_id = 2,
             Nome = "Nome Antigo",
             Email = "old@tipmolde.pt",
-            Password = "hash",
-            Role = UserRole.GESTOR_PRODUCAO,
-            CreatedAt = DateTime.UtcNow
+            Role = UserRole.GESTOR_PRODUCAO
         };
 
         _userService.Setup(s => s.GetByIdAsync(2)).ReturnsAsync(sameUser);
@@ -110,7 +99,7 @@ public class UserControllerTests
         var result = await _controller.UpdateUser(2, dto);
 
         result.Should().BeOfType<NoContentResult>();
-        _userService.Verify(s => s.UpdateAsync(It.Is<User>(u => u.Nome == "Novo Nome" && u.Email == "old@tipmolde.pt")), Times.Once);
+        _userService.Verify(s => s.UpdateAsync(2, It.Is<UpdateUserDTO>(u => u.Nome == "  Novo Nome  " && u.Email == null)), Times.Once);
     }
 
     [Test]
@@ -123,21 +112,19 @@ public class UserControllerTests
     [Test]
     public async Task shouldReturnPagedResponseWithDtoItemsWhenGettingAllUsers()
     {
-        var users = new List<User>
+        var users = new List<ResponseUserDTO>
         {
             new()
             {
                 User_id = 3,
                 Nome = "Bruno",
                 Email = "bruno@tipmolde.pt",
-                Password = "hash",
-                Role = UserRole.ADMIN,
-                CreatedAt = DateTime.UtcNow
+                Role = UserRole.ADMIN
             }
         };
 
         _userService.Setup(s => s.GetAllAsync(1, 10))
-            .ReturnsAsync(new PagedResult<User>(users, 1, 1, 10));
+            .ReturnsAsync(new PagedResult<ResponseUserDTO>(users, 1, 1, 10));
 
         var result = await _controller.GetAllUsers(1, 10);
 

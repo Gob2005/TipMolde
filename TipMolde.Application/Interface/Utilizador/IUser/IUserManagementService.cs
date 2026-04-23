@@ -1,4 +1,5 @@
 ﻿using TipMolde.Domain.Entities;
+using TipMolde.Application.DTOs.UserDTO;
 using TipMolde.Domain.Enums;
 
 namespace TipMolde.Application.Interface.Utilizador.IUser
@@ -18,42 +19,45 @@ namespace TipMolde.Application.Interface.Utilizador.IUser
         /// <param name="page">Numero da pagina solicitada.</param>
         /// <param name="pageSize">Quantidade de itens por pagina.</param>
         /// <returns>Resultado paginado com utilizadores e metadados de navegacao.</returns>
-        Task<PagedResult<User>> GetAllAsync(int page = 1, int pageSize = 10);
+        Task<PagedResult<ResponseUserDTO>> GetAllAsync(int page = 1, int pageSize = 10);
 
         /// <summary>
         /// Obtem um utilizador pelo identificador.
         /// </summary>
         /// <param name="id">Identificador unico do utilizador.</param>
         /// <returns>Utilizador encontrado ou nulo quando nao existe registo.</returns>
-        Task<User?> GetByIdAsync(int id);
+        Task<ResponseUserDTO?> GetByIdAsync(int id);
 
         /// <summary>
         /// Obtem um utilizador pelo email.
         /// </summary>
         /// <param name="email">Email unico do utilizador.</param>
         /// <returns>Utilizador encontrado ou nulo quando nao existe registo.</returns>
-        Task<User?> GetByEmailAsync(string email);
+        Task<ResponseUserDTO?> GetByEmailAsync(string email);
 
         /// <summary>
         /// Pesquisa utilizadores por nome.
         /// </summary>
         /// <param name="searchTerm">Termo parcial para pesquisa no nome do utilizador.</param>
-        /// <returns>Colecao de utilizadores que correspondem ao termo informado.</returns>
-        Task<IEnumerable<User>> SearchByNameAsync(string searchTerm);
+        /// <param name="page">Numero da pagina solicitada.</param>
+        /// <param name="pageSize">Quantidade de itens por pagina.</param>
+        /// <returns>Resultado paginado com utilizadores que correspondem ao termo informado.</returns>
+        Task<PagedResult<ResponseUserDTO>> SearchByNameAsync(string searchTerm, int page = 1, int pageSize = 10);
 
         /// <summary>
         /// Cria um novo utilizador.
         /// </summary>
-        /// <param name="user">Entidade com dados do utilizador a persistir.</param>
+        /// <param name="dto">Dados do utilizador a persistir.</param>
         /// <returns>Utilizador criado apos validacao e persistencia.</returns>
-        Task<User> CreateAsync(User user);
+        Task<ResponseUserDTO> CreateAsync(CreateUserDTO dto);
 
         /// <summary>
         /// Atualiza os dados de um utilizador existente.
         /// </summary>
-        /// <param name="user">Entidade com identificador e dados a atualizar.</param>
+        /// <param name="id">Identificador do utilizador.</param>
+        /// <param name="dto">Dados enviados para atualizacao parcial.</param>
         /// <returns>Task assincrona concluida apos atualizacao do utilizador.</returns>
-        Task UpdateAsync(User user);
+        Task UpdateAsync(int id, UpdateUserDTO dto);
 
         /// <summary>
         /// Altera o perfil de acesso de um utilizador.

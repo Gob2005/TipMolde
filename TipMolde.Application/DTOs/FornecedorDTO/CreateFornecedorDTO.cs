@@ -2,6 +2,12 @@
 
 namespace TipMolde.Application.DTOs.FornecedorDTO
 {
+    /// <summary>
+    /// DTO de entrada para criacao de um fornecedor no modulo comercial.
+    /// </summary>
+    /// <remarks>
+    /// Agrega os dados base de identificacao e contacto necessarios para registo inicial do fornecedor.
+    /// </remarks>
     public class CreateFornecedorDTO
     {
         [Required]
@@ -16,7 +22,7 @@ namespace TipMolde.Application.DTOs.FornecedorDTO
 
         [MinLength(5)]
         [MaxLength(255)]
-        public string? Morada { get; set; } = string.Empty;
+        public string? Morada { get; set; }
 
         [EmailAddress]
         [MaxLength(100)]
@@ -26,4 +32,3 @@ namespace TipMolde.Application.DTOs.FornecedorDTO
         public string? Telefone { get; set; }
     }
 }
-

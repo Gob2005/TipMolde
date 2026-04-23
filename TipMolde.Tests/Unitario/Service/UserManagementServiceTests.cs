@@ -1,9 +1,12 @@
+using AutoMapper;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Moq;
+using TipMolde.Application.DTOs.UserDTO;
 using TipMolde.Application.Interface;
 using TipMolde.Application.Interface.Utilizador.ISecurity;
 using TipMolde.Application.Interface.Utilizador.IUser;
+using TipMolde.Application.Mappings;
 using TipMolde.Domain.Entities;
 using TipMolde.Domain.Enums;
 using TipMolde.Application.Service;
@@ -16,6 +19,7 @@ public class UserManagementServiceTests
     private Mock<IUserRepository> _userRepository = null!;
     private Mock<IPasswordHasherService> _passwordHasher = null!;
     private Mock<ILogger<UserManagementService>> _logger = null!;
+    private IMapper _mapper = null!;
     private UserManagementService _sut = null!;
 
     [SetUp]
@@ -24,7 +28,9 @@ public class UserManagementServiceTests
         _userRepository = new Mock<IUserRepository>();
         _passwordHasher = new Mock<IPasswordHasherService>();
         _logger = new Mock<ILogger<UserManagementService>>();
-        _sut = new UserManagementService(_userRepository.Object, _passwordHasher.Object, _logger.Object);
+        var config = new MapperConfiguration(cfg => cfg.AddProfile<UserProfile>());
+        _mapper = config.CreateMapper();
+        _sut = new UserManagementService(_userRepository.Object, _passwordHasher.Object, _mapper, _logger.Object);
     }
 
     /// <summary>
@@ -42,6 +48,24 @@ public class UserManagementServiceTests
         Email = email,
         Password = password,
         Role = UserRole.GESTOR_PRODUCAO
+    };
+
+    private static CreateUserDTO BuildCreateUserDto(
+        string nome = "Operador",
+        string email = "operador@tipmolde.pt",
+        string password = "Passw0rd!",
+        UserRole role = UserRole.GESTOR_PRODUCAO) => new()
+    {
+        Nome = nome,
+        Email = email,
+        Password = password,
+        Role = role
+    };
+
+    private static UpdateUserDTO BuildUpdateUserDto(string? nome = "Operador", string? email = "operador@tipmolde.pt") => new()
+    {
+        Nome = nome,
+        Email = email
     };
 
     [Test(Description = "T1USR - GetAll deve devolver lista paginada de utilizadores.")]
@@ -62,6 +86,7 @@ public class UserManagementServiceTests
 
         // ASSERT
         result.Items.Should().HaveCount(2);
+        result.Items.Select(u => u.Nome).Should().Contain(new[] { "Ana", "Bruno" });
         result.TotalCount.Should().Be(2);
         result.CurrentPage.Should().Be(1);
         result.PageSize.Should().Be(10);
@@ -72,7 +97,7 @@ public class UserManagementServiceTests
     public async Task CreateAsync_Should_ThrowArgumentException_When_EmailAlreadyExists()
     {
         // ARRANGE
-        var user = BuildUser(email: "duplicado@tipmolde.pt");
+        var user = BuildCreateUserDto(email: "duplicado@tipmolde.pt");
         _userRepository.Setup(r => r.GetByEmailAsync("duplicado@tipmolde.pt")).ReturnsAsync(BuildUser(id: 2));
 
         // ACT
@@ -86,7 +111,7 @@ public class UserManagementServiceTests
     public async Task CreateAsync_Should_ThrowArgumentException_When_PasswordIsWeak()
     {
         // ARRANGE
-        var user = BuildUser(password: "fraca");
+        var user = BuildCreateUserDto(password: "fraca");
         _userRepository.Setup(r => r.GetByEmailAsync("operador@tipmolde.pt")).ReturnsAsync((User?)null);
 
         // ACT
@@ -100,7 +125,7 @@ public class UserManagementServiceTests
     public async Task CreateAsync_Should_TrimNormalizeAndHash_When_UserIsValid()
     {
         // ARRANGE
-        var user = BuildUser(nome: "  Operador  ", email: "  OP@TipMolde.PT  ", password: "Valida123!");
+        var user = BuildCreateUserDto(nome: "  Operador  ", email: "  OP@TipMolde.PT  ", password: "Valida123!");
         _userRepository.Setup(r => r.GetByEmailAsync("op@tipmolde.pt")).ReturnsAsync((User?)null);
         _passwordHasher.Setup(h => h.Hash("Valida123!")).Returns("hash_gerado");
 
@@ -110,8 +135,10 @@ public class UserManagementServiceTests
         // ASSERT
         result.Nome.Should().Be("Operador");
         result.Email.Should().Be("op@tipmolde.pt");
-        result.Password.Should().Be("hash_gerado");
-        _userRepository.Verify(r => r.AddAsync(It.IsAny<User>()), Times.Once);
+        _userRepository.Verify(r => r.AddAsync(It.Is<User>(u =>
+            u.Nome == "Operador" &&
+            u.Email == "op@tipmolde.pt" &&
+            u.Password == "hash_gerado")), Times.Once);
     }
 
     [Test(Description = "T5USR - Update deve falhar quando utilizador nao existe.")]
@@ -121,7 +148,7 @@ public class UserManagementServiceTests
         _userRepository.Setup(r => r.GetByIdAsync(404)).ReturnsAsync((User?)null);
 
         // ACT
-        Func<Task> act = () => _sut.UpdateAsync(BuildUser(id: 404));
+        Func<Task> act = () => _sut.UpdateAsync(404, BuildUpdateUserDto(nome: "Novo Nome", email: "novo@tipmolde.pt"));
 
         // ASSERT
         await act.Should().ThrowAsync<KeyNotFoundException>();
@@ -134,10 +161,10 @@ public class UserManagementServiceTests
         var existing = BuildUser(id: 5, nome: "Nome Antigo", email: "antigo@tipmolde.pt");
         _userRepository.Setup(r => r.GetByIdAsync(5)).ReturnsAsync(existing);
 
-        var update = BuildUser(id: 5, nome: "  Nome Novo  ", email: "  NOVO@TipMolde.PT ");
+        var update = BuildUpdateUserDto(nome: "  Nome Novo  ", email: "  NOVO@TipMolde.PT ");
 
         // ACT
-        await _sut.UpdateAsync(update);
+        await _sut.UpdateAsync(5, update);
 
         // ASSERT
         _userRepository.Verify(r => r.UpdateAsync(It.Is<User>(u =>

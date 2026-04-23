@@ -23,7 +23,6 @@ namespace TipMolde.API.Controllers
         /// Construtor de EncomendaController.
         /// </summary>
         /// <param name="encomendaService">Servico responsavel pelos casos de uso de encomenda.</param>
-        /// <param name="mapper">Mapper para conversao de DTOs de entrada para entidade.</param>
         /// <param name="logger">Logger para rastreabilidade das operacoes do controller.</param>
         public EncomendaController(
             IEncomendaService encomendaService,
@@ -112,7 +111,7 @@ namespace TipMolde.API.Controllers
                     "Pedido invalido",
                     "Page e pageSize devem ser >= 1."));
 
-            var encomendas = await _encomendaService.GetEncomendasPorConcluirAsync();
+            var encomendas = await _encomendaService.GetEncomendasPorConcluirAsync(page, pageSize);
             return Ok(encomendas);
         }
 

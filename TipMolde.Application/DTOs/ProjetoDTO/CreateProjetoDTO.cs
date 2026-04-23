@@ -3,6 +3,12 @@ using TipMolde.Domain.Enums;
 
 namespace TipMolde.Application.DTOs.ProjetoDTO
 {
+    /// <summary>
+    /// Representa o pedido de criacao de um projeto de desenho.
+    /// </summary>
+    /// <remarks>
+    /// O contrato inclui o caminho funcional da pasta no servidor, que passa a ser persistido no agregado.
+    /// </remarks>
     public class CreateProjetoDTO
     {
         [Required, MaxLength(100)]

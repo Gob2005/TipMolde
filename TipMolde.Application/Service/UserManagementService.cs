@@ -1,4 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
+using AutoMapper;
+using TipMolde.Application.DTOs.UserDTO;
 using TipMolde.Application.Interface;
 using TipMolde.Application.Interface.Utilizador.ISecurity;
 using TipMolde.Application.Interface.Utilizador.IUser;
@@ -11,38 +13,60 @@ namespace TipMolde.Application.Service
     {
         private readonly IUserRepository _userRepository;
         private readonly IPasswordHasherService _passwordHasher;
+        private readonly IMapper _mapper;
         private readonly ILogger<UserManagementService> _logger;
 
-        public UserManagementService(IUserRepository userRepository, IPasswordHasherService passwordHasher, ILogger<UserManagementService> logger)
+        public UserManagementService(
+            IUserRepository userRepository,
+            IPasswordHasherService passwordHasher,
+            IMapper mapper,
+            ILogger<UserManagementService> logger)
         {
             _userRepository = userRepository;
             _passwordHasher = passwordHasher;
+            _mapper = mapper;
             _logger = logger;
         }
 
-        public Task<PagedResult<User>> GetAllAsync(int page = 1, int pageSize = 10) =>
-            _userRepository.GetAllAsync(page, pageSize);
-
-        public Task<User?> GetByIdAsync(int id)
+        public async Task<PagedResult<ResponseUserDTO>> GetAllAsync(int page = 1, int pageSize = 10)
         {
-            return _userRepository.GetByIdAsync(id);
+            var result = await _userRepository.GetAllAsync(page, pageSize);
+            var mappedItems = _mapper.Map<IEnumerable<ResponseUserDTO>>(result.Items);
+            return new PagedResult<ResponseUserDTO>(mappedItems, result.TotalCount, result.CurrentPage, result.PageSize);
         }
 
-        public Task<IEnumerable<User>> SearchByNameAsync(string searchTerm)
+        public async Task<ResponseUserDTO?> GetByIdAsync(int id)
+        {
+            var user = await _userRepository.GetByIdAsync(id);
+            return user == null ? null : _mapper.Map<ResponseUserDTO>(user);
+        }
+
+        public async Task<PagedResult<ResponseUserDTO>> SearchByNameAsync(string searchTerm, int page = 1, int pageSize = 10)
         {
             if (string.IsNullOrWhiteSpace(searchTerm))
-                return Task.FromResult(Enumerable.Empty<User>());
+                return new PagedResult<ResponseUserDTO>(Enumerable.Empty<ResponseUserDTO>(), 0, page, pageSize);
 
-            return _userRepository.SearchByNameAsync(searchTerm);
+            var users = await _userRepository.SearchByNameAsync(searchTerm);
+            var normalizedPage = page < 1 ? 1 : page;
+            var normalizedPageSize = pageSize < 1 ? 10 : pageSize > 200 ? 200 : pageSize;
+            var totalCount = users.Count();
+            var pagedItems = users
+                .Skip((normalizedPage - 1) * normalizedPageSize)
+                .Take(normalizedPageSize);
+            var mappedItems = _mapper.Map<IEnumerable<ResponseUserDTO>>(pagedItems);
+
+            return new PagedResult<ResponseUserDTO>(mappedItems, totalCount, normalizedPage, normalizedPageSize);
         }
 
-        public Task<User?> GetByEmailAsync(string email)
+        public async Task<ResponseUserDTO?> GetByEmailAsync(string email)
         {
-            return _userRepository.GetByEmailAsync(email);
+            var user = await _userRepository.GetByEmailAsync(email);
+            return user == null ? null : _mapper.Map<ResponseUserDTO>(user);
         }
 
-        public async Task<User> CreateAsync(User user)
+        public async Task<ResponseUserDTO> CreateAsync(CreateUserDTO dto)
         {
+            var user = _mapper.Map<User>(dto);
             _logger.LogInformation("Criacao de utilizador iniciada para email {Email}", user.Email);
             user.Email = user.Email.Trim().ToLowerInvariant();
 
@@ -63,24 +87,33 @@ namespace TipMolde.Application.Service
 
             await _userRepository.AddAsync(user);
             _logger.LogInformation("Utilizador criado com sucesso {UserId}", user.User_id);
-            return user;
+            return _mapper.Map<ResponseUserDTO>(user);
         }
 
-        public async Task UpdateAsync(User user)
+        public async Task UpdateAsync(int id, UpdateUserDTO dto)
         {
-            _logger.LogInformation("Atualizacao de utilizador iniciada {UserId}", user.User_id);
-            var existing = await _userRepository.GetByIdAsync(user.User_id);
+            _logger.LogInformation("Atualizacao de utilizador iniciada {UserId}", id);
+            var existing = await _userRepository.GetByIdAsync(id);
             if (existing == null)
             {
-                _logger.LogWarning("Atualizacao falhou: utilizador nao encontrado {UserId}", user.User_id);
-                throw new KeyNotFoundException($"Utilizador com ID {user.User_id} não encontrado.");
+                _logger.LogWarning("Atualizacao falhou: utilizador nao encontrado {UserId}", id);
+                throw new KeyNotFoundException($"Utilizador com ID {id} não encontrado.");
             }
 
-            existing.Nome = string.IsNullOrWhiteSpace(user.Nome) ? existing.Nome : user.Nome.Trim();
-            existing.Email = string.IsNullOrWhiteSpace(user.Email) ? existing.Email : user.Email.Trim().ToLowerInvariant();
+            var hasChanges =
+                !string.IsNullOrWhiteSpace(dto.Nome) ||
+                !string.IsNullOrWhiteSpace(dto.Email);
+
+            if (!hasChanges)
+                throw new ArgumentException("Pelo menos um campo deve ser informado para atualizacao.");
+
+            _mapper.Map(dto, existing);
+
+            if (!string.IsNullOrWhiteSpace(dto.Email))
+                existing.Email = existing.Email.Trim().ToLowerInvariant();
 
             await _userRepository.UpdateAsync(existing);
-            _logger.LogInformation("Utilizador atualizado com sucesso {UserId}", user.User_id);
+            _logger.LogInformation("Utilizador atualizado com sucesso {UserId}", id);
         }
 
         public async Task ChangeRoleAsync(int userId, UserRole newRole)

@@ -1,11 +1,9 @@
-using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using TipMolde.Application.DTOs.UserDTO;
 using TipMolde.Application.Interface.Utilizador.IUser;
-using TipMolde.Domain.Entities;
 using TipMolde.Domain.Enums;
 
 namespace TipMolde.API.Controllers
@@ -48,19 +46,16 @@ namespace TipMolde.API.Controllers
     {
         private readonly IUserManagementService _userService;
         private readonly ILogger<UserController> _logger;
-        private readonly IMapper _mapper;
 
         /// <summary>
         /// Construtor de UserController.
         /// </summary>
         /// <param name="userService">Servico responsavel pelos casos de uso de utilizador.</param>
         /// <param name="logger">Logger para rastreabilidade de operacoes administrativas.</param>
-        /// <param name="mapper">Mapper para conversao entre DTOs e entidades de dominio.</param>
-        public UserController(IUserManagementService userService, ILogger<UserController> logger, IMapper mapper)
+        public UserController(IUserManagementService userService, ILogger<UserController> logger)
         {
             _userService = userService;
             _logger = logger;
-            _mapper = mapper;
         }
 
         /// <summary>
@@ -82,14 +77,13 @@ namespace TipMolde.API.Controllers
             }
 
             var result = await _userService.GetAllAsync(page, pageSize);
-            var items = _mapper.Map<IEnumerable<ResponseUserDTO>>(result.Items);
 
             return Ok(new
             {
                 result.TotalCount,
                 result.CurrentPage,
                 result.PageSize,
-                Items = items
+                Items = result.Items
             });
         }
 
@@ -110,8 +104,7 @@ namespace TipMolde.API.Controllers
                     "Recurso nao encontrado",
                     $"Utilizador com ID {id} nao encontrado."));
             }
-
-            return Ok(_mapper.Map<ResponseUserDTO>(user));
+            return Ok(user);
         }
 
         /// <summary>
@@ -121,7 +114,7 @@ namespace TipMolde.API.Controllers
         /// <returns>Resultado HTTP com utilizadores correspondentes ao termo informado.</returns>
         [Authorize(Roles = "ADMIN")]
         [HttpGet("search")]
-        public async Task<IActionResult> SearchByName([FromQuery] string searchTerm)
+        public async Task<IActionResult> SearchByName([FromQuery] string searchTerm, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
             if (string.IsNullOrWhiteSpace(searchTerm))
             {
@@ -131,15 +124,23 @@ namespace TipMolde.API.Controllers
                     "O parametro searchTerm e obrigatorio."));
             }
 
-            var users = await _userService.SearchByNameAsync(searchTerm);
-            return Ok(_mapper.Map<IEnumerable<ResponseUserDTO>>(users));
+            if (page < 1 || pageSize < 1)
+            {
+                return BadRequest(CreateProblem(
+                    StatusCodes.Status400BadRequest,
+                    "Pedido invalido",
+                    "Os parametros de paginacao sao invalidos. Regras: page >= 1."));
+            }
+
+            var users = await _userService.SearchByNameAsync(searchTerm, page, pageSize);
+            return Ok(users);
         }
 
         /// <summary>
         /// Cria um novo utilizador.
         /// </summary>
         /// <remarks>
-        /// Valida o body de entrada, mapeia para entidade de dominio e regista a operacao com o administrador autenticado.
+        /// Valida o body de entrada e regista a operacao com o administrador autenticado.
         /// </remarks>
         /// <param name="dto">Dados de criacao do utilizador.</param>
         /// <returns>Resultado HTTP de criacao com o recurso criado.</returns>
@@ -157,15 +158,13 @@ namespace TipMolde.API.Controllers
                     "O body do pedido e invalido."));
             }
 
-            var user = _mapper.Map<User>(dto);
-
-            var createdUser = await _userService.CreateAsync(user);
+            var createdUser = await _userService.CreateAsync(dto);
             _logger.LogInformation("Utilizador {Email} criado com sucesso por admin {AdminId}", dto.Email, GetAuthenticatedUserId());
 
             return CreatedAtAction(
                 nameof(GetUserById),
                 new { id = createdUser.User_id },
-                _mapper.Map<ResponseUserDTO>(createdUser));
+                createdUser);
         }
 
         /// <summary>
@@ -229,9 +228,7 @@ namespace TipMolde.API.Controllers
                     $"Utilizador com ID {id} nao encontrado."));
             }
 
-            _mapper.Map(dto, user);
-
-            await _userService.UpdateAsync(user);
+            await _userService.UpdateAsync(id, dto);
             return NoContent();
         }
 

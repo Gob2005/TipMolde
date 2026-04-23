@@ -1,102 +1,179 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using MySqlX.XDevAPI.Common;
 using TipMolde.Application.DTOs.ProjetoDTO;
 using TipMolde.Application.Interface.Desenho.IProjeto;
-using TipMolde.Domain.Entities.Desenho;
 
 namespace TipMolde.API.Controllers
 {
+    /// <summary>
+    /// Disponibiliza endpoints HTTP para a feature Projeto.
+    /// </summary>
+    /// <remarks>
+    /// O controller valida input HTTP, delega regras de negocio ao servico
+    /// e devolve contratos DTO estaveis para os consumidores da API.
+    /// </remarks>
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/projetos")]
     public class ProjetoController : ControllerBase
     {
-        private readonly IProjetoService _service;
+        private readonly IProjetoService _projetoService;
+        private readonly ILogger<ProjetoController> _logger;
 
-        public ProjetoController(IProjetoService service)
+        /// <summary>
+        /// Construtor de ProjetoController.
+        /// </summary>
+        /// <param name="projetoService">Servico responsavel pelos casos de uso da feature Projeto.</param>
+        /// <param name="logger">Logger para rastreabilidade das operacoes HTTP.</param>
+        public ProjetoController(
+            IProjetoService projetoService,
+            ILogger<ProjetoController> logger)
         {
-            _service = service;
+            _projetoService = projetoService;
+            _logger = logger;
         }
 
+        /// <summary>
+        /// Lista projetos com paginacao.
+        /// </summary>
+        /// <param name="page">Pagina atual.</param>
+        /// <param name="pageSize">Tamanho da pagina.</param>
+        /// <returns>HTTP 200 com resultado paginado; HTTP 400 para paginacao invalida.</returns>
         [Authorize(Roles = "ADMIN,GESTOR_DESENHO")]
-        [HttpGet("all")]
-        public async Task<IActionResult> GetAll()
+        [HttpGet]
+        public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
-            var result = await _service.GetAllAsync();
-            return Ok(new
-            {
-                result.TotalCount,
-                result.CurrentPage,
-                result.PageSize,
-                Items = result.Items
-            });
+            if (page < 1 || pageSize < 1)
+                return BadRequest(CreateProblem(StatusCodes.Status400BadRequest, "Pedido invalido", "Page e pageSize devem ser >= 1."));
+
+            var result = await _projetoService.GetAllAsync(page, pageSize);
+            return Ok(result);
         }
 
-            [Authorize(Roles = "ADMIN,GESTOR_DESENHO")]
-        [HttpGet("by-id")]
+        /// <summary>
+        /// Obtem um projeto por ID.
+        /// </summary>
+        /// <param name="id">Identificador interno do projeto.</param>
+        /// <returns>HTTP 200 com o projeto; HTTP 404 quando nao encontrado.</returns>
+        [Authorize(Roles = "ADMIN,GESTOR_DESENHO")]
+        [HttpGet("{id:int}")]
         public async Task<IActionResult> GetById(int id)
         {
-            var projeto = await _service.GetByIdAsync(id);
-            if (projeto == null) return NotFound();
+            var projeto = await _projetoService.GetByIdAsync(id);
+            if (projeto == null)
+                return NotFound(CreateProblem(StatusCodes.Status404NotFound, "Recurso nao encontrado", $"Projeto com ID {id} nao encontrado."));
+
             return Ok(projeto);
         }
 
+        /// <summary>
+        /// Obtem um projeto com as revisoes associadas.
+        /// </summary>
+        /// <param name="id">Identificador interno do projeto.</param>
+        /// <returns>HTTP 200 com o detalhe enriquecido; HTTP 404 quando nao encontrado.</returns>
         [Authorize(Roles = "ADMIN,GESTOR_DESENHO")]
-        [HttpGet("with-revisoes")]
+        [HttpGet("{id:int}/com-revisoes")]
         public async Task<IActionResult> GetWithRevisoes(int id)
         {
-            var projeto = await _service.GetWithRevisoesAsync(id);
-            if (projeto == null) return NotFound();
+            var projeto = await _projetoService.GetWithRevisoesAsync(id);
+            if (projeto == null)
+                return NotFound(CreateProblem(StatusCodes.Status404NotFound, "Recurso nao encontrado", $"Projeto com ID {id} nao encontrado."));
+
             return Ok(projeto);
         }
 
+        /// <summary>
+        /// Lista projetos associados a um molde.
+        /// </summary>
+        /// <param name="moldeId">Identificador do molde.</param>
+        /// <returns>HTTP 200 com a colecao de projetos associados.</returns>
         [Authorize(Roles = "ADMIN,GESTOR_DESENHO")]
-        [HttpGet("by-molde")]
-        public async Task<IActionResult> GetByMoldeId(int moldeId) =>
-            Ok(await _service.GetByMoldeIdAsync(moldeId));
+        [HttpGet("por-molde/{moldeId:int}")]
+        public async Task<IActionResult> GetByMoldeId(int moldeId)
+        {
+            if (moldeId < 1)
+                return BadRequest(CreateProblem(StatusCodes.Status400BadRequest, "Pedido invalido", "MoldeId deve ser >= 1."));
 
+            var projetos = await _projetoService.GetByMoldeIdAsync(moldeId);
+            return Ok(projetos);
+        }
+
+        /// <summary>
+        /// Cria um novo projeto.
+        /// </summary>
+        /// <remarks>
+        /// O contrato persiste tambem o campo CaminhoPastaServidor como parte do agregado Projeto.
+        /// </remarks>
+        /// <param name="dto">Dados de criacao do projeto.</param>
+        /// <returns>HTTP 201 com o projeto criado; HTTP 400 quando o body e invalido.</returns>
         [Authorize(Roles = "ADMIN,GESTOR_DESENHO")]
-        [HttpPost("create")]
+        [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateProjetoDTO dto)
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
+            if (!ModelState.IsValid)
+                return BadRequest(CreateProblem(StatusCodes.Status400BadRequest, "Pedido invalido", "Dados de criacao invalidos."));
 
-            var projeto = new Projeto
-            {
-                NomeProjeto = dto.NomeProjeto.Trim(),
-                SoftwareUtilizado = dto.SoftwareUtilizado.Trim(),
-                TipoProjeto = dto.TipoProjeto,
-                Molde_id = dto.Molde_id
-            };
+            var created = await _projetoService.CreateAsync(dto);
 
-            var created = await _service.CreateAsync(projeto);
+            _logger.LogInformation("Controller: Projeto {ProjetoId} criado", created.Projeto_id);
+
             return CreatedAtAction(nameof(GetById), new { id = created.Projeto_id }, created);
         }
 
+        /// <summary>
+        /// Atualiza parcialmente um projeto existente.
+        /// </summary>
+        /// <remarks>
+        /// Campos nao enviados devem preservar o valor atual do agregado.
+        /// </remarks>
+        /// <param name="id">Identificador do projeto a atualizar.</param>
+        /// <param name="dto">Dados de atualizacao parcial.</param>
+        /// <returns>HTTP 204 quando a atualizacao e concluida; HTTP 400 quando o body e invalido.</returns>
         [Authorize(Roles = "ADMIN,GESTOR_DESENHO")]
-        [HttpPut("update/{id:int}")]
+        [HttpPut("{id:int}")]
         public async Task<IActionResult> Update(int id, [FromBody] UpdateProjetoDTO dto)
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
+            if (!ModelState.IsValid)
+                return BadRequest(CreateProblem(StatusCodes.Status400BadRequest, "Pedido invalido", "Dados de atualizacao invalidos."));
 
-            var projeto = new Projeto
-            {
-                Projeto_id = id,
-                NomeProjeto = dto.NomeProjeto ?? string.Empty,
-                SoftwareUtilizado = dto.SoftwareUtilizado ?? string.Empty,
-                TipoProjeto = dto.TipoProjeto ?? default
-            };
+            await _projetoService.UpdateAsync(id, dto);
 
-            await _service.UpdateAsync(projeto);
+            _logger.LogInformation("Controller: Projeto {ProjetoId} atualizado", id);
+
             return NoContent();
         }
 
+        /// <summary>
+        /// Remove um projeto.
+        /// </summary>
+        /// <param name="id">Identificador do projeto a remover.</param>
+        /// <returns>HTTP 204 quando a remocao e concluida.</returns>
         [Authorize(Roles = "ADMIN")]
-        [HttpDelete("delete/{id:int}")]
+        [HttpDelete("{id:int}")]
         public async Task<IActionResult> Delete(int id)
         {
-            await _service.DeleteAsync(id);
+            await _projetoService.DeleteAsync(id);
+
+            _logger.LogInformation("Controller: Projeto {ProjetoId} removido", id);
+
             return NoContent();
+        }
+
+        /// <summary>
+        /// Cria objeto ProblemDetails para respostas de erro no controller.
+        /// </summary>
+        /// <param name="status">Codigo HTTP do erro.</param>
+        /// <param name="title">Titulo curto do erro.</param>
+        /// <param name="detail">Detalhe funcional do erro.</param>
+        /// <returns>Objeto ProblemDetails preenchido com contexto do request atual.</returns>
+        private ProblemDetails CreateProblem(int status, string title, string detail)
+        {
+            return new ProblemDetails
+            {
+                Status = status,
+                Title = title,
+                Detail = detail,
+                Instance = HttpContext?.Request?.Path
+            };
         }
     }
 }

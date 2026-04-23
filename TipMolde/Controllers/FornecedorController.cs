@@ -1,109 +1,200 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using MySqlX.XDevAPI.Common;
 using TipMolde.Application.DTOs.FornecedorDTO;
 using TipMolde.Application.Interface.Comercio.IFornecedor;
-using TipMolde.Domain.Entities.Comercio;
 
 namespace TipMolde.API.Controllers
 {
+    /// <summary>
+    /// Disponibiliza endpoints para gestao de fornecedores no modulo comercial.
+    /// </summary>
+    /// <remarks>
+    /// Recebe pedidos HTTP, valida parametros de entrada e delega regras de negocio ao servico de fornecedor.
+    /// </remarks>
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/fornecedores")]
     public class FornecedorController : ControllerBase
     {
         private readonly IFornecedorService _service;
+        private readonly ILogger<FornecedorController> _logger;
 
-        public FornecedorController(IFornecedorService service)
+        /// <summary>
+        /// Construtor de FornecedorController.
+        /// </summary>
+        /// <param name="service">Servico responsavel pelos casos de uso de fornecedor.</param>
+        /// <param name="logger">Logger para registo de operacoes do controlador.</param>
+        public FornecedorController(
+            IFornecedorService service,
+            ILogger<FornecedorController> logger)
         {
             _service = service;
+            _logger = logger;
         }
 
+        /// <summary>
+        /// Lista fornecedores com paginacao.
+        /// </summary>
+        /// <param name="page">Numero da pagina a consultar.</param>
+        /// <param name="pageSize">Quantidade de itens por pagina.</param>
+        /// <returns>Resultado HTTP com lista paginada de fornecedores.</returns>
         [Authorize(Roles = "ADMIN,GESTOR_COMERCIAL")]
-        [HttpGet("all")]
-        public async Task<IActionResult> GetAll()
+        [HttpGet]
+        public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
-            var result = await _service.GetAllAsync();
-            return Ok(new
+            if (page < 1 || pageSize < 1)
             {
-                result.TotalCount,
-                result.CurrentPage,
-                result.PageSize,
-                Items = result.Items.Select(ToResponse)
-            });
+                return BadRequest(CreateProblem(
+                    StatusCodes.Status400BadRequest,
+                    "Pedido invalido",
+                    "Page e pageSize devem ser >= 1."));
+            }
+
+            var result = await _service.GetAllAsync(page, pageSize);
+            return Ok(result);
         }
 
+        /// <summary>
+        /// Obtem um fornecedor pelo identificador.
+        /// </summary>
+        /// <param name="id">Identificador unico do fornecedor.</param>
+        /// <returns>Resultado HTTP com o fornecedor encontrado ou erro de nao encontrado.</returns>
         [Authorize(Roles = "ADMIN,GESTOR_COMERCIAL")]
-        [HttpGet("by-id")]
+        [HttpGet("{id:int}")]
         public async Task<IActionResult> GetById(int id)
         {
             var fornecedor = await _service.GetByIdAsync(id);
-            if (fornecedor == null) return NotFound();
-            return Ok(ToResponse(fornecedor));
+            if (fornecedor == null)
+            {
+                return NotFound(CreateProblem(
+                    StatusCodes.Status404NotFound,
+                    "Recurso nao encontrado",
+                    $"Fornecedor com ID {id} nao encontrado."));
+            }
+
+            return Ok(fornecedor);
         }
 
+        /// <summary>
+        /// Pesquisa fornecedores por nome.
+        /// </summary>
+        /// <remarks>
+        /// A pesquisa e parcial e devolve um resultado paginado com metadados de navegacao.
+        /// </remarks>
+        /// <param name="searchTerm">Termo parcial de pesquisa aplicado ao nome do fornecedor.</param>
+        /// <param name="page">Numero da pagina a consultar.</param>
+        /// <param name="pageSize">Quantidade de itens por pagina.</param>
+        /// <returns>Resultado HTTP com fornecedores que correspondem ao termo informado.</returns>
         [Authorize(Roles = "ADMIN,GESTOR_COMERCIAL")]
-        [HttpGet("search-name")]
-        public async Task<IActionResult> SearchByName([FromQuery] string searchTerm)
+        [HttpGet("search/by-name")]
+        public async Task<IActionResult> SearchByName(
+            [FromQuery] string searchTerm,
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 10)
         {
-            var fornecedores = await _service.SearchByNameAsync(searchTerm);
-            return Ok(fornecedores.Select(ToResponse));
+            if (string.IsNullOrWhiteSpace(searchTerm))
+            {
+                return BadRequest(CreateProblem(
+                    StatusCodes.Status400BadRequest,
+                    "Pedido invalido",
+                    "O parametro searchTerm e obrigatorio."));
+            }
+
+            if (page < 1 || pageSize < 1)
+            {
+                return BadRequest(CreateProblem(
+                    StatusCodes.Status400BadRequest,
+                    "Pedido invalido",
+                    "Page e pageSize devem ser >= 1."));
+            }
+
+            var result = await _service.SearchByNameAsync(searchTerm, page, pageSize);
+            return Ok(result);
         }
 
+        /// <summary>
+        /// Cria um novo fornecedor.
+        /// </summary>
+        /// <remarks>
+        /// O servico valida obrigatoriedade, unicidade do NIF e normaliza os campos textuais antes da persistencia.
+        /// </remarks>
+        /// <param name="dto">Dados de criacao do fornecedor.</param>
+        /// <returns>Resultado HTTP de criacao com o fornecedor persistido.</returns>
         [Authorize(Roles = "ADMIN,GESTOR_COMERCIAL")]
-        [HttpPost("create")]
+        [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateFornecedorDTO dto)
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
-
-            var fornecedor = new Fornecedor
+            if (!ModelState.IsValid)
             {
-                Nome = dto.Nome.Trim(),
-                NIF = dto.NIF.Trim(),
-                Morada = dto.Morada,
-                Email = dto.Email,
-                Telefone = dto.Telefone
-            };
+                return BadRequest(CreateProblem(
+                    StatusCodes.Status400BadRequest,
+                    "Pedido invalido",
+                    "Dados de criacao invalidos."));
+            }
 
-            var created = await _service.CreateAsync(fornecedor);
-            return CreatedAtAction(nameof(GetById), new { id = created.Fornecedor_id }, ToResponse(created));
+            var created = await _service.CreateAsync(dto);
+
+            _logger.LogInformation("Fornecedor {FornecedorId} criado com sucesso", created.FornecedorId);
+
+            return CreatedAtAction(nameof(GetById), new { id = created.FornecedorId }, created);
         }
 
+        /// <summary>
+        /// Atualiza os dados de um fornecedor existente.
+        /// </summary>
+        /// <param name="id">Identificador do fornecedor a atualizar.</param>
+        /// <param name="dto">Dados enviados para atualizacao do fornecedor.</param>
+        /// <returns>Resultado HTTP sem conteudo quando a atualizacao e concluida.</returns>
         [Authorize(Roles = "ADMIN,GESTOR_COMERCIAL")]
-        [HttpPut("update/{id:int}")]
+        [HttpPut("{id:int}")]
         public async Task<IActionResult> Update(int id, [FromBody] UpdateFornecedorDTO dto)
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
-
-            var fornecedor = new Fornecedor
+            if (!ModelState.IsValid)
             {
-                Fornecedor_id = id,
-                Nome = dto.Nome ?? string.Empty,
-                NIF = dto.NIF ?? string.Empty,
-                Morada = dto.Morada ?? string.Empty,
-                Email = dto.Email,
-                Telefone = dto.Telefone
-            };
+                return BadRequest(CreateProblem(
+                    StatusCodes.Status400BadRequest,
+                    "Pedido invalido",
+                    "Dados de atualizacao invalidos."));
+            }
 
-            await _service.UpdateAsync(fornecedor);
+            await _service.UpdateAsync(id, dto);
+
+            _logger.LogInformation("Fornecedor {FornecedorId} atualizado com sucesso", id);
+
             return NoContent();
         }
 
+        /// <summary>
+        /// Remove um fornecedor pelo identificador.
+        /// </summary>
+        /// <param name="id">Identificador do fornecedor a remover.</param>
+        /// <returns>Resultado HTTP sem conteudo quando a remocao e concluida.</returns>
         [Authorize(Roles = "ADMIN,GESTOR_COMERCIAL")]
-        [HttpDelete("delete/{id:int}")]
+        [HttpDelete("{id:int}")]
         public async Task<IActionResult> Delete(int id)
         {
             await _service.DeleteAsync(id);
+
+            _logger.LogInformation("Fornecedor {FornecedorId} removido com sucesso", id);
+
             return NoContent();
         }
 
-        private static ResponseFornecedorDTO ToResponse(Fornecedor f) => new()
+        /// <summary>
+        /// Cria um objeto de erro padrao no formato ProblemDetails.
+        /// </summary>
+        /// <param name="status">Codigo de estado HTTP da resposta.</param>
+        /// <param name="title">Titulo curto do problema.</param>
+        /// <param name="detail">Descricao detalhada do problema.</param>
+        /// <returns>Instancia de ProblemDetails preenchida com o contexto do pedido.</returns>
+        private ProblemDetails CreateProblem(int status, string title, string detail)
         {
-            FornecedorId = f.Fornecedor_id,
-            Nome = f.Nome,
-            NIF = f.NIF,
-            Morada = f.Morada,
-            Email = f.Email,
-            Telefone = f.Telefone
-        };
+            return new ProblemDetails
+            {
+                Status = status,
+                Title = title,
+                Detail = detail,
+                Instance = HttpContext?.Request?.Path
+            };
+        }
     }
 }

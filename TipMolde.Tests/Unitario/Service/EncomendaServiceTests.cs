@@ -55,6 +55,32 @@ public class EncomendaServiceTests
                 Cliente_id = e.Cliente_id
             }).ToList());
 
+        _mapper.Setup(m => m.Map<Encomenda>(It.IsAny<CreateEncomendaDTO>()))
+            .Returns((CreateEncomendaDTO dto) => new Encomenda
+            {
+                Cliente_id = dto.Cliente_id,
+                NumeroEncomendaCliente = dto.NumeroEncomendaCliente,
+                NumeroProjetoCliente = dto.NumeroProjetoCliente,
+                NomeServicoCliente = dto.NomeServicoCliente,
+                NomeResponsavelCliente = dto.NomeResponsavelCliente
+            });
+
+        _mapper.Setup(m => m.Map(It.IsAny<UpdateEncomendaDTO>(), It.IsAny<Encomenda>()))
+            .Callback((UpdateEncomendaDTO dto, Encomenda entity) =>
+            {
+                if (!string.IsNullOrWhiteSpace(dto.NumeroEncomendaCliente))
+                    entity.NumeroEncomendaCliente = dto.NumeroEncomendaCliente.Trim();
+
+                if (!string.IsNullOrWhiteSpace(dto.NumeroProjetoCliente))
+                    entity.NumeroProjetoCliente = dto.NumeroProjetoCliente.Trim();
+
+                if (!string.IsNullOrWhiteSpace(dto.NomeServicoCliente))
+                    entity.NomeServicoCliente = dto.NomeServicoCliente.Trim();
+
+                if (!string.IsNullOrWhiteSpace(dto.NomeResponsavelCliente))
+                    entity.NomeResponsavelCliente = dto.NomeResponsavelCliente.Trim();
+            });
+
         _sut = new EncomendaService(
             _encomendaRepository.Object,
             _clienteRepository.Object,
@@ -161,7 +187,9 @@ public class EncomendaServiceTests
             NIF = "123456789",
             Sigla = "CLI"
         });
-        _encomendaRepository.Setup(r => r.ExistsNumeroEncomendaClienteAsync("ENC-200", null)).ReturnsAsync(false);
+        _encomendaRepository
+            .Setup(r => r.ExistsNumeroEncomendaClienteAsync("ENC-200", It.IsAny<int?>()))
+            .ReturnsAsync(false);
         _encomendaRepository.Setup(r => r.AddAsync(It.IsAny<Encomenda>()))
             .ReturnsAsync((Encomenda e) =>
             {

@@ -141,16 +141,10 @@ namespace TipMolde.Application.Service
             if (numeroDuplicado)
                 throw new BusinessConflictException($"Ja existe uma encomenda com o numero '{numeroNormalizado}'.");
 
-            var novaEncomenda = new Encomenda
-            {
-                NumeroEncomendaCliente = numeroNormalizado,
-                NumeroProjetoCliente = dto.NumeroProjetoCliente,
-                NomeServicoCliente = dto.NomeServicoCliente,
-                NomeResponsavelCliente = dto.NomeResponsavelCliente,
-                Cliente_id = dto.Cliente_id,
-                Estado = EstadoEncomenda.CONFIRMADA,
-                DataRegisto = DateTime.UtcNow
-            };
+            var novaEncomenda = _mapper.Map<Encomenda>(dto);
+            novaEncomenda.NumeroEncomendaCliente = numeroNormalizado;
+            novaEncomenda.Estado = EstadoEncomenda.CONFIRMADA;
+            novaEncomenda.DataRegisto = DateTime.UtcNow;
 
             await _encomendaRepository.AddAsync(novaEncomenda);
             _logger.LogInformation("Encomenda criada com sucesso {EncomendaId}", novaEncomenda.Encomenda_id);
@@ -173,6 +167,16 @@ namespace TipMolde.Application.Service
             var existente = await _encomendaRepository.GetByIdAsync(id);
             if (existente == null)
                 throw new KeyNotFoundException($"Encomenda com ID {id} nao encontrada.");
+
+            var hasChanges =
+                !string.IsNullOrWhiteSpace(dto.NumeroEncomendaCliente) ||
+                !string.IsNullOrWhiteSpace(dto.NumeroProjetoCliente) ||
+                !string.IsNullOrWhiteSpace(dto.NomeServicoCliente) ||
+                !string.IsNullOrWhiteSpace(dto.NomeResponsavelCliente);
+
+            if (!hasChanges)
+                throw new ArgumentException("Pelo menos um campo deve ser informado para atualizacao.");
+
             if (!string.IsNullOrWhiteSpace(dto.NumeroEncomendaCliente))
             {
                 var novoNumero = dto.NumeroEncomendaCliente.Trim();
@@ -183,13 +187,10 @@ namespace TipMolde.Application.Service
                     if (numeroDuplicado)
                         throw new BusinessConflictException($"Ja existe uma encomenda com o numero '{novoNumero}'.");
 
-                    existente.NumeroEncomendaCliente = novoNumero;
                 }
             }
 
-            existente.NumeroProjetoCliente = dto.NumeroProjetoCliente ?? existente.NumeroProjetoCliente;
-            existente.NomeServicoCliente = dto.NomeServicoCliente ?? existente.NomeServicoCliente;
-            existente.NomeResponsavelCliente = dto.NomeResponsavelCliente ?? existente.NomeResponsavelCliente;
+            _mapper.Map(dto, existente);
 
             await _encomendaRepository.UpdateAsync(existente);
             _logger.LogInformation("Encomenda atualizada com sucesso {EncomendaId}", existente.Encomenda_id);
@@ -217,7 +218,7 @@ namespace TipMolde.Application.Service
                 dto.Estado);
 
             ValidarTransicaoEstado(encomenda.Estado, dto.Estado);
-            encomenda.Estado = dto.Estado;
+            _mapper.Map(dto, encomenda);
 
             await _encomendaRepository.UpdateAsync(encomenda);
         }

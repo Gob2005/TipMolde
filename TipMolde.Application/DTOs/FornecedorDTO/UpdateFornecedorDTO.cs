@@ -2,6 +2,12 @@
 
 namespace TipMolde.Application.DTOs.FornecedorDTO
 {
+    /// <summary>
+    /// DTO de entrada para atualizacao parcial de um fornecedor.
+    /// </summary>
+    /// <remarks>
+    /// Todos os campos sao opcionais para permitir updates parciais sem obrigar o cliente a reenviar o registo completo.
+    /// </remarks>
     public class UpdateFornecedorDTO
     {
         [MinLength(3)]
