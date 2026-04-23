@@ -9,6 +9,7 @@ using TipMolde.Application.Service;
 namespace TipMolde.Tests.Unitario.Service;
 
 [TestFixture]
+[Category("Unit")]
 public class FasesProducaoServiceTests
 {
     private Mock<IFasesProducaoRepository> _repository = null!;
@@ -24,7 +25,7 @@ public class FasesProducaoServiceTests
     private static FasesProducao BuildFase(
         int id = 1,
         Nome_fases nome = Nome_fases.MAQUINACAO,
-        string descricao = "Fase de maquinação") => new()
+        string descricao = "Fase de maquinaï¿½ï¿½o") => new()
         {
             Fases_producao_id = id,
             Nome = nome,
@@ -68,7 +69,7 @@ public class FasesProducaoServiceTests
         _repository.Setup(r => r.GetByNomeAsync(nome)).ReturnsAsync((FasesProducao?)null);
 
         // Act
-        var result = await _sut.CreateAsync(new FasesProducao { Nome = nome, Descricao = "Descrição de teste" });
+        var result = await _sut.CreateAsync(new FasesProducao { Nome = nome, Descricao = "Descriï¿½ï¿½o de teste" });
 
         // Assert
         result.Nome.Should().Be(nome);
@@ -86,7 +87,7 @@ public class FasesProducaoServiceTests
         {
             Fases_producao_id = 1,
             Nome = Nome_fases.EROSAO,
-            Descricao = "Descrição atualizada"
+            Descricao = "Descriï¿½ï¿½o atualizada"
         };
 
         // Act
@@ -95,7 +96,7 @@ public class FasesProducaoServiceTests
         // Assert
         _repository.Verify(r => r.UpdateAsync(It.Is<FasesProducao>(f =>
             f.Nome == Nome_fases.EROSAO &&
-            f.Descricao == "Descrição atualizada")), Times.Once);
+            f.Descricao == "Descriï¿½ï¿½o atualizada")), Times.Once);
     }
 
     [Test]
@@ -124,7 +125,7 @@ public class FasesProducaoServiceTests
         {
             Fases_producao_id = 1,
             Nome = Nome_fases.EROSAO,
-            Descricao = "Sem conflito na descrição"
+            Descricao = "Sem conflito na descriï¿½ï¿½o"
         };
 
         // Act
@@ -145,7 +146,7 @@ public class FasesProducaoServiceTests
         {
             Fases_producao_id = 1,
             Nome = Nome_fases.MAQUINACAO,
-            Descricao = "Descrição nova"
+            Descricao = "Descriï¿½ï¿½o nova"
         };
 
         // Act
@@ -154,7 +155,7 @@ public class FasesProducaoServiceTests
         // Assert
         _repository.Verify(r => r.UpdateAsync(It.Is<FasesProducao>(f =>
             f.Nome == Nome_fases.MAQUINACAO &&
-            f.Descricao == "Descrição nova")), Times.Once);
+            f.Descricao == "Descriï¿½ï¿½o nova")), Times.Once);
     }
 
     [Test]

@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using FluentAssertions;
 using TipMolde.Application.DTOs.UserDTO;
 using TipMolde.Application.Mappings;
@@ -8,6 +8,7 @@ using TipMolde.Domain.Enums;
 namespace TipMolde.Tests.Unitario.Mapping
 {
     [TestFixture]
+[Category("Unit")]
     public class UserPasswordProfileTests
     {
         private IMapper _mapper = null!;

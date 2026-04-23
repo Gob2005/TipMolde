@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -14,6 +14,7 @@ using TipMolde.Domain.Enums;
 namespace TipMolde.Tests.Unitario.Service;
 
 [TestFixture]
+[Category("Unit")]
 public class MoldeServiceTests
 {
     private Mock<IMoldeRepository> _moldeRepository = null!;

@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using FluentAssertions;
 using Moq;
 using TipMolde.Application.DTOs.FornecedorDTO;
@@ -11,6 +11,7 @@ using TipMolde.Domain.Entities.Comercio;
 namespace TipMolde.Tests.Unitario.Service;
 
 [TestFixture]
+[Category("Unit")]
 public class FornecedorServiceTests
 {
     private Mock<IFornecedorRepository> _fornecedorRepository = null!;

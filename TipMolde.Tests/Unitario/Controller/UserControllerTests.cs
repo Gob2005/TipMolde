@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -15,6 +15,7 @@ using TipMolde.Domain.Enums;
 namespace TipMolde.Tests.Unitario.Controller;
 
 [TestFixture]
+[Category("Unit")]
 public class UserControllerTests
 {
     private Mock<IUserManagementService> _userService = null!;

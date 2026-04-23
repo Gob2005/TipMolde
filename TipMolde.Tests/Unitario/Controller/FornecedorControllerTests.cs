@@ -1,4 +1,4 @@
-﻿using FluentAssertions;
+using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -11,6 +11,7 @@ using TipMolde.Application.Interface.Comercio.IFornecedor;
 namespace TipMolde.Tests.Unitario.Controller;
 
 [TestFixture]
+[Category("Unit")]
 public class FornecedorControllerTests
 {
     private Mock<IFornecedorService> _fornecedorService = null!;

@@ -8,6 +8,7 @@ using TipMolde.Domain.Enums;
 namespace TipMolde.Tests.Unitario.Mapping
 {
     [TestFixture]
+[Category("Unit")]
     public class ClienteProfileTests
     {
         private IMapper _mapper = null!;

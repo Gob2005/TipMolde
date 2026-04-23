@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using FluentAssertions;
 using TipMolde.Application.DTOs.FornecedorDTO;
 using TipMolde.Application.Mappings;
@@ -7,6 +7,7 @@ using TipMolde.Domain.Entities.Comercio;
 namespace TipMolde.Tests.Unitario.Mapping
 {
     [TestFixture]
+[Category("Unit")]
     public class FornecedorProfileTests
     {
         private IMapper _mapper = null!;

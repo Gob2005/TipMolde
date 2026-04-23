@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -14,6 +14,7 @@ using TipMolde.Domain.Entities.Producao;
 namespace TipMolde.Tests.Unitario.Service;
 
 [TestFixture]
+[Category("Unit")]
 public class EncomendaMoldeServiceTests
 {
     private Mock<IEncomendaMoldeRepository> _repo = null!;

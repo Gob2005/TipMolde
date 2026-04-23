@@ -1,4 +1,4 @@
-﻿using FluentAssertions;
+using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -10,6 +10,7 @@ using TipMolde.Application.Interface.Comercio.IEncomendaMolde;
 namespace TipMolde.Tests.Unitario.Controller;
 
 [TestFixture]
+[Category("Unit")]
 public class EncomendaMoldeControllerTests
 {
     private Mock<IEncomendaMoldeService> _service = null!;

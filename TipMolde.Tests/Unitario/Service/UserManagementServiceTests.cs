@@ -14,6 +14,7 @@ using TipMolde.Application.Service;
 namespace TipMolde.Tests.Unitario.Service;
 
 [TestFixture]
+[Category("Unit")]
 public class UserManagementServiceTests
 {
     private Mock<IUserRepository> _userRepository = null!;

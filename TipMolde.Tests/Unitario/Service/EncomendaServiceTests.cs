@@ -13,6 +13,7 @@ using TipMolde.Domain.Enums;
 namespace TipMolde.Tests.Unitario.Service;
 
 [TestFixture]
+[Category("Unit")]
 public class EncomendaServiceTests
 {
     private Mock<IEncomendaRepository> _encomendaRepository = null!;

@@ -9,6 +9,7 @@ using TipMolde.Application.Service;
 namespace TipMolde.Tests.Unitario.Service;
 
 [TestFixture]
+[Category("Unit")]
 public class PecaServiceTests
 {
     private Mock<IPecaRepository> _pecaRepository = null!;

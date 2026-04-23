@@ -77,8 +77,8 @@ jobs:
       - name: Run Unit Tests with OpenCover
         shell: powershell
         run: |
-          dotnet test ${{ env.TEST_PROJECT }} --configuration Release --no-build `
-            --filter "FullyQualifiedName~Unit" `
+          dotnet test ${{ env.TEST_PROJECT }} --configuration Release `
+            --filter "Category=Unit" `
             --collect:"XPlat Code Coverage;Format=opencover" `
             --logger "trx;LogFileName=unit-tests.trx" `
             --results-directory "${{ env.TEST_RESULTS_DIR }}"

@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using FluentAssertions;
 using TipMolde.Application.DTOs.EncomendaMoldeDTO;
 using TipMolde.Application.Mappings;
@@ -8,6 +8,7 @@ using TipMolde.Domain.Entities.Producao;
 namespace TipMolde.Tests.Unitario.Mapping;
 
 [TestFixture]
+[Category("Unit")]
 public class EncomendaMoldeProfileTests
 {
     private IMapper _mapper = null!;

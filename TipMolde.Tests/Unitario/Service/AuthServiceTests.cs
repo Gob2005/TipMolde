@@ -1,4 +1,4 @@
-﻿using FluentAssertions;
+using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Moq;
 using System.IdentityModel.Tokens.Jwt;
@@ -18,6 +18,7 @@ namespace TipMolde.Tests.Unitario.Service;
 /// Valida cenarios de login, migracao de credenciais legacy e revogacao de token em logout.
 /// </remarks>
 [TestFixture]
+[Category("Unit")]
 public class AuthServiceTests
 {
     private Mock<IAuthRepository> _authRepository = null!;

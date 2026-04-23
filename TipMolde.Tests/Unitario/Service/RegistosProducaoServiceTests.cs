@@ -13,6 +13,7 @@ using TipMolde.Application.Service;
 namespace TipMolde.Tests.Unitario.Service;
 
 [TestFixture]
+[Category("Unit")]
 public class RegistosProducaoServiceTests
 {
     private Mock<IRegistosProducaoRepository> _registosRepository = null!;

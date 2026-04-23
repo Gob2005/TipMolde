@@ -1,4 +1,4 @@
-﻿using FluentAssertions;
+using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -12,6 +12,7 @@ using TipMolde.Domain.Enums;
 namespace TipMolde.Tests.Unitario.Controller;
 
 [TestFixture]
+[Category("Unit")]
 public class ProjetoControllerTests
 {
     private Mock<IProjetoService> _projetoService = null!;

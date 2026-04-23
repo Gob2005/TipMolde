@@ -11,6 +11,7 @@ using TipMolde.Domain.Entities.Comercio;
 namespace TipMolde.Tests.Unitario.Service;
 
 [TestFixture]
+[Category("Unit")]
 public class ClienteServiceTests
 {
     private Mock<IClienteRepository> _clienteRepository = null!;
