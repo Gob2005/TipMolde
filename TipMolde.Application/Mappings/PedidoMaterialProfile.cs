@@ -1,0 +1,48 @@
+﻿using AutoMapper;
+using TipMolde.Application.DTOs.PedidoMaterialDTO;
+using TipMolde.Domain.Entities.Comercio;
+
+namespace TipMolde.Application.Mappings
+{
+    /// <summary>
+    /// Define os mapeamentos AutoMapper do agregado PedidoMaterial.
+    /// </summary>
+    /// <remarks>
+    /// Centraliza o mapping entre DTOs de pedido de material e entidades de dominio,
+    /// removendo transformacoes espalhadas pelo controller.
+    /// </remarks>
+    public class PedidoMaterialProfile : Profile
+    {
+        /// <summary>
+        /// Construtor de PedidoMaterialProfile.
+        /// </summary>
+        public PedidoMaterialProfile()
+        {
+            CreateMap<CreateItemPedidoMaterialDTO, ItemPedidoMaterial>()
+                .ForMember(dest => dest.ItemPedidoMaterial_id, opt => opt.Ignore())
+                .ForMember(dest => dest.PedidoMaterial_id, opt => opt.Ignore())
+                .ForMember(dest => dest.PedidoMaterial, opt => opt.Ignore())
+                .ForMember(dest => dest.Peca, opt => opt.Ignore());
+
+            CreateMap<CreatePedidoMaterialDTO, PedidoMaterial>()
+                .ForMember(dest => dest.PedidoMaterial_id, opt => opt.Ignore())
+                .ForMember(dest => dest.DataPedido, opt => opt.Ignore())
+                .ForMember(dest => dest.DataRececao, opt => opt.Ignore())
+                .ForMember(dest => dest.Estado, opt => opt.Ignore())
+                .ForMember(dest => dest.Fornecedor, opt => opt.Ignore())
+                .ForMember(dest => dest.UserConferente_id, opt => opt.Ignore())
+                .ForMember(dest => dest.Conferente, opt => opt.Ignore())
+                .ForMember(dest => dest.Itens, opt => opt.MapFrom(src => src.Itens));
+
+            CreateMap<ItemPedidoMaterial, ResponseItemPedidoMaterialDTO>()
+                .ForMember(dest => dest.ItemId, opt => opt.MapFrom(src => src.ItemPedidoMaterial_id))
+                .ForMember(dest => dest.PecaId, opt => opt.MapFrom(src => src.Peca_id));
+
+            CreateMap<PedidoMaterial, ResponsePedidoMaterialDTO>()
+                .ForMember(dest => dest.PedidoMaterialId, opt => opt.MapFrom(src => src.PedidoMaterial_id))
+                .ForMember(dest => dest.FornecedorId, opt => opt.MapFrom(src => src.Fornecedor_id))
+                .ForMember(dest => dest.UserConferenteId, opt => opt.MapFrom(src => src.UserConferente_id))
+                .ForMember(dest => dest.Itens, opt => opt.MapFrom(src => src.Itens));
+        }
+    }
+}

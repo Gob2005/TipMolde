@@ -2,38 +2,33 @@
 {
     /// <summary>
     /// Representa um componente individual de um molde.
-    /// Cada peça passa por fases de produção rastreadas em RegistosProducao.
     /// </summary>
     /// <remarks>
-    /// A designação é única dentro do contexto de um molde específico
-    /// (validado por índice composto no ApplicationDbContext).
+    /// Cada peca passa por fases de producao rastreadas em RegistosProducao e
+    /// pode ficar bloqueada ate o material associado ser recebido.
     /// </remarks>
     public class Peca
     {
         public int Peca_id { get; set; }
 
         /// <summary>
-        /// Nome identificador da peça (ex: "Extrator", "Cavidade Superior").
-        /// Deve ser único por molde para evitar confusão operacional.
+        /// Nome identificador da peca dentro do molde.
         /// </summary>
         public required string Designacao { get; set; }
 
         /// <summary>
-        /// Prioridade de produção dentro do molde (1 = mais prioritário).
-        /// Usada para ordenação na fila de trabalho (RF-PR-07).
+        /// Prioridade de producao dentro do molde.
         /// </summary>
         public int Prioridade { get; set; }
 
         /// <summary>
-        /// Designação do material necessário para produzir a peça.
-        /// Referenciado em pedidos de material (ItemPedidoMaterial).
+        /// Designacao do material necessario para produzir a peca.
         /// </summary>
         public string? MaterialDesignacao { get; set; }
 
         /// <summary>
-        /// Flag de bloqueio de produção.
-        /// Se false, impede transição para estados produtivos (RF-CO-04).
-        /// Atualizado automaticamente ao receber material (PedidoMaterialService).
+        /// Flag de bloqueio de producao.
+        /// Fica a true quando a rececao do material e registada para o pedido associado.
         /// </summary>
         public bool MaterialRecebido { get; set; }
 

@@ -227,4 +227,106 @@ public class UserManagementServiceTests
         // ASSERT
         _userRepository.Verify(r => r.DeleteAsync(7), Times.Once);
     }
+
+    [Test(Description = "T11USR - GetById deve devolver nulo quando utilizador nao existe.")]
+    public async Task GetByIdAsync_Should_ReturnNull_When_UserDoesNotExist()
+    {
+        // ARRANGE
+        _userRepository.Setup(r => r.GetByIdAsync(90)).ReturnsAsync((User?)null);
+
+        // ACT
+        var result = await _sut.GetByIdAsync(90);
+
+        // ASSERT
+        result.Should().BeNull();
+    }
+
+    [Test(Description = "T12USR - GetById deve mapear utilizador quando registo existe.")]
+    public async Task GetByIdAsync_Should_MapResponse_When_UserExists()
+    {
+        // ARRANGE
+        _userRepository.Setup(r => r.GetByIdAsync(8)).ReturnsAsync(BuildUser(id: 8, nome: "Ana", email: "ana@tipmolde.pt"));
+
+        // ACT
+        var result = await _sut.GetByIdAsync(8);
+
+        // ASSERT
+        result.Should().NotBeNull();
+        result!.User_id.Should().Be(8);
+        result.Email.Should().Be("ana@tipmolde.pt");
+    }
+
+    [Test(Description = "T13USR - Search por nome deve devolver vazio quando termo e branco.")]
+    public async Task SearchByNameAsync_Should_ReturnEmpty_When_SearchTermIsBlank()
+    {
+        // ACT
+        var result = await _sut.SearchByNameAsync("   ", 0, 500);
+
+        // ASSERT
+        result.Items.Should().BeEmpty();
+        result.TotalCount.Should().Be(0);
+        result.CurrentPage.Should().Be(0);
+        result.PageSize.Should().Be(500);
+    }
+
+    [Test(Description = "T14USR - Search por nome deve paginar e mapear utilizadores.")]
+    public async Task SearchByNameAsync_Should_PaginateAndMap_When_UsersExist()
+    {
+        // ARRANGE
+        var users = new List<User>
+        {
+            BuildUser(id: 1, nome: "Ana"),
+            BuildUser(id: 2, nome: "Anabela"),
+            BuildUser(id: 3, nome: "Anselmo")
+        };
+        _userRepository.Setup(r => r.SearchByNameAsync("Ana")).ReturnsAsync(users);
+
+        // ACT
+        var result = await _sut.SearchByNameAsync("Ana", 1, 2);
+
+        // ASSERT
+        result.TotalCount.Should().Be(3);
+        result.Items.Should().HaveCount(2);
+        result.Items.Select(x => x.User_id).Should().Contain(new[] { 1, 2 });
+    }
+
+    [Test(Description = "T15USR - GetByEmail deve devolver nulo quando utilizador nao existe.")]
+    public async Task GetByEmailAsync_Should_ReturnNull_When_UserDoesNotExist()
+    {
+        // ARRANGE
+        _userRepository.Setup(r => r.GetByEmailAsync("ghost@tipmolde.pt")).ReturnsAsync((User?)null);
+
+        // ACT
+        var result = await _sut.GetByEmailAsync("ghost@tipmolde.pt");
+
+        // ASSERT
+        result.Should().BeNull();
+    }
+
+    [Test(Description = "T16USR - GetByEmail deve mapear utilizador quando registo existe.")]
+    public async Task GetByEmailAsync_Should_MapResponse_When_UserExists()
+    {
+        // ARRANGE
+        _userRepository.Setup(r => r.GetByEmailAsync("ana@tipmolde.pt")).ReturnsAsync(BuildUser(id: 11, nome: "Ana", email: "ana@tipmolde.pt"));
+
+        // ACT
+        var result = await _sut.GetByEmailAsync("ana@tipmolde.pt");
+
+        // ASSERT
+        result.Should().NotBeNull();
+        result!.User_id.Should().Be(11);
+    }
+
+    [Test(Description = "T17USR - Update deve falhar quando nenhum campo e enviado.")]
+    public async Task UpdateAsync_Should_ThrowArgumentException_When_NoFieldsProvided()
+    {
+        // ARRANGE
+        _userRepository.Setup(r => r.GetByIdAsync(5)).ReturnsAsync(BuildUser(id: 5));
+
+        // ACT
+        Func<Task> act = () => _sut.UpdateAsync(5, new UpdateUserDTO());
+
+        // ASSERT
+        await act.Should().ThrowAsync<ArgumentException>();
+    }
 }

@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using TipMolde.Application.DTOs.EncomendaMoldeDTO;
 using TipMolde.Application.Exceptions;
+using TipMolde.Application.Interface;
 using TipMolde.Application.Interface.Comercio.IEncomenda;
 using TipMolde.Application.Interface.Comercio.IEncomendaMolde;
 using TipMolde.Application.Interface.Producao.IMolde;
@@ -80,5 +81,148 @@ public class EncomendaMoldeServiceTests
 
         // ASSERT
         await act.Should().ThrowAsync<ArgumentException>();
+    }
+
+    [Test(Description = "TENCMSRV3 - GetById deve devolver nulo quando associacao nao existe.")]
+    public async Task GetByIdAsync_Should_ReturnNull_When_LinkDoesNotExist()
+    {
+        // ARRANGE
+        _repo.Setup(r => r.GetByIdAsync(77)).ReturnsAsync((EncomendaMolde?)null);
+
+        // ACT
+        var result = await _sut.GetByIdAsync(77);
+
+        // ASSERT
+        result.Should().BeNull();
+    }
+
+    [Test(Description = "TENCMSRV4 - GetById deve mapear DTO quando associacao existe.")]
+    public async Task GetByIdAsync_Should_MapResponse_When_LinkExists()
+    {
+        // ARRANGE
+        var entity = new EncomendaMolde { EncomendaMolde_id = 10, Encomenda_id = 1, Molde_id = 2, Quantidade = 5, Prioridade = 1 };
+        var dto = new ResponseEncomendaMoldeDTO { EncomendaMolde_id = 10, Encomenda_id = 1, Molde_id = 2, Quantidade = 5, Prioridade = 1 };
+        _repo.Setup(r => r.GetByIdAsync(10)).ReturnsAsync(entity);
+        _mapper.Setup(m => m.Map<ResponseEncomendaMoldeDTO>(entity)).Returns(dto);
+
+        // ACT
+        var result = await _sut.GetByIdAsync(10);
+
+        // ASSERT
+        result.Should().BeEquivalentTo(dto);
+    }
+
+    [Test(Description = "TENCMSRV5 - GetByEncomendaId deve mapear payload paginado.")]
+    public async Task GetByEncomendaIdAsync_Should_MapPagedResult_When_RepositoryReturnsItems()
+    {
+        // ARRANGE
+        var entity = new EncomendaMolde { EncomendaMolde_id = 3, Encomenda_id = 1, Molde_id = 2, Quantidade = 8, Prioridade = 2 };
+        var dto = new ResponseEncomendaMoldeDTO { EncomendaMolde_id = 3, Encomenda_id = 1, Molde_id = 2, Quantidade = 8, Prioridade = 2 };
+        _repo.Setup(r => r.GetByEncomendaIdAsync(1, 2, 5))
+            .ReturnsAsync(new PagedResult<EncomendaMolde>(new[] { entity }, 1, 2, 5));
+        _mapper.Setup(m => m.Map<IEnumerable<ResponseEncomendaMoldeDTO>>(It.IsAny<IEnumerable<EncomendaMolde>>()))
+            .Returns(new[] { dto });
+
+        // ACT
+        var result = await _sut.GetByEncomendaIdAsync(1, 2, 5);
+
+        // ASSERT
+        result.TotalCount.Should().Be(1);
+        result.Items.Single().EncomendaMolde_id.Should().Be(3);
+    }
+
+    [Test(Description = "TENCMSRV6 - GetByMoldeId deve mapear payload paginado.")]
+    public async Task GetByMoldeIdAsync_Should_MapPagedResult_When_RepositoryReturnsItems()
+    {
+        // ARRANGE
+        var entity = new EncomendaMolde { EncomendaMolde_id = 4, Encomenda_id = 1, Molde_id = 9, Quantidade = 6, Prioridade = 1 };
+        var dto = new ResponseEncomendaMoldeDTO { EncomendaMolde_id = 4, Encomenda_id = 1, Molde_id = 9, Quantidade = 6, Prioridade = 1 };
+        _repo.Setup(r => r.GetByMoldeIdAsync(9, 1, 10))
+            .ReturnsAsync(new PagedResult<EncomendaMolde>(new[] { entity }, 1, 1, 10));
+        _mapper.Setup(m => m.Map<IEnumerable<ResponseEncomendaMoldeDTO>>(It.IsAny<IEnumerable<EncomendaMolde>>()))
+            .Returns(new[] { dto });
+
+        // ACT
+        var result = await _sut.GetByMoldeIdAsync(9, 1, 10);
+
+        // ASSERT
+        result.TotalCount.Should().Be(1);
+        result.Items.Single().Molde_id.Should().Be(9);
+    }
+
+    [Test(Description = "TENCMSRV7 - Create deve falhar quando encomenda nao existe.")]
+    public async Task CreateAsync_Should_ThrowKeyNotFoundException_When_EncomendaDoesNotExist()
+    {
+        // ARRANGE
+        var dto = new CreateEncomendaMoldeDTO { Encomenda_id = 1, Molde_id = 2, Quantidade = 10, Prioridade = 1 };
+        _encomendaRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync((Encomenda?)null);
+
+        // ACT
+        Func<Task> act = () => _sut.CreateAsync(dto);
+
+        // ASSERT
+        await act.Should().ThrowAsync<KeyNotFoundException>();
+    }
+
+    [Test(Description = "TENCMSRV8 - Create deve falhar quando molde nao existe.")]
+    public async Task CreateAsync_Should_ThrowKeyNotFoundException_When_MoldeDoesNotExist()
+    {
+        // ARRANGE
+        var dto = new CreateEncomendaMoldeDTO { Encomenda_id = 1, Molde_id = 2, Quantidade = 10, Prioridade = 1 };
+        _encomendaRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(new Encomenda { Encomenda_id = 1, NumeroEncomendaCliente = "ENC-1" });
+        _moldeRepo.Setup(r => r.GetByIdAsync(2)).ReturnsAsync((Molde?)null);
+
+        // ACT
+        Func<Task> act = () => _sut.CreateAsync(dto);
+
+        // ASSERT
+        await act.Should().ThrowAsync<KeyNotFoundException>();
+    }
+
+    [Test(Description = "TENCMSRV9 - Update deve persistir campos enviados quando pedido e valido.")]
+    public async Task UpdateAsync_Should_UpdateEntity_When_RequestIsValid()
+    {
+        // ARRANGE
+        var existente = new EncomendaMolde
+        {
+            EncomendaMolde_id = 10,
+            Encomenda_id = 1,
+            Molde_id = 1,
+            Quantidade = 5,
+            Prioridade = 1,
+            DataEntregaPrevista = new DateTime(2026, 5, 1)
+        };
+
+        _repo.Setup(r => r.GetByIdAsync(10)).ReturnsAsync(existente);
+
+        var dto = new UpdateEncomendaMoldeDTO
+        {
+            Quantidade = 9,
+            Prioridade = 3,
+            DataEntregaPrevista = new DateTime(2026, 5, 10)
+        };
+
+        // ACT
+        await _sut.UpdateAsync(10, dto);
+
+        // ASSERT
+        _repo.Verify(r => r.UpdateAsync(It.Is<EncomendaMolde>(e =>
+            e.EncomendaMolde_id == 10 &&
+            e.Quantidade == 9 &&
+            e.Prioridade == 3 &&
+            e.DataEntregaPrevista == new DateTime(2026, 5, 10))), Times.Once);
+    }
+
+    [Test(Description = "TENCMSRV10 - Delete deve falhar quando associacao nao existe.")]
+    public async Task DeleteAsync_Should_ThrowKeyNotFoundException_When_LinkDoesNotExist()
+    {
+        // ARRANGE
+        _repo.Setup(r => r.GetByIdAsync(50)).ReturnsAsync((EncomendaMolde?)null);
+
+        // ACT
+        Func<Task> act = () => _sut.DeleteAsync(50);
+
+        // ASSERT
+        await act.Should().ThrowAsync<KeyNotFoundException>();
     }
 }

@@ -1,25 +1,86 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using TipMolde.Application.Interface;
 using TipMolde.Application.Interface.Producao.IPeca;
 using TipMolde.Domain.Entities.Producao;
 using TipMolde.Infrastructure.DB;
 
 namespace TipMolde.Infrastructure.Repositorio
 {
+    /// <summary>
+    /// Implementa operacoes de persistencia especificas para a entidade Peca.
+    /// </summary>
     public class PecaRepository : GenericRepository<Peca, int>, IPecaRepository
     {
-        public PecaRepository(ApplicationDbContext context) : base(context) { }
-
-        public async Task<IEnumerable<Peca>> GetByMoldeIdAsync(int moldeId)
+        /// <summary>
+        /// Construtor de PecaRepository.
+        /// </summary>
+        /// <param name="context">Contexto EF Core da aplicacao.</param>
+        public PecaRepository(ApplicationDbContext context) : base(context)
         {
-            return await _context.Pecas
-                .Where(p => p.Molde_id == moldeId)
-                .ToListAsync();
         }
 
+        /// <summary>
+        /// Lista pecas associadas a um molde.
+        /// </summary>
+        /// <param name="moldeId">Identificador do molde.</param>
+        /// <param name="page">Numero da pagina a consultar.</param>
+        /// <param name="pageSize">Quantidade de itens por pagina.</param>
+        /// <returns>Resultado paginado com pecas pertencentes ao molde informado.</returns>
+        public async Task<PagedResult<Peca>> GetByMoldeIdAsync(int moldeId, int page = 1, int pageSize = 10)
+        {
+            page = page < 1 ? 1 : page;
+            pageSize = pageSize < 1 ? 10 : pageSize > 200 ? 200 : pageSize;
+
+            var query = _context.Pecas
+                .Where(p => p.Molde_id == moldeId);
+
+            var totalCount = await query.CountAsync();
+            var items = await query
+                .OrderBy(p => p.Peca_id)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return new PagedResult<Peca>(items, totalCount, page, pageSize);
+        }
+
+        /// <summary>
+        /// Obtem uma peca pela designacao dentro de um molde.
+        /// </summary>
+        /// <param name="designacao">Designacao funcional da peca.</param>
+        /// <param name="moldeId">Identificador do molde.</param>
+        /// <returns>Peca encontrada ou nulo quando nao existe correspondencia.</returns>
         public Task<Peca?> GetByDesignacaoAsync(string designacao, int moldeId)
         {
             return _context.Pecas
                 .FirstOrDefaultAsync(p => p.Designacao == designacao && p.Molde_id == moldeId);
+        }
+
+        /// <summary>
+        /// Lista pecas pelos identificadores informados.
+        /// </summary>
+        /// <param name="ids">Colecao de identificadores a pesquisar.</param>
+        /// <param name="page">Numero da pagina a consultar.</param>
+        /// <param name="pageSize">Quantidade de itens por pagina.</param>
+        /// <returns>Resultado paginado com pecas encontradas para os ids informados.</returns>
+        public async Task<PagedResult<Peca>> GetByIdsAsync(IEnumerable<int> ids, int page = 1, int pageSize = 10)
+        {
+            page = page < 1 ? 1 : page;
+            pageSize = pageSize < 1 ? 10 : pageSize > 200 ? 200 : pageSize;
+
+            var idList = ids.Distinct().ToList();
+
+            var query = _context.Pecas
+                .Where(p => idList.Contains(p.Peca_id));
+
+            var totalCount = await query.CountAsync();
+            var items = await query
+                .OrderBy(p => p.Peca_id)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return new PagedResult<Peca>(items, totalCount, page, pageSize);
         }
     }
 }

@@ -217,4 +217,90 @@ public class MoldeControllerTests
         ok.Should().NotBeNull();
         ok!.Value.Should().BeEquivalentTo(paged);
     }
+
+    [Test(Description = "TMOLDCONT9 - GetAll deve devolver payload paginado quando pedido e valido.")]
+    public async Task GetAll_Should_ReturnOk_When_RequestIsValid()
+    {
+        // ARRANGE
+        var paged = new PagedResult<ResponseMoldeDTO>(new[] { BuildResponse(id: 3) }, 1, 1, 10);
+        _moldeService.Setup(s => s.GetAllAsync(1, 10)).ReturnsAsync(paged);
+
+        // ACT
+        var result = await _controller.GetAll(1, 10);
+
+        // ASSERT
+        var ok = result as OkObjectResult;
+        ok.Should().NotBeNull();
+        ok!.Value.Should().BeEquivalentTo(paged);
+    }
+
+    [Test(Description = "TMOLDCONT10 - GetById deve devolver dto quando molde existe.")]
+    public async Task GetById_Should_ReturnOk_When_MoldeExists()
+    {
+        // ARRANGE
+        var response = BuildResponse(id: 5);
+        _moldeService.Setup(s => s.GetByIdAsync(5)).ReturnsAsync(response);
+
+        // ACT
+        var result = await _controller.GetById(5);
+
+        // ASSERT
+        var ok = result as OkObjectResult;
+        ok.Should().NotBeNull();
+        ok!.Value.Should().BeEquivalentTo(response);
+    }
+
+    [Test(Description = "TMOLDCONT11 - GetByNumero deve devolver not found quando molde nao existe.")]
+    public async Task GetByNumero_Should_ReturnNotFound_When_MoldeDoesNotExist()
+    {
+        // ARRANGE
+        _moldeService.Setup(s => s.GetByNumeroAsync("MOL-404")).ReturnsAsync((ResponseMoldeDTO?)null);
+
+        // ACT
+        var result = await _controller.GetByNumero("MOL-404");
+
+        // ASSERT
+        result.Should().BeOfType<NotFoundObjectResult>();
+    }
+
+    [Test(Description = "TMOLDCONT12 - GetByNumero deve devolver dto quando molde existe.")]
+    public async Task GetByNumero_Should_ReturnOk_When_MoldeExists()
+    {
+        // ARRANGE
+        var response = BuildResponse(id: 8, numero: "MOL-008");
+        _moldeService.Setup(s => s.GetByNumeroAsync("MOL-008")).ReturnsAsync(response);
+
+        // ACT
+        var result = await _controller.GetByNumero("MOL-008");
+
+        // ASSERT
+        var ok = result as OkObjectResult;
+        ok.Should().NotBeNull();
+        ok!.Value.Should().BeEquivalentTo(response);
+    }
+
+    [Test(Description = "TMOLDCONT13 - Update deve devolver bad request quando model state e invalido.")]
+    public async Task Update_Should_ReturnBadRequest_When_ModelStateIsInvalid()
+    {
+        // ARRANGE
+        _controller.ModelState.AddModelError("Nome", "Obrigatorio");
+
+        // ACT
+        var result = await _controller.Update(1, new UpdateMoldeDTO { Nome = "Novo" });
+
+        // ASSERT
+        result.Should().BeOfType<BadRequestObjectResult>();
+        _moldeService.Verify(s => s.UpdateAsync(It.IsAny<int>(), It.IsAny<UpdateMoldeDTO>()), Times.Never);
+    }
+
+    [Test(Description = "TMOLDCONT14 - Delete deve devolver no content quando pedido e valido.")]
+    public async Task Delete_Should_ReturnNoContent_When_RequestIsValid()
+    {
+        // ACT
+        var result = await _controller.Delete(14);
+
+        // ASSERT
+        result.Should().BeOfType<NoContentResult>();
+        _moldeService.Verify(s => s.DeleteAsync(14), Times.Once);
+    }
 }

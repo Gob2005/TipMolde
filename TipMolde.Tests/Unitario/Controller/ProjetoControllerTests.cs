@@ -193,4 +193,84 @@ public class ProjetoControllerTests
         ok.Should().NotBeNull();
         ok!.Value.Should().BeEquivalentTo(paged);
     }
+
+    [Test(Description = "TPROJCONT8 - GetById deve devolver dto quando projeto existe.")]
+    public async Task GetById_Should_ReturnOk_When_ProjetoExists()
+    {
+        // ARRANGE
+        var response = BuildResponse(id: 4);
+        _projetoService.Setup(s => s.GetByIdAsync(4)).ReturnsAsync(response);
+
+        // ACT
+        var result = await _controller.GetById(4);
+
+        // ASSERT
+        var ok = result as OkObjectResult;
+        ok.Should().NotBeNull();
+        ok!.Value.Should().BeEquivalentTo(response);
+    }
+
+    [Test(Description = "TPROJCONT9 - GetWithRevisoes deve devolver not found quando projeto nao existe.")]
+    public async Task GetWithRevisoes_Should_ReturnNotFound_When_ProjetoDoesNotExist()
+    {
+        // ARRANGE
+        _projetoService.Setup(s => s.GetWithRevisoesAsync(90)).ReturnsAsync((ResponseProjetoWithRevisoesDTO?)null);
+
+        // ACT
+        var result = await _controller.GetWithRevisoes(90);
+
+        // ASSERT
+        result.Should().BeOfType<NotFoundObjectResult>();
+    }
+
+    [Test(Description = "TPROJCONT10 - GetByMoldeId deve devolver bad request quando moldeId e invalido.")]
+    public async Task GetByMoldeId_Should_ReturnBadRequest_When_MoldeIdIsInvalid()
+    {
+        // ACT
+        var result = await _controller.GetByMoldeId(0);
+
+        // ASSERT
+        result.Should().BeOfType<BadRequestObjectResult>();
+    }
+
+    [Test(Description = "TPROJCONT11 - GetByMoldeId deve devolver payload paginado quando pedido e valido.")]
+    public async Task GetByMoldeId_Should_ReturnOk_When_RequestIsValid()
+    {
+        // ARRANGE
+        var paged = new PagedResult<ResponseProjetoDTO>(new[] { BuildResponse(id: 8) }, 1, 1, 10);
+        _projetoService.Setup(s => s.GetByMoldeIdAsync(7, 1, 10)).ReturnsAsync(paged);
+
+        // ACT
+        var result = await _controller.GetByMoldeId(7);
+
+        // ASSERT
+        var ok = result as OkObjectResult;
+        ok.Should().NotBeNull();
+        ok!.Value.Should().BeEquivalentTo(paged);
+    }
+
+    [Test(Description = "TPROJCONT12 - Update deve devolver bad request quando model state e invalido.")]
+    public async Task Update_Should_ReturnBadRequest_When_ModelStateIsInvalid()
+    {
+        // ARRANGE
+        _controller.ModelState.AddModelError("NomeProjeto", "Obrigatorio");
+
+        // ACT
+        var result = await _controller.Update(4, new UpdateProjetoDTO { NomeProjeto = "Novo Projeto" });
+
+        // ASSERT
+        result.Should().BeOfType<BadRequestObjectResult>();
+        _projetoService.Verify(s => s.UpdateAsync(It.IsAny<int>(), It.IsAny<UpdateProjetoDTO>()), Times.Never);
+    }
+
+    [Test(Description = "TPROJCONT13 - Delete deve devolver no content quando pedido e valido.")]
+    public async Task Delete_Should_ReturnNoContent_When_RequestIsValid()
+    {
+        // ACT
+        var result = await _controller.Delete(15);
+
+        // ASSERT
+        result.Should().BeOfType<NoContentResult>();
+        _projetoService.Verify(s => s.DeleteAsync(15), Times.Once);
+    }
 }

@@ -2,9 +2,35 @@
 
 namespace TipMolde.Application.Interface.Producao.IPeca
 {
+    /// <summary>
+    /// Define operacoes de persistencia especificas para a entidade Peca.
+    /// </summary>
     public interface IPecaRepository : IGenericRepository<Peca, int>
     {
-        Task<IEnumerable<Peca>> GetByMoldeIdAsync(int moldeId);
+        /// <summary>
+        /// Lista pecas associadas a um molde.
+        /// </summary>
+        /// <param name="moldeId">Identificador do molde.</param>
+        /// <param name="page">Numero da pagina a consultar.</param>
+        /// <param name="pageSize">Quantidade de itens por pagina.</param>
+        /// <returns>Resultado paginado com pecas pertencentes ao molde informado.</returns>
+        Task<PagedResult<Peca>> GetByMoldeIdAsync(int moldeId, int page = 1, int pageSize = 10);
+
+        /// <summary>
+        /// Obtem uma peca pela designacao dentro de um molde.
+        /// </summary>
+        /// <param name="designacao">Designacao funcional da peca.</param>
+        /// <param name="moldeId">Identificador do molde.</param>
+        /// <returns>Peca encontrada ou nulo quando nao existe correspondencia.</returns>
         Task<Peca?> GetByDesignacaoAsync(string designacao, int moldeId);
+
+        /// <summary>
+        /// Lista pecas pelos identificadores informados.
+        /// </summary>
+        /// <param name="ids">Colecao de identificadores a pesquisar.</param>
+        /// <param name="page">Numero da pagina a consultar.</param>
+        /// <param name="pageSize">Quantidade de itens por pagina.</param>
+        /// <returns>Resultado paginado com pecas encontradas para os ids informados.</returns>
+        Task<PagedResult<Peca>> GetByIdsAsync(IEnumerable<int> ids, int page = 1, int pageSize = 10);
     }
 }

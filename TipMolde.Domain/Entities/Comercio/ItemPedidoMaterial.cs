@@ -12,6 +12,9 @@ namespace TipMolde.Domain.Entities.Comercio
     /// </remarks>
     public class ItemPedidoMaterial
     {
+        /// <summary>
+        /// Identificador unico do item de pedido de material.
+        /// </summary>
         public int ItemPedidoMaterial_id { get; set; }
 
         public int PedidoMaterial_id { get; set; }

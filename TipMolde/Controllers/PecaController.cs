@@ -46,7 +46,7 @@ namespace TipMolde.API.Controllers
         public async Task<IActionResult> GetByMoldeId([FromQuery] int moldeId)
         {
             var pecas = await _pecaService.GetByMoldeIdAsync(moldeId);
-            return Ok(pecas.Select(ToResponse));
+            return Ok(pecas.Items.Select(ToResponse));
         }
 
         [Authorize(Roles = "ADMIN,GESTOR_DESENHO")]

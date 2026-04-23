@@ -139,4 +139,170 @@ public class UserControllerTests
         var items = itemsProp!.GetValue(payload);
         items.Should().BeAssignableTo<IEnumerable<ResponseUserDTO>>();
     }
+
+    [Test]
+    public async Task shouldReturnNotFoundWhenGettingByIdAndUserDoesNotExist()
+    {
+        _userService.Setup(s => s.GetByIdAsync(44)).ReturnsAsync((ResponseUserDTO?)null);
+
+        var result = await _controller.GetUserById(44);
+
+        result.Should().BeOfType<NotFoundObjectResult>();
+    }
+
+    [Test]
+    public async Task shouldReturnBadRequestWhenSearchingByNameWithBlankTerm()
+    {
+        var result = await _controller.SearchByName("   ");
+
+        result.Should().BeOfType<BadRequestObjectResult>();
+    }
+
+    [Test]
+    public async Task shouldReturnBadRequestWhenSearchingByNameWithInvalidPaging()
+    {
+        var result = await _controller.SearchByName("Ana", 0, 10);
+
+        result.Should().BeOfType<BadRequestObjectResult>();
+    }
+
+    [Test]
+    public async Task shouldReturnOkWhenSearchingByNameWithValidRequest()
+    {
+        var users = new List<ResponseUserDTO> { BuildUserDto(id: 9, nome: "Ana") };
+        _userService.Setup(s => s.SearchByNameAsync("Ana", 2, 5))
+            .ReturnsAsync(new PagedResult<ResponseUserDTO>(users, 1, 2, 5));
+
+        var result = await _controller.SearchByName("Ana", 2, 5);
+
+        var ok = result as OkObjectResult;
+        ok.Should().NotBeNull();
+        ok!.Value.Should().BeEquivalentTo(new PagedResult<ResponseUserDTO>(users, 1, 2, 5));
+    }
+
+    [Test]
+    public async Task shouldReturnBadRequestWhenCreatingUserWithInvalidModelState()
+    {
+        SetAuthenticatedUser(_controller, new Claim(JwtRegisteredClaimNames.Sub, "1"));
+        _controller.ModelState.AddModelError("Email", "Obrigatorio");
+
+        var result = await _controller.CreateUser(new CreateUserDTO { Email = null , Nome = null, Password = null, Role = UserRole.ADMIN });
+
+        result.Should().BeOfType<BadRequestObjectResult>();
+        _userService.Verify(s => s.CreateAsync(It.IsAny<CreateUserDTO>()), Times.Never);
+    }
+
+    [Test]
+    public async Task shouldReturnCreatedAtActionWhenCreatingUserWithValidRequest()
+    {
+        SetAuthenticatedUser(_controller, new Claim(JwtRegisteredClaimNames.Sub, "1"));
+
+        var dto = new CreateUserDTO
+        {
+            Nome = "Ana",
+            Email = "ana@tipmolde.pt",
+            Password = "Valida123!",
+            Role = UserRole.ADMIN
+        };
+
+        var createdUser = BuildUserDto(id: 12, nome: "Ana", email: "ana@tipmolde.pt", role: UserRole.ADMIN);
+        _userService.Setup(s => s.CreateAsync(dto)).ReturnsAsync(createdUser);
+
+        var result = await _controller.CreateUser(dto);
+
+        var created = result as CreatedAtActionResult;
+        created.Should().NotBeNull();
+        created!.ActionName.Should().Be(nameof(UserController.GetUserById));
+        created.RouteValues!["id"].Should().Be(12);
+        created.Value.Should().BeEquivalentTo(createdUser);
+    }
+
+    [Test]
+    public async Task shouldReturnBadRequestWhenUpdatingUserWithInvalidModelState()
+    {
+        _controller.ModelState.AddModelError("Nome", "Obrigatorio");
+
+        var result = await _controller.UpdateUser(1, new UpdateUserDTO { Nome = "Ana" });
+
+        result.Should().BeOfType<BadRequestObjectResult>();
+        _userService.Verify(s => s.UpdateAsync(It.IsAny<int>(), It.IsAny<UpdateUserDTO>()), Times.Never);
+    }
+
+    [Test]
+    public async Task shouldReturnUnauthorizedWhenUpdatingUserWithInvalidToken()
+    {
+        SetAuthenticatedUser(_controller);
+
+        var result = await _controller.UpdateUser(1, new UpdateUserDTO { Nome = "Ana" });
+
+        result.Should().BeOfType<UnauthorizedObjectResult>();
+    }
+
+    [Test]
+    public async Task shouldReturnUnauthorizedWhenAuthenticatedUserDoesNotExist()
+    {
+        SetAuthenticatedUser(_controller, new Claim(JwtRegisteredClaimNames.Sub, "2"));
+        _userService.Setup(s => s.GetByIdAsync(2)).ReturnsAsync((ResponseUserDTO?)null);
+
+        var result = await _controller.UpdateUser(2, new UpdateUserDTO { Nome = "Ana" });
+
+        result.Should().BeOfType<UnauthorizedObjectResult>();
+    }
+
+    [Test]
+    public async Task shouldReturnNotFoundWhenTargetUserDoesNotExistDuringUpdate()
+    {
+        SetAuthenticatedUser(_controller, new Claim(JwtRegisteredClaimNames.Sub, "1"));
+
+        _userService.Setup(s => s.GetByIdAsync(1)).ReturnsAsync(BuildUserDto(id: 1, role: UserRole.ADMIN));
+        _userService.Setup(s => s.GetByIdAsync(5)).ReturnsAsync((ResponseUserDTO?)null);
+
+        var result = await _controller.UpdateUser(5, new UpdateUserDTO { Nome = "Novo Nome" });
+
+        result.Should().BeOfType<NotFoundObjectResult>();
+    }
+
+    [Test]
+    public async Task shouldReturnBadRequestWhenChangingRoleWithInvalidModelState()
+    {
+        _controller.ModelState.AddModelError("Role", "Obrigatorio");
+
+        var result = await _controller.ChangeRole(4, new ChangeUserRoleDTO { Role = UserRole.ADMIN });
+
+        result.Should().BeOfType<BadRequestObjectResult>();
+        _userService.Verify(s => s.ChangeRoleAsync(It.IsAny<int>(), It.IsAny<UserRole>()), Times.Never);
+    }
+
+    [Test]
+    public async Task shouldReturnNoContentWhenChangingRoleWithValidRequest()
+    {
+        var result = await _controller.ChangeRole(4, new ChangeUserRoleDTO { Role = UserRole.ADMIN });
+
+        result.Should().BeOfType<NoContentResult>();
+        _userService.Verify(s => s.ChangeRoleAsync(4, UserRole.ADMIN), Times.Once);
+    }
+
+    [Test]
+    public async Task shouldReturnNoContentWhenDeletingUserWithValidRequest()
+    {
+        var result = await _controller.DeleteUser(6);
+
+        result.Should().BeOfType<NoContentResult>();
+        _userService.Verify(s => s.DeleteAsync(6), Times.Once);
+    }
+
+    private static ResponseUserDTO BuildUserDto(
+        int id = 1,
+        string nome = "Ana",
+        string email = "ana@tipmolde.pt",
+        UserRole role = UserRole.ADMIN)
+    {
+        return new ResponseUserDTO
+        {
+            User_id = id,
+            Nome = nome,
+            Email = email,
+            Role = role
+        };
+    }
 }

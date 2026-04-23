@@ -3,6 +3,7 @@ using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Moq;
 using TipMolde.Application.DTOs.ProjetoDTO;
+using TipMolde.Application.Interface;
 using TipMolde.Application.Interface.Desenho.IProjeto;
 using TipMolde.Application.Interface.Producao.IMolde;
 using TipMolde.Application.Mappings;
@@ -182,5 +183,137 @@ public class ProjetoServiceTests
 
         // ASSERT
         _projetoRepository.Verify(r => r.DeleteAsync(13), Times.Once);
+    }
+
+    [Test(Description = "TPROJSRV7 - GetAll deve mapear projetos para DTO paginado.")]
+    public async Task GetAllAsync_Should_MapPagedResult_When_RepositoryReturnsItems()
+    {
+        // ARRANGE
+        var paged = new PagedResult<Projeto>(new[] { BuildProjeto(id: 1), BuildProjeto(id: 2) }, 2, 1, 10);
+        _projetoRepository.Setup(r => r.GetAllAsync(1, 10)).ReturnsAsync(paged);
+
+        // ACT
+        var result = await _sut.GetAllAsync(1, 10);
+
+        // ASSERT
+        result.TotalCount.Should().Be(2);
+        result.Items.Should().HaveCount(2);
+        result.Items.Select(x => x.Projeto_id).Should().Contain(new[] { 1, 2 });
+    }
+
+    [Test(Description = "TPROJSRV8 - GetById deve devolver nulo quando projeto nao existe.")]
+    public async Task GetByIdAsync_Should_ReturnNull_When_ProjetoDoesNotExist()
+    {
+        // ARRANGE
+        _projetoRepository.Setup(r => r.GetByIdAsync(90)).ReturnsAsync((Projeto?)null);
+
+        // ACT
+        var result = await _sut.GetByIdAsync(90);
+
+        // ASSERT
+        result.Should().BeNull();
+    }
+
+    [Test(Description = "TPROJSRV9 - GetWithRevisoes deve devolver nulo quando projeto nao existe.")]
+    public async Task GetWithRevisoesAsync_Should_ReturnNull_When_ProjetoDoesNotExist()
+    {
+        // ARRANGE
+        _projetoRepository.Setup(r => r.GetWithRevisoesAsync(91)).ReturnsAsync((Projeto?)null);
+
+        // ACT
+        var result = await _sut.GetWithRevisoesAsync(91);
+
+        // ASSERT
+        result.Should().BeNull();
+    }
+
+    [Test(Description = "TPROJSRV10 - GetWithRevisoes deve mapear dto quando projeto existe.")]
+    public async Task GetWithRevisoesAsync_Should_MapResponse_When_ProjetoExists()
+    {
+        // ARRANGE
+        var projeto = BuildProjeto(id: 20);
+        projeto.Revisoes = new List<TipMolde.Domain.Entities.Desenho.Revisao>
+        {
+            new() { Revisao_id = 1, NumRevisao = 2, DescricaoAlteracoes = "Rev 2", Projeto_id = 20 }
+        };
+
+        _projetoRepository.Setup(r => r.GetWithRevisoesAsync(20)).ReturnsAsync(projeto);
+
+        // ACT
+        var result = await _sut.GetWithRevisoesAsync(20);
+
+        // ASSERT
+        result.Should().NotBeNull();
+        result!.Projeto_id.Should().Be(20);
+        result.Revisoes.Should().ContainSingle();
+    }
+
+    [Test(Description = "TPROJSRV11 - GetByMoldeId deve mapear payload paginado.")]
+    public async Task GetByMoldeIdAsync_Should_MapPagedResult_When_RepositoryReturnsItems()
+    {
+        // ARRANGE
+        var paged = new PagedResult<Projeto>(new[] { BuildProjeto(id: 30) }, 1, 2, 5);
+        _projetoRepository.Setup(r => r.GetByMoldeIdAsync(7, 2, 5)).ReturnsAsync(paged);
+
+        // ACT
+        var result = await _sut.GetByMoldeIdAsync(7, 2, 5);
+
+        // ASSERT
+        result.TotalCount.Should().Be(1);
+        result.Items.Single().Projeto_id.Should().Be(30);
+    }
+
+    [Test(Description = "TPROJSRV12 - Create deve falhar quando nome do projeto e vazio.")]
+    public async Task CreateAsync_Should_ThrowArgumentException_When_NomeProjetoIsBlank()
+    {
+        // ARRANGE
+        var dto = BuildCreateDto();
+        dto.NomeProjeto = "   ";
+
+        // ACT
+        Func<Task> act = () => _sut.CreateAsync(dto);
+
+        // ASSERT
+        await act.Should().ThrowAsync<ArgumentException>();
+    }
+
+    [Test(Description = "TPROJSRV13 - Create deve falhar quando software utilizado e vazio.")]
+    public async Task CreateAsync_Should_ThrowArgumentException_When_SoftwareUtilizadoIsBlank()
+    {
+        // ARRANGE
+        var dto = BuildCreateDto();
+        dto.SoftwareUtilizado = "   ";
+
+        // ACT
+        Func<Task> act = () => _sut.CreateAsync(dto);
+
+        // ASSERT
+        await act.Should().ThrowAsync<ArgumentException>();
+    }
+
+    [Test(Description = "TPROJSRV14 - Update deve falhar quando projeto nao existe.")]
+    public async Task UpdateAsync_Should_ThrowKeyNotFoundException_When_ProjetoDoesNotExist()
+    {
+        // ARRANGE
+        _projetoRepository.Setup(r => r.GetByIdAsync(404)).ReturnsAsync((Projeto?)null);
+
+        // ACT
+        Func<Task> act = () => _sut.UpdateAsync(404, new UpdateProjetoDTO { NomeProjeto = "Novo Projeto" });
+
+        // ASSERT
+        await act.Should().ThrowAsync<KeyNotFoundException>();
+    }
+
+    [Test(Description = "TPROJSRV15 - Delete deve falhar quando projeto nao existe.")]
+    public async Task DeleteAsync_Should_ThrowKeyNotFoundException_When_ProjetoDoesNotExist()
+    {
+        // ARRANGE
+        _projetoRepository.Setup(r => r.GetByIdAsync(99)).ReturnsAsync((Projeto?)null);
+
+        // ACT
+        Func<Task> act = () => _sut.DeleteAsync(99);
+
+        // ASSERT
+        await act.Should().ThrowAsync<KeyNotFoundException>();
     }
 }

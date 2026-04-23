@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using TipMolde.Application.DTOs.EncomendaDTO;
 using TipMolde.Application.Exceptions;
+using TipMolde.Application.Interface;
 using TipMolde.Application.Interface.Comercio.ICliente;
 using TipMolde.Application.Interface.Comercio.IEncomenda;
 using TipMolde.Application.Service;
@@ -80,6 +81,12 @@ public class EncomendaServiceTests
 
                 if (!string.IsNullOrWhiteSpace(dto.NomeResponsavelCliente))
                     entity.NomeResponsavelCliente = dto.NomeResponsavelCliente.Trim();
+            });
+
+        _mapper.Setup(m => m.Map(It.IsAny<UpdateEstadoEncomendaDTO>(), It.IsAny<Encomenda>()))
+            .Callback((UpdateEstadoEncomendaDTO dto, Encomenda entity) =>
+            {
+                entity.Estado = dto.Estado;
             });
 
         _sut = new EncomendaService(
@@ -321,5 +328,129 @@ public class EncomendaServiceTests
         // ASSERT
         await act.Should().ThrowAsync<ArgumentException>()
             .WithMessage("*obrigatorio*");
+    }
+
+    [Test(Description = "TENCSRV12 - GetAll deve mapear encomendas para DTO paginado.")]
+    public async Task GetAllAsync_Should_MapPagedResult_When_RepositoryReturnsItems()
+    {
+        // ARRANGE
+        var paged = new PagedResult<Encomenda>(new[] { BuildEncomenda(id: 1), BuildEncomenda(id: 2, numero: "ENC-002") }, 2, 1, 10);
+        _encomendaRepository.Setup(r => r.GetAllAsync(1, 10)).ReturnsAsync(paged);
+
+        // ACT
+        var result = await _sut.GetAllAsync(1, 10);
+
+        // ASSERT
+        result.TotalCount.Should().Be(2);
+        result.Items.Should().HaveCount(2);
+        result.Items.Select(x => x.Encomenda_id).Should().Contain(new[] { 1, 2 });
+    }
+
+    [Test(Description = "TENCSRV13 - GetById deve devolver nulo quando encomenda nao existe.")]
+    public async Task GetByIdAsync_Should_ReturnNull_When_EncomendaDoesNotExist()
+    {
+        // ARRANGE
+        _encomendaRepository.Setup(r => r.GetByIdAsync(70)).ReturnsAsync((Encomenda?)null);
+
+        // ACT
+        var result = await _sut.GetByIdAsync(70);
+
+        // ASSERT
+        result.Should().BeNull();
+    }
+
+    [Test(Description = "TENCSRV14 - GetEncomendaWithMoldes deve mapear dto quando registo existe.")]
+    public async Task GetEncomendaWithMoldesAsync_Should_MapResponse_When_EncomendaExists()
+    {
+        // ARRANGE
+        var encomenda = BuildEncomenda(id: 30, numero: "ENC-030");
+        _encomendaRepository.Setup(r => r.GetWithMoldesAsync(30)).ReturnsAsync(encomenda);
+
+        // ACT
+        var result = await _sut.GetEncomendaWithMoldesAsync(30);
+
+        // ASSERT
+        result.Should().NotBeNull();
+        result!.Encomenda_id.Should().Be(30);
+        result.NumeroEncomendaCliente.Should().Be("ENC-030");
+    }
+
+    [Test(Description = "TENCSRV15 - GetByEstado deve mapear payload paginado.")]
+    public async Task GetByEstadoAsync_Should_MapPagedResult_When_RepositoryReturnsItems()
+    {
+        // ARRANGE
+        var paged = new PagedResult<Encomenda>(
+            new[] { BuildEncomenda(id: 8, numero: "ENC-008", estado: EstadoEncomenda.EM_PRODUCAO) },
+            1,
+            2,
+            5);
+        _encomendaRepository.Setup(r => r.GetByEstadoAsync(EstadoEncomenda.EM_PRODUCAO, 2, 5)).ReturnsAsync(paged);
+
+        // ACT
+        var result = await _sut.GetByEstadoAsync(EstadoEncomenda.EM_PRODUCAO, 2, 5);
+
+        // ASSERT
+        result.TotalCount.Should().Be(1);
+        result.Items.Single().Estado.Should().Be(EstadoEncomenda.EM_PRODUCAO);
+    }
+
+    [Test(Description = "TENCSRV16 - GetPorConcluir deve mapear payload paginado.")]
+    public async Task GetEncomendasPorConcluirAsync_Should_MapPagedResult_When_RepositoryReturnsItems()
+    {
+        // ARRANGE
+        var paged = new PagedResult<Encomenda>(new[] { BuildEncomenda(id: 9, numero: "ENC-009") }, 1, 1, 10);
+        _encomendaRepository.Setup(r => r.GetEncomendasPorConcluirAsync(1, 10)).ReturnsAsync(paged);
+
+        // ACT
+        var result = await _sut.GetEncomendasPorConcluirAsync(1, 10);
+
+        // ASSERT
+        result.TotalCount.Should().Be(1);
+        result.Items.Single().Encomenda_id.Should().Be(9);
+    }
+
+    [Test(Description = "TENCSRV17 - GetByNumero deve devolver dto quando encomenda existe.")]
+    public async Task GetByNumeroEncomendaClienteAsync_Should_ReturnResponse_When_EncomendaExists()
+    {
+        // ARRANGE
+        _encomendaRepository
+            .Setup(r => r.GetByNumeroEncomendaClienteAsync("ENC-050"))
+            .ReturnsAsync(BuildEncomenda(id: 50, numero: "ENC-050"));
+
+        // ACT
+        var result = await _sut.GetByNumeroEncomendaClienteAsync("ENC-050");
+
+        // ASSERT
+        result.Should().NotBeNull();
+        result!.Encomenda_id.Should().Be(50);
+    }
+
+    [Test(Description = "TENCSRV18 - Update deve falhar quando nenhum campo e enviado.")]
+    public async Task UpdateAsync_Should_ThrowArgumentException_When_NoFieldsProvided()
+    {
+        // ARRANGE
+        _encomendaRepository.Setup(r => r.GetByIdAsync(10)).ReturnsAsync(BuildEncomenda(id: 10));
+
+        // ACT
+        Func<Task> act = () => _sut.UpdateAsync(10, new UpdateEncomendaDTO());
+
+        // ASSERT
+        await act.Should().ThrowAsync<ArgumentException>();
+    }
+
+    [Test(Description = "TENCSRV19 - UpdateEstado deve persistir quando transicao e valida.")]
+    public async Task UpdateEstadoAsync_Should_UpdateEntity_When_TransitionIsValid()
+    {
+        // ARRANGE
+        var encomenda = BuildEncomenda(id: 60, estado: EstadoEncomenda.CONFIRMADA);
+        _encomendaRepository.Setup(r => r.GetByIdAsync(60)).ReturnsAsync(encomenda);
+
+        // ACT
+        await _sut.UpdateEstadoAsync(60, new UpdateEstadoEncomendaDTO { Estado = EstadoEncomenda.EM_PRODUCAO });
+
+        // ASSERT
+        _encomendaRepository.Verify(r => r.UpdateAsync(It.Is<Encomenda>(e =>
+            e.Encomenda_id == 60 &&
+            e.Estado == EstadoEncomenda.EM_PRODUCAO)), Times.Once);
     }
 }

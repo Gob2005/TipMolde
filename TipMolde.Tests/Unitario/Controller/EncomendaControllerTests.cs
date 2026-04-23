@@ -203,4 +203,133 @@ public class EncomendaControllerTests
         var payload = ok.Value!;
         payload.GetType().GetProperty("Items").Should().NotBeNull();
     }
+
+    [Test(Description = "TENCCONT10 - GetWithMoldes deve devolver payload quando encomenda existe.")]
+    public async Task GetEncomendaWithMoldes_Should_ReturnOk_When_EncomendaExists()
+    {
+        // ARRANGE
+        var response = BuildResponse(id: 7);
+        _encomendaService.Setup(s => s.GetEncomendaWithMoldesAsync(7)).ReturnsAsync(response);
+
+        // ACT
+        var result = await _controller.GetEncomendaWithMoldes(7);
+
+        // ASSERT
+        var ok = result as OkObjectResult;
+        ok.Should().NotBeNull();
+        ok!.Value.Should().BeEquivalentTo(response);
+    }
+
+    [Test(Description = "TENCCONT11 - GetPorConcluir deve devolver bad request quando paginacao e invalida.")]
+    public async Task GetEncomendasPorConcluir_Should_ReturnBadRequest_When_PaginationIsInvalid()
+    {
+        // ACT
+        var result = await _controller.GetEncomendasPorConcluir(0, 10);
+
+        // ASSERT
+        result.Should().BeOfType<BadRequestObjectResult>();
+    }
+
+    [Test(Description = "TENCCONT12 - GetPorConcluir deve devolver payload paginado quando pedido e valido.")]
+    public async Task GetEncomendasPorConcluir_Should_ReturnOk_When_RequestIsValid()
+    {
+        // ARRANGE
+        var paged = new PagedResult<ResponseEncomendaDTO>(new[] { BuildResponse(id: 4) }, 1, 1, 10);
+        _encomendaService.Setup(s => s.GetEncomendasPorConcluirAsync(1, 10)).ReturnsAsync(paged);
+
+        // ACT
+        var result = await _controller.GetEncomendasPorConcluir(1, 10);
+
+        // ASSERT
+        var ok = result as OkObjectResult;
+        ok.Should().NotBeNull();
+        ok!.Value.Should().BeEquivalentTo(paged);
+    }
+
+    [Test(Description = "TENCCONT13 - GetByEstado deve devolver payload paginado quando pedido e valido.")]
+    public async Task GetByEstado_Should_ReturnOk_When_RequestIsValid()
+    {
+        // ARRANGE
+        var paged = new PagedResult<ResponseEncomendaDTO>(new[] { BuildResponse(id: 5) }, 1, 2, 5);
+        _encomendaService
+            .Setup(s => s.GetByEstadoAsync(EstadoEncomenda.EM_PRODUCAO, 2, 5))
+            .ReturnsAsync(paged);
+
+        // ACT
+        var result = await _controller.GetByEstado(EstadoEncomenda.EM_PRODUCAO, 2, 5);
+
+        // ASSERT
+        var ok = result as OkObjectResult;
+        ok.Should().NotBeNull();
+        ok!.Value.Should().BeEquivalentTo(paged);
+    }
+
+    [Test(Description = "TENCCONT14 - GetByNumeroCliente deve devolver bad request quando numero e vazio.")]
+    public async Task GetByNumeroCliente_Should_ReturnBadRequest_When_NumeroIsBlank()
+    {
+        // ACT
+        var result = await _controller.GetByNumeroCliente("   ");
+
+        // ASSERT
+        result.Should().BeOfType<BadRequestObjectResult>();
+    }
+
+    [Test(Description = "TENCCONT15 - GetByNumeroCliente deve devolver not found quando encomenda nao existe.")]
+    public async Task GetByNumeroCliente_Should_ReturnNotFound_When_EncomendaDoesNotExist()
+    {
+        // ARRANGE
+        _encomendaService
+            .Setup(s => s.GetByNumeroEncomendaClienteAsync("ENC-404"))
+            .ReturnsAsync((ResponseEncomendaDTO?)null);
+
+        // ACT
+        var result = await _controller.GetByNumeroCliente("ENC-404");
+
+        // ASSERT
+        result.Should().BeOfType<NotFoundObjectResult>();
+    }
+
+    [Test(Description = "TENCCONT16 - GetByNumeroCliente deve devolver dto quando encomenda existe.")]
+    public async Task GetByNumeroCliente_Should_ReturnOk_When_EncomendaExists()
+    {
+        // ARRANGE
+        var response = BuildResponse(id: 6, numero: "ENC-006");
+        _encomendaService.Setup(s => s.GetByNumeroEncomendaClienteAsync("ENC-006")).ReturnsAsync(response);
+
+        // ACT
+        var result = await _controller.GetByNumeroCliente("ENC-006");
+
+        // ASSERT
+        var ok = result as OkObjectResult;
+        ok.Should().NotBeNull();
+        ok!.Value.Should().BeEquivalentTo(response);
+    }
+
+    [Test(Description = "TENCCONT17 - Update deve devolver bad request quando model state e invalido.")]
+    public async Task UpdateEncomenda_Should_ReturnBadRequest_When_ModelStateIsInvalid()
+    {
+        // ARRANGE
+        _controller.ModelState.AddModelError("NumeroEncomendaCliente", "Obrigatorio");
+
+        // ACT
+        var result = await _controller.UpdateEncomenda(1, new UpdateEncomendaDTO { NumeroEncomendaCliente = "ENC-1" });
+
+        // ASSERT
+        result.Should().BeOfType<BadRequestObjectResult>();
+        _encomendaService.Verify(s => s.UpdateAsync(It.IsAny<int>(), It.IsAny<UpdateEncomendaDTO>()), Times.Never);
+    }
+
+    [Test(Description = "TENCCONT18 - UpdateEstado deve devolver bad request quando model state e invalido.")]
+    public async Task UpdateEstado_Should_ReturnBadRequest_When_ModelStateIsInvalid()
+    {
+        // ARRANGE
+        _controller.ModelState.AddModelError("Estado", "Obrigatorio");
+
+        // ACT
+        var result = await _controller.UpdateEstado(1, new UpdateEstadoEncomendaDTO { Estado = EstadoEncomenda.EM_PRODUCAO });
+
+        // ASSERT
+        result.Should().BeOfType<BadRequestObjectResult>();
+        _encomendaService.Verify(s => s.UpdateEstadoAsync(It.IsAny<int>(), It.IsAny<UpdateEstadoEncomendaDTO>()), Times.Never);
+    }
 }

@@ -141,7 +141,7 @@ builder.Services.AddAutoMapper(typeof(MoldeProfile).Assembly);
 builder.Services.AddAutoMapper(typeof(ProjetoProfile).Assembly);
 
 builder.Services.AddAutoMapper(typeof(FornecedorProfile).Assembly);
-
+builder.Services.AddAutoMapper(typeof(PedidoMaterialProfile).Assembly);
 
 var app = builder.Build();
 app.UseMiddleware<ExceptionMiddleware>();

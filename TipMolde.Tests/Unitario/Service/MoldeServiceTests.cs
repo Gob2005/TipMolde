@@ -3,6 +3,7 @@ using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Moq;
 using TipMolde.Application.DTOs.MoldeDTO;
+using TipMolde.Application.Interface;
 using TipMolde.Application.Interface.Comercio.IEncomenda;
 using TipMolde.Application.Interface.Producao.IMolde;
 using TipMolde.Application.Mappings;
@@ -248,5 +249,118 @@ public class MoldeServiceTests
 
         // ASSERT
         _moldeRepository.Verify(r => r.DeleteAsync(13), Times.Once);
+    }
+
+    [Test(Description = "TMOLDSRV8 - GetAll deve mapear moldes para DTO paginado.")]
+    public async Task GetAllAsync_Should_MapPagedResult_When_RepositoryReturnsItems()
+    {
+        // ARRANGE
+        var paged = new PagedResult<Molde>(new[] { BuildMolde(id: 1), BuildMolde(id: 2, numero: "MOL-002") }, 2, 1, 10);
+        _moldeRepository.Setup(r => r.GetAllAsync(1, 10)).ReturnsAsync(paged);
+
+        // ACT
+        var result = await _sut.GetAllAsync(1, 10);
+
+        // ASSERT
+        result.TotalCount.Should().Be(2);
+        result.Items.Should().HaveCount(2);
+        result.Items.Select(x => x.MoldeId).Should().Contain(new[] { 1, 2 });
+    }
+
+    [Test(Description = "TMOLDSRV9 - GetById deve devolver nulo quando molde nao existe.")]
+    public async Task GetByIdAsync_Should_ReturnNull_When_MoldeDoesNotExist()
+    {
+        // ARRANGE
+        _moldeRepository.Setup(r => r.GetByIdAsync(90)).ReturnsAsync((Molde?)null);
+
+        // ACT
+        var result = await _sut.GetByIdAsync(90);
+
+        // ASSERT
+        result.Should().BeNull();
+    }
+
+    [Test(Description = "TMOLDSRV10 - GetByNumero deve devolver DTO quando molde existe.")]
+    public async Task GetByNumeroAsync_Should_ReturnResponse_When_MoldeExists()
+    {
+        // ARRANGE
+        _moldeRepository.Setup(r => r.GetByNumeroAsync("MOL-020")).ReturnsAsync(BuildMolde(id: 20, numero: "MOL-020"));
+
+        // ACT
+        var result = await _sut.GetByNumeroAsync(" MOL-020 ");
+
+        // ASSERT
+        result.Should().NotBeNull();
+        result!.MoldeId.Should().Be(20);
+        result.Numero.Should().Be("MOL-020");
+    }
+
+    [Test(Description = "TMOLDSRV11 - ExistsByNumero deve devolver true quando molde existe.")]
+    public async Task ExistsByNumeroAsync_Should_ReturnTrue_When_MoldeExists()
+    {
+        // ARRANGE
+        _moldeRepository.Setup(r => r.GetByNumeroAsync("MOL-030")).ReturnsAsync(BuildMolde(id: 30, numero: "MOL-030"));
+
+        // ACT
+        var result = await _sut.ExistsByNumeroAsync(" MOL-030 ");
+
+        // ASSERT
+        result.Should().BeTrue();
+    }
+
+    [Test(Description = "TMOLDSRV12 - GetByEncomendaId deve mapear payload paginado.")]
+    public async Task GetByEncomendaIdAsync_Should_MapPagedResult_When_RepositoryReturnsItems()
+    {
+        // ARRANGE
+        var paged = new PagedResult<Molde>(new[] { BuildMolde(id: 40, numero: "MOL-040") }, 1, 2, 5);
+        _moldeRepository.Setup(r => r.GetByEncomendaIdAsync(7, 2, 5)).ReturnsAsync(paged);
+
+        // ACT
+        var result = await _sut.GetByEncomendaIdAsync(7, 2, 5);
+
+        // ASSERT
+        result.TotalCount.Should().Be(1);
+        result.Items.Single().MoldeId.Should().Be(40);
+    }
+
+    [Test(Description = "TMOLDSRV13 - Update deve falhar quando molde nao existe.")]
+    public async Task UpdateAsync_Should_ThrowKeyNotFoundException_When_MoldeDoesNotExist()
+    {
+        // ARRANGE
+        _moldeRepository.Setup(r => r.GetByIdAsync(404)).ReturnsAsync((Molde?)null);
+
+        // ACT
+        Func<Task> act = () => _sut.UpdateAsync(404, new UpdateMoldeDTO { Nome = "Novo Nome" });
+
+        // ASSERT
+        await act.Should().ThrowAsync<KeyNotFoundException>();
+    }
+
+    [Test(Description = "TMOLDSRV14 - Update deve falhar quando numero novo ja existe noutro molde.")]
+    public async Task UpdateAsync_Should_ThrowArgumentException_When_NumeroAlreadyExistsInAnotherMolde()
+    {
+        // ARRANGE
+        var existente = BuildMolde(id: 50, numero: "MOL-050");
+        _moldeRepository.Setup(r => r.GetByIdAsync(50)).ReturnsAsync(existente);
+        _moldeRepository.Setup(r => r.GetByNumeroAsync("MOL-051")).ReturnsAsync(BuildMolde(id: 51, numero: "MOL-051"));
+
+        // ACT
+        Func<Task> act = () => _sut.UpdateAsync(50, new UpdateMoldeDTO { Numero = " MOL-051 " });
+
+        // ASSERT
+        await act.Should().ThrowAsync<ArgumentException>();
+    }
+
+    [Test(Description = "TMOLDSRV15 - Delete deve falhar quando molde nao existe.")]
+    public async Task DeleteAsync_Should_ThrowKeyNotFoundException_When_MoldeDoesNotExist()
+    {
+        // ARRANGE
+        _moldeRepository.Setup(r => r.GetByIdAsync(99)).ReturnsAsync((Molde?)null);
+
+        // ACT
+        Func<Task> act = () => _sut.DeleteAsync(99);
+
+        // ASSERT
+        await act.Should().ThrowAsync<KeyNotFoundException>();
     }
 }

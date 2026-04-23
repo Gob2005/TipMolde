@@ -35,9 +35,4 @@
     <Compile Remove="Unitario\RelatorioServiceTests.cs" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Helper\" />
-    <Folder Include="Integracao\" />
-  </ItemGroup>
-
 </Project>

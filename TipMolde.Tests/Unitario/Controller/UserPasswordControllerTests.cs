@@ -100,4 +100,43 @@ public class UserPasswordControllerTests
         result.Should().BeOfType<NoContentResult>();
         _passwordService.Verify(s => s.ResetPasswordAsync(7, "Admin123!"), Times.Once);
     }
+
+    [Test]
+    public async Task shouldReturnBadRequestWhenChangingPasswordWithInvalidModelState()
+    {
+        _controller.ModelState.AddModelError("NewPassword", "Obrigatorio");
+
+        var result = await _controller.ChangePassword(new ChangeUserPasswordDTO { CurrentPassword = null, NewPassword = null});
+
+        result.Should().BeOfType<BadRequestObjectResult>();
+        _passwordService.Verify(s => s.ChangePasswordAsync(It.IsAny<int>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+    }
+
+    [Test]
+    public async Task shouldReturnUnauthorizedWhenServiceThrowsUnauthorizedAccessException()
+    {
+        SetAuthenticatedUser(_controller, new Claim(JwtRegisteredClaimNames.Sub, "5"));
+        _passwordService
+            .Setup(s => s.ChangePasswordAsync(5, It.IsAny<string>(), It.IsAny<string>()))
+            .ThrowsAsync(new UnauthorizedAccessException("Password atual invalida"));
+
+        var result = await _controller.ChangePassword(new ChangeUserPasswordDTO
+        {
+            CurrentPassword = "Atual123!",
+            NewPassword = "Nova123!"
+        });
+
+        result.Should().BeOfType<UnauthorizedObjectResult>();
+    }
+
+    [Test]
+    public async Task shouldReturnBadRequestWhenResettingPasswordWithInvalidModelState()
+    {
+        _controller.ModelState.AddModelError("NewPassword", "Obrigatorio");
+
+        var result = await _controller.ResetPassword(8, new ResetUserPasswordDTO { NewPassword = null });
+
+        result.Should().BeOfType<BadRequestObjectResult>();
+        _passwordService.Verify(s => s.ResetPasswordAsync(It.IsAny<int>(), It.IsAny<string>()), Times.Never);
+    }
 }

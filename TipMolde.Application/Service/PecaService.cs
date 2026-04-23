@@ -22,8 +22,8 @@ namespace TipMolde.Application.Service
         public Task<Peca?> GetByIdAsync(int id) =>
             _pecaRepository.GetByIdAsync(id);
 
-        public Task<IEnumerable<Peca>> GetByMoldeIdAsync(int moldeId) =>
-            _pecaRepository.GetByMoldeIdAsync(moldeId);
+        public Task<PagedResult<Peca>> GetByMoldeIdAsync(int moldeId, int page = 1, int pageSize = 10) =>
+            _pecaRepository.GetByMoldeIdAsync(moldeId, page, pageSize);
 
         public Task<Peca?> GetByDesignacaoAsync(string designacao, int moldeId) =>
             _pecaRepository.GetByDesignacaoAsync(designacao, moldeId);
