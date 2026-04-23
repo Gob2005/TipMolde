@@ -10,7 +10,8 @@ env:
   SOLUTION_FILE: "TipMolde.sln"
   TEST_PROJECT: "TipMolde.Tests/TipMolde.Tests.csproj"
   TEST_RESULTS_DIR: "TestResults"
-  SONAR_PROJECT_KEY: "TipMolde-Backend"
+  SONAR_PROJECT_KEY: "Gob2005_TipMolde"
+  SONAR_ORG_KEY: "gob2005"
   DOCKER_IMAGE_NAME: "tipmolde-api"
 
 jobs:
@@ -140,7 +141,7 @@ jobs:
           if-no-files-found: warn
 
   sonar-analysis:
-    name: SonarQube Analysis
+    name: SonarCloud Analysis
     runs-on: self-hosted
     needs: [ coverage-report ]
     if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
@@ -168,11 +169,23 @@ jobs:
 
       - name: Sonar Begin
         shell: powershell
+        env:
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
+          if ([string]::IsNullOrWhiteSpace($env:SONAR_HOST_URL)) {
+            throw "GitHub secret SONAR_HOST_URL is missing or empty."
+          }
+
+          if ([string]::IsNullOrWhiteSpace($env:SONAR_TOKEN)) {
+            throw "GitHub secret SONAR_TOKEN is missing or empty."
+          }
+
           dotnet-sonarscanner begin `
             /k:"${{ env.SONAR_PROJECT_KEY }}" `
-            /d:sonar.host.url="${{ secrets.SONAR_HOST_URL }}" `
-            /d:sonar.token="${{ secrets.SONAR_TOKEN }}" `
+            /o:"${{ env.SONAR_ORG_KEY }}" `
+            "/d:sonar.host.url=$env:SONAR_HOST_URL" `
+            "/d:sonar.token=$env:SONAR_TOKEN" `
             /d:sonar.cs.opencover.reportsPaths="**/coverage.opencover.xml" `
             /d:sonar.cs.vstest.reportsPaths="**/*.trx"
 
@@ -184,9 +197,16 @@ jobs:
 
       - name: Sonar End
         shell: powershell
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
+          if ([string]::IsNullOrWhiteSpace($env:SONAR_TOKEN)) {
+            throw "GitHub secret SONAR_TOKEN is missing or empty."
+          }
+
           dotnet-sonarscanner end `
-            /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
+            "/d:sonar.token=$env:SONAR_TOKEN"
+
 
   docker-build:
     name: Build Docker Image
