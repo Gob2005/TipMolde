@@ -28,7 +28,7 @@ namespace TipMolde.Application.Service
             _logger = logger;
         }
 
-        public async Task<PagedResult<ResponseUserDto>> GetAllAsync(int page, int pageSize)
+        public async Task<PagedResult<ResponseUserDto>> GetAllAsync(int page = 1, int pageSize = 10)
         {
             var result = await _userRepository.GetAllAsync(page, pageSize);
             var mappedItems = _mapper.Map<IEnumerable<ResponseUserDto>>(result.Items);
@@ -41,7 +41,7 @@ namespace TipMolde.Application.Service
             return user == null ? null : _mapper.Map<ResponseUserDto>(user);
         }
 
-        public async Task<PagedResult<ResponseUserDto>> SearchByNameAsync(string searchTerm, int page, int pageSize)
+        public async Task<PagedResult<ResponseUserDto>> SearchByNameAsync(string searchTerm, int page = 1, int pageSize = 10)
         {
             if (string.IsNullOrWhiteSpace(searchTerm))
                 return new PagedResult<ResponseUserDto>(Enumerable.Empty<ResponseUserDto>(), 0, page, pageSize);

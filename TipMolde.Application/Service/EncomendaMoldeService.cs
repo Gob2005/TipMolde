@@ -66,8 +66,8 @@ namespace TipMolde.Application.Service
         /// <returns>Resultado paginado com Dtos de associacao.</returns>
         public async Task<PagedResult<ResponseEncomendaMoldeDto>> GetByEncomendaIdAsync(
             int encomendaId,
-            int page,
-            int pageSize)
+            int page = 1,
+            int pageSize = 10)
         {
             var result = await _repo.GetByEncomendaIdAsync(encomendaId, page, pageSize);
             var mapped = _mapper.Map<IEnumerable<ResponseEncomendaMoldeDto>>(result.Items);
@@ -83,8 +83,8 @@ namespace TipMolde.Application.Service
         /// <returns>Resultado paginado com Dtos de associacao.</returns>
         public async Task<PagedResult<ResponseEncomendaMoldeDto>> GetByMoldeIdAsync(
             int moldeId,
-            int page,
-            int pageSize)
+            int page = 1,
+            int pageSize = 10)
         {
             var result = await _repo.GetByMoldeIdAsync(moldeId, page, pageSize);
             var mapped = _mapper.Map<IEnumerable<ResponseEncomendaMoldeDto>>(result.Items);

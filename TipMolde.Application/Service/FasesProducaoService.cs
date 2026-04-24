@@ -43,7 +43,7 @@ namespace TipMolde.Application.Service
         /// <param name="page">Pagina atual.</param>
         /// <param name="pageSize">Tamanho da pagina.</param>
         /// <returns>Resultado paginado com DTOs de resposta.</returns>
-        public async Task<PagedResult<ResponseFasesProducaoDto>> GetAllAsync(int page, int pageSize)
+        public async Task<PagedResult<ResponseFasesProducaoDto>> GetAllAsync(int page = 1, int pageSize = 10)
         {
             var result = await _fpRepository.GetAllAsync(page, pageSize);
             var items = _mapper.Map<IEnumerable<ResponseFasesProducaoDto>>(result.Items);

@@ -59,7 +59,7 @@ namespace TipMolde.Application.Service
         /// <param name="page">Numero da pagina a consultar.</param>
         /// <param name="pageSize">Quantidade de itens por pagina.</param>
         /// <returns>Resultado paginado com pedidos de material mapeados para DTO.</returns>
-        public async Task<PagedResult<ResponsePedidoMaterialDto>> GetAllAsync(int page, int pageSize)
+        public async Task<PagedResult<ResponsePedidoMaterialDto>> GetAllAsync(int page = 1, int pageSize = 10)
         {
             var result = await _pedidoRepository.GetPagedWithItensAsync(page, pageSize);
             var mappedItems = _mapper.Map<IEnumerable<ResponsePedidoMaterialDto>>(result.Items);
@@ -89,7 +89,7 @@ namespace TipMolde.Application.Service
         /// <param name="page">Numero da pagina solicitada.</param>
         /// <param name="pageSize">Quantidade de itens por pagina.</param>
         /// <returns>Resultado paginado com pedidos associados ao fornecedor informado.</returns>
-        public async Task<PagedResult<ResponsePedidoMaterialDto>> GetByFornecedorIdAsync(int fornecedorId, int page, int pageSize)
+        public async Task<PagedResult<ResponsePedidoMaterialDto>> GetByFornecedorIdAsync(int fornecedorId, int page = 1, int pageSize = 10)
         {
             var result = await _pedidoRepository.GetByFornecedorIdWithItensAsync(fornecedorId, page, pageSize);
             var mappedItems = _mapper.Map<IEnumerable<ResponsePedidoMaterialDto>>(result.Items);

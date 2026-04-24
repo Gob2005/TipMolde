@@ -48,7 +48,7 @@ namespace TipMolde.Application.Service
         /// <param name="page">Pagina atual (>= 1).</param>
         /// <param name="pageSize">Tamanho da pagina (>= 1).</param>
         /// <returns>Resultado paginado com Dtos de resposta.</returns>
-        public async Task<PagedResult<ResponseEncomendaDto>> GetAllAsync(int page, int pageSize)
+        public async Task<PagedResult<ResponseEncomendaDto>> GetAllAsync(int page = 1, int pageSize = 10)
         {
             var result = await _encomendaRepository.GetAllAsync(page, pageSize);
             var mappedItems = _mapper.Map<IEnumerable<ResponseEncomendaDto>>(result.Items);
@@ -82,7 +82,7 @@ namespace TipMolde.Application.Service
         /// </summary>
         /// <param name="estado">Estado textual para filtro.</param>
         /// <returns>Colecao de Dtos de encomenda no estado informado.</returns>
-        public async Task<PagedResult<ResponseEncomendaDto>> GetByEstadoAsync(EstadoEncomenda estado, int page, int pageSize)
+        public async Task<PagedResult<ResponseEncomendaDto>> GetByEstadoAsync(EstadoEncomenda estado, int page = 1, int pageSize = 10)
         {
             var result = await _encomendaRepository.GetByEstadoAsync(estado, page, pageSize);
             var mappedItems = _mapper.Map<IEnumerable<ResponseEncomendaDto>>(result.Items);
@@ -93,7 +93,7 @@ namespace TipMolde.Application.Service
         /// Lista encomendas com estado nao terminal.
         /// </summary>
         /// <returns>Colecao de Dtos de encomendas por concluir.</returns>
-        public async Task<PagedResult<ResponseEncomendaDto>> GetEncomendasPorConcluirAsync(int page, int pageSize)
+        public async Task<PagedResult<ResponseEncomendaDto>> GetEncomendasPorConcluirAsync(int page = 1, int pageSize = 10)
         {
             var result = await _encomendaRepository.GetEncomendasPorConcluirAsync(page, pageSize);
             var mappedItems = _mapper.Map<IEnumerable<ResponseEncomendaDto>>(result.Items);

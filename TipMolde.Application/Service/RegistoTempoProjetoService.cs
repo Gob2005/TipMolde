@@ -60,7 +60,7 @@ namespace TipMolde.Application.Service
         /// <param name="page">Numero da pagina a ser retornada.</param>
         /// <param name="pageSize">Tamanho da pagina.</param>
         /// <returns>Colecao ordenada de registos convertidos para DTO.</returns>
-        public async Task<PagedResult<ResponseRegistoTempoProjetoDto>> GetHistoricoAsync(int projetoId, int autorId, int page, int pageSize)
+        public async Task<PagedResult<ResponseRegistoTempoProjetoDto>> GetHistoricoAsync(int projetoId, int autorId, int page = 1, int pageSize = 10)
         {
             var result = await _registoRepository.GetHistoricoAsync(projetoId, autorId, page, pageSize);
             var itens = _mapper.Map<IEnumerable<ResponseRegistoTempoProjetoDto>>(result.Items);

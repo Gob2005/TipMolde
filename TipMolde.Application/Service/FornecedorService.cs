@@ -34,7 +34,7 @@ namespace TipMolde.Application.Service
         /// <param name="page">Numero da pagina a consultar.</param>
         /// <param name="pageSize">Quantidade de itens por pagina.</param>
         /// <returns>Resultado paginado com fornecedores e metadados de navegacao.</returns>
-        public async Task<PagedResult<ResponseFornecedorDto>> GetAllAsync(int page, int pageSize)
+        public async Task<PagedResult<ResponseFornecedorDto>> GetAllAsync(int page = 1, int pageSize = 10)
         {
             var result = await _fornecedorRepository.GetAllAsync(page, pageSize);
             var mappedItems = _mapper.Map<IEnumerable<ResponseFornecedorDto>>(result.Items);
@@ -67,7 +67,7 @@ namespace TipMolde.Application.Service
         /// <param name="page">Numero da pagina a consultar.</param>
         /// <param name="pageSize">Quantidade de itens por pagina.</param>
         /// <returns>Colecao paginada de fornecedores que correspondem ao termo informado.</returns>
-        public async Task<PagedResult<ResponseFornecedorDto>> SearchByNameAsync(string searchTerm, int page, int pageSize)
+        public async Task<PagedResult<ResponseFornecedorDto>> SearchByNameAsync(string searchTerm, int page = 1, int pageSize = 10)
         {
             if (string.IsNullOrWhiteSpace(searchTerm))
                 return CreateEmptyPage(page, pageSize);
@@ -168,7 +168,7 @@ namespace TipMolde.Application.Service
         /// <param name="page">Numero de pagina solicitado pelo consumidor.</param>
         /// <param name="pageSize">Quantidade de itens por pagina solicitada pelo consumidor.</param>
         /// <returns>Resultado paginado sem itens e com metadados consistentes.</returns>
-        private static PagedResult<ResponseFornecedorDto> CreateEmptyPage(int page, int pageSize)
+        private static PagedResult<ResponseFornecedorDto> CreateEmptyPage(int page = 1, int pageSize = 10)
         {
             var normalizedPage = page < 1 ? 1 : page;
             var normalizedPageSize = pageSize < 1 ? 10 : pageSize > 200 ? 200 : pageSize;

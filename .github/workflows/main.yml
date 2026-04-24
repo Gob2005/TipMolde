@@ -190,10 +190,10 @@ jobs:
             /d:sonar.cs.vstest.reportsPaths="**/*.trx"
 
       - name: Restore for Sonar
-        run: dotnet restore ${{ env.SOLUTION_FILE }}
+        run: dotnet restore ${{ env.SOLUTION_FILE }} --disable-build-servers
 
       - name: Build for Sonar
-        run: dotnet build ${{ env.SOLUTION_FILE }} --configuration Release --no-restore
+        run: dotnet build ${{ env.SOLUTION_FILE }} --configuration Release --no-restore --disable-build-servers
 
       - name: Sonar End
         shell: powershell
@@ -206,6 +206,18 @@ jobs:
 
           dotnet-sonarscanner end `
             "/d:sonar.token=$env:SONAR_TOKEN"
+      - name: Shutdown .NET build servers
+        if: always()
+        run: dotnet build-server shutdown
+
+      - name: Cleanup Sonar workspace
+        if: always()
+        shell: powershell
+        run: |
+          $sonarPath = Join-Path $env:GITHUB_WORKSPACE ".sonarqube"
+          if (Test-Path $sonarPath) {
+            Remove-Item -LiteralPath $sonarPath -Recurse -Force
+          }
 
 
   docker-build:

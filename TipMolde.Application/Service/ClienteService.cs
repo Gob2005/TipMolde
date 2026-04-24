@@ -34,7 +34,7 @@ namespace TipMolde.Application.Service
         /// <param name="page">Numero da pagina a consultar.</param>
         /// <param name="pageSize">Quantidade de itens por pagina.</param>
         /// <returns>Resultado paginado com clientes e metadados de navegacao.</returns>
-        public async Task<PagedResult<ResponseClienteDto>> GetAllAsync(int page, int pageSize)
+        public async Task<PagedResult<ResponseClienteDto>> GetAllAsync(int page = 1, int pageSize = 10)
         {
             var result = await _clienteRepository.GetAllAsync(page, pageSize);
             var mappedItems = _mapper.Map<IEnumerable<ResponseClienteDto>>(result.Items);
@@ -65,7 +65,7 @@ namespace TipMolde.Application.Service
         /// </remarks>
         /// <param name="searchTerm">Termo parcial para pesquisa no nome.</param>
         /// <returns>Colecao de clientes que correspondem ao termo informado.</returns>
-        public async Task<PagedResult<ResponseClienteDto>> SearchByNameAsync(string searchTerm, int page, int pageSize)
+        public async Task<PagedResult<ResponseClienteDto>> SearchByNameAsync(string searchTerm, int page = 1, int pageSize = 10)
         {
             if (string.IsNullOrWhiteSpace(searchTerm))
                 return CreateEmptyPage(page, pageSize);
@@ -88,7 +88,7 @@ namespace TipMolde.Application.Service
         /// </remarks>
         /// <param name="searchTerm">Termo parcial para pesquisa na sigla.</param>
         /// <returns>Colecao de clientes que correspondem ao termo informado.</returns>
-        public async Task<PagedResult<ResponseClienteDto>> SearchBySiglaAsync(string searchTerm, int page, int pageSize)
+        public async Task<PagedResult<ResponseClienteDto>> SearchBySiglaAsync(string searchTerm, int page = 1, int pageSize = 10)
         {
             if (string.IsNullOrWhiteSpace(searchTerm))
                 return CreateEmptyPage(page, pageSize);
@@ -194,7 +194,7 @@ namespace TipMolde.Application.Service
         /// <param name="page">Numero de pagina solicitado pelo consumidor.</param>
         /// <param name="pageSize">Quantidade de itens por pagina solicitada pelo consumidor.</param>
         /// <returns>Resultado paginado sem itens e com metadados consistentes.</returns>
-        private static PagedResult<ResponseClienteDto> CreateEmptyPage(int page, int pageSize)
+        private static PagedResult<ResponseClienteDto> CreateEmptyPage(int page = 1, int pageSize = 10)
         {
             var normalizedPage = page < 1 ? 1 : page;
             var normalizedPageSize = pageSize < 1 ? 10 : pageSize > 200 ? 200 : pageSize;

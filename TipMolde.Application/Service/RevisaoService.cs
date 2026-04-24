@@ -49,7 +49,7 @@ namespace TipMolde.Application.Service
         /// <param name="page">Numero da pagina a ser retornada.</param>
         /// <param name="pageSize">Quantidade de itens por pagina.</param>
         /// <returns>Colecao de Dtos de revisao ordenados por numero decrescente.</returns>
-        public async Task<PagedResult<ResponseRevisaoDto>> GetByProjetoIdAsync(int projetoId, int page, int pageSize)
+        public async Task<PagedResult<ResponseRevisaoDto>> GetByProjetoIdAsync(int projetoId, int page = 1, int pageSize = 10)
         {
             var result = await _revisaoRepository.GetByProjetoIdAsync(projetoId, page, pageSize);
             var itens = _mapper.Map<IEnumerable<ResponseRevisaoDto>>(result.Items);
