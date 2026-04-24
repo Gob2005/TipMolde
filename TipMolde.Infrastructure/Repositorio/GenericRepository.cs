@@ -15,9 +15,8 @@ namespace TipMolde.Infrastructure.Repositorio
             _db = _context.Set<T>();
         }
 
-        public async Task<IEnumerable<T>> GetAllAsync() => await _db.AsNoTracking().ToListAsync();
 
-        public async Task<PagedResult<T>> GetAllAsync(int page = 1, int pageSize = 50)
+        public async Task<PagedResult<T>> GetAllAsync(int page, int pageSize)
         {
             page = page < 1 ? 1 : page;
             pageSize = pageSize < 1 ? 10 : pageSize > 200 ? 200 : pageSize;

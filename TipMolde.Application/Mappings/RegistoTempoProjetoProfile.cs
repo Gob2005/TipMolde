@@ -18,6 +18,12 @@ namespace TipMolde.Application.Mappings
         /// </summary>
         public RegistoTempoProjetoProfile()
         {
+            ConfigureCreateMap();
+            ConfigureResponseMap();
+        }
+
+        private void ConfigureCreateMap()
+        {
             CreateMap<CreateRegistoTempoProjetoDto, RegistoTempoProjeto>()
                 .ForMember(dest => dest.Registo_Tempo_Projeto_id, opt => opt.Ignore())
                 .ForMember(dest => dest.Estado_tempo, opt => opt.MapFrom(src => src.Estado_tempo!.Value))
@@ -25,7 +31,10 @@ namespace TipMolde.Application.Mappings
                 .ForMember(dest => dest.Projeto, opt => opt.Ignore())
                 .ForMember(dest => dest.Autor, opt => opt.Ignore())
                 .ForMember(dest => dest.Peca, opt => opt.Ignore());
+        }
 
+        private void ConfigureResponseMap()
+        {
             CreateMap<RegistoTempoProjeto, ResponseRegistoTempoProjetoDto>();
         }
     }

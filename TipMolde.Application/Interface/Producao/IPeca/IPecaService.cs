@@ -69,14 +69,27 @@ namespace TipMolde.Application.Interface.Producao.IPeca
         Task UpdateAsync(int id, UpdatePecaDto dto);
 
         /// <summary>
+        /// Importa pecas a partir de um ficheiro CSV da lista de materiais.
+        /// </summary>
+        /// <remarks>
+        /// Fluxo critico:
+        /// 1. Valida a estrutura do ficheiro e a linha-resumo do molde.
+        /// 2. Agrupa linhas por NumeroPeca.
+        /// 3. Consolida quantidades quando os restantes campos coincidem.
+        /// 4. Rejeita grupos com dados contraditorios para o mesmo NumeroPeca.
+        /// 5. Persiste as pecas consolidadas no molde indicado.
+        /// </remarks>
+        /// <param name="moldeId">Identificador do molde que recebe as pecas importadas.</param>
+        /// <param name="csvStream">Stream do ficheiro CSV a processar.</param>
+        /// <returns>Resumo da importacao com as pecas persistidas.</returns>
+        Task<ImportPecasCsvResultDto> ImportarCsvAsync(int moldeId, Stream csvStream);
+
+        /// <summary>
         /// Remove uma peca existente.
         /// </summary>
         /// <param name="id">Identificador da peca a remover.</param>
         /// <returns>Task de conclusao da remocao.</returns>
         Task DeleteAsync(int id);
-
-
-        //Task<int> ImportarCsvAsync(int moldeId, Stream csvStream);
     }
 }
 

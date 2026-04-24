@@ -138,9 +138,12 @@ builder.Services.AddAutoMapper(typeof(ClienteProfile).Assembly);
 builder.Services.AddAutoMapper(typeof(EncomendaProfile).Assembly);
 builder.Services.AddAutoMapper(typeof(EncomendaMoldeProfile).Assembly);
 builder.Services.AddAutoMapper(typeof(MoldeProfile).Assembly);
+builder.Services.AddAutoMapper(typeof(PecaProfile).Assembly);
+builder.Services.AddAutoMapper(typeof(FasesProducaoProfile).Assembly);
+builder.Services.AddAutoMapper(typeof(MaquinaProfile).Assembly);
 builder.Services.AddAutoMapper(typeof(ProjetoProfile).Assembly);
 builder.Services.AddAutoMapper(typeof(RevisaoProfile).Assembly);
-
+builder.Services.AddAutoMapper(typeof(RegistoTempoProjetoProfile).Assembly);
 builder.Services.AddAutoMapper(typeof(FornecedorProfile).Assembly);
 builder.Services.AddAutoMapper(typeof(PedidoMaterialProfile).Assembly);
 

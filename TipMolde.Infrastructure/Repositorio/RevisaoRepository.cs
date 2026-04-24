@@ -29,7 +29,7 @@ namespace TipMolde.Infrastructure.Repositorio
         /// <param name="page">Numero da pagina a ser retornada.</param>
         /// <param name="pageSize">Quantidade de itens por pagina.</param>
         /// <returns>Colecao de revisoes ordenadas por numero decrescente.</returns>
-        public async Task<PagedResult<Revisao>> GetByProjetoIdAsync(int projetoId, int page = 1, int pageSize = 10)
+        public async Task<PagedResult<Revisao>> GetByProjetoIdAsync(int projetoId, int page, int pageSize)
         {
             page = page < 1 ? 1 : page;
             pageSize = pageSize < 1 ? 10 : pageSize > 200 ? 200 : pageSize;

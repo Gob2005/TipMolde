@@ -31,7 +31,7 @@ namespace TipMolde.Application.Service
             _pecaRepository = pecaRepository;
         }
 
-        public Task<PagedResult<RegistosProducao>> GetAllAsync(int page = 1, int pageSize = 10) =>
+        public Task<PagedResult<RegistosProducao>> GetAllAsync(int page, int pageSize) =>
             _rpRepository.GetAllAsync(page, pageSize);
 
         public Task<RegistosProducao?> GetByIdAsync(int id)

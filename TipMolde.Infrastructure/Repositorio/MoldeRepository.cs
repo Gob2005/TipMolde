@@ -30,7 +30,7 @@ namespace TipMolde.Infrastructure.Repositorio
         /// <param name="page">Pagina atual.</param>
         /// <param name="pageSize">Tamanho da pagina.</param>
         /// <returns>Resultado paginado de moldes.</returns>
-        public async Task<PagedResult<Molde>> GetAllAsync(int page = 1, int pageSize = 10)
+        public async Task<PagedResult<Molde>> GetAllAsync(int page, int pageSize)
         {
             page = page < 1 ? 1 : page;
             pageSize = pageSize < 1 ? 10 : pageSize > 200 ? 200 : pageSize;
@@ -82,7 +82,7 @@ namespace TipMolde.Infrastructure.Repositorio
         /// <param name="page">Pagina atual.</param>
         /// <param name="pageSize">Tamanho da pagina.</param>
         /// <returns>Colecao de moldes associados com especificacoes carregadas.</returns>
-        public async Task<PagedResult<Molde>> GetByEncomendaIdAsync(int encomendaId, int page = 1, int pageSize = 10)
+        public async Task<PagedResult<Molde>> GetByEncomendaIdAsync(int encomendaId, int page, int pageSize)
         {
             page = page < 1 ? 1 : page;
             pageSize = pageSize < 1 ? 10 : pageSize > 200 ? 200 : pageSize;

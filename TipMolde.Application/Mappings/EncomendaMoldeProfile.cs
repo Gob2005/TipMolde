@@ -11,38 +11,39 @@ namespace TipMolde.Application.Mappings
     {
         public EncomendaMoldeProfile()
         {
+            ConfigureCreateMap();
+            ConfigureUpdateMap();
+            ConfigureResponseMap();
+        }
+
+        private void ConfigureCreateMap()
+        {
             CreateMap<CreateEncomendaMoldeDto, EncomendaMolde>()
                 .ForMember(dest => dest.EncomendaMolde_id, opt => opt.Ignore())
                 .ForMember(dest => dest.Encomenda, opt => opt.Ignore())
                 .ForMember(dest => dest.Molde, opt => opt.Ignore())
                 .ForMember(dest => dest.Fichas, opt => opt.Ignore());
+        }
 
+        private void ConfigureUpdateMap()
+        {
             CreateMap<UpdateEncomendaMoldeDto, EncomendaMolde>()
-                .ForMember(dest => dest.Quantidade, opt =>
-                {
-                    opt.Condition(src => src.Quantidade.HasValue);
-                    opt.MapFrom(src => src.Quantidade!.Value);
-                })
-                .ForMember(dest => dest.Prioridade, opt =>
-                {
-                    opt.Condition(src => src.Prioridade.HasValue);
-                    opt.MapFrom(src => src.Prioridade!.Value);
-                })
-                .ForMember(dest => dest.DataEntregaPrevista, opt =>
-                {
-                    opt.Condition(src => src.DataEntregaPrevista.HasValue);
-                    opt.MapFrom(src => src.DataEntregaPrevista!.Value);
-                })
+                .MapValueIfProvided(dest => dest.Quantidade, src => src.Quantidade)
+                .MapValueIfProvided(dest => dest.Prioridade, src => src.Prioridade)
+                .MapValueIfProvided(dest => dest.DataEntregaPrevista, src => src.DataEntregaPrevista)
                 .ForMember(dest => dest.EncomendaMolde_id, opt => opt.Ignore())
                 .ForMember(dest => dest.Encomenda_id, opt => opt.Ignore())
                 .ForMember(dest => dest.Molde_id, opt => opt.Ignore())
                 .ForMember(dest => dest.Encomenda, opt => opt.Ignore())
                 .ForMember(dest => dest.Molde, opt => opt.Ignore())
                 .ForMember(dest => dest.Fichas, opt => opt.Ignore());
+        }
 
+        private void ConfigureResponseMap()
+        {
             CreateMap<EncomendaMolde, ResponseEncomendaMoldeDto>()
-                .ForMember(dest => dest.NumeroEncomendaCliente, opt => opt.MapFrom(src => src.Encomenda == null ? null : src.Encomenda.NumeroEncomendaCliente))
-                .ForMember(dest => dest.NumeroMolde, opt => opt.MapFrom(src => src.Molde == null ? null : src.Molde.Numero));
+                .ForMember(dest => dest.NumeroEncomendaCliente, opt => opt.MapFrom(src => MappingProfileExtensions.GetOptionalValue(src.Encomenda, encomenda => encomenda.NumeroEncomendaCliente)))
+                .ForMember(dest => dest.NumeroMolde, opt => opt.MapFrom(src => MappingProfileExtensions.GetOptionalValue(src.Molde, molde => molde.Numero)));
         }
     }
 }

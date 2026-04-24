@@ -1,105 +1,187 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using MySqlX.XDevAPI.Common;
 using TipMolde.Application.Dtos.MaquinaDto;
 using TipMolde.Application.Interface.Producao.IMaquina;
-using TipMolde.Domain.Entities.Producao;
 using TipMolde.Domain.Enums;
 
 namespace TipMolde.API.Controllers
 {
+    /// <summary>
+    /// Disponibiliza endpoints HTTP para a feature Maquina.
+    /// </summary>
+    /// <remarks>
+    /// O controller valida input HTTP e delega regras de negocio ao servico de aplicacao.
+    /// </remarks>
     [ApiController]
     [Route("api/[controller]")]
     public class MaquinaController : ControllerBase
     {
         private readonly IMaquinaService _service;
+        private readonly ILogger<MaquinaController> _logger;
 
-        public MaquinaController(IMaquinaService service)
+        /// <summary>
+        /// Construtor de MaquinaController.
+        /// </summary>
+        /// <param name="service">Servico responsavel pelos casos de uso da feature.</param>
+        /// <param name="logger">Logger para rastreabilidade das operacoes HTTP.</param>
+        public MaquinaController(
+            IMaquinaService service,
+            ILogger<MaquinaController> logger)
         {
             _service = service;
+            _logger = logger;
         }
 
+        /// <summary>
+        /// Lista maquinas com paginacao.
+        /// </summary>
+        /// <param name="page">Pagina atual.</param>
+        /// <param name="pageSize">Tamanho da pagina.</param>
+        /// <returns>HTTP 200 com resultado paginado; HTTP 400 para paginacao invalida.</returns>
         [Authorize(Roles = "ADMIN,GESTOR_PRODUCAO")]
-        [HttpGet("all")]
-        public async Task<IActionResult> GetAll()
+        [HttpGet]
+        public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
-            var result = await _service.GetAllAsync();
-            return Ok(new
-            {
-                result.TotalCount,
-                result.CurrentPage,
-                result.PageSize,
-                Items = result.Items.Select(ToResponse)
-            });
+            if (page < 1 || pageSize < 1)
+                return BadRequest(CreateProblem(
+                    StatusCodes.Status400BadRequest,
+                    "Pedido invalido",
+                    "Page e pageSize devem ser maiores ou iguais a 1."));
+
+            var result = await _service.GetAllAsync(page, pageSize);
+            return Ok(result);
         }
 
+        /// <summary>
+        /// Obtem uma maquina por ID.
+        /// </summary>
+        /// <param name="id">Identificador interno da maquina.</param>
+        /// <returns>HTTP 200 com a maquina; HTTP 404 quando nao encontrada.</returns>
         [Authorize(Roles = "ADMIN,GESTOR_PRODUCAO")]
-        [HttpGet("by-id")]
-        public async Task<IActionResult> GetById([FromQuery] int id)
+        [HttpGet("{id:int}")]
+        public async Task<IActionResult> GetById(int id)
         {
             var maquina = await _service.GetByIdAsync(id);
-            if (maquina == null) return NotFound();
-            return Ok(ToResponse(maquina));
+            if (maquina == null)
+            {
+                return NotFound(CreateProblem(
+                    StatusCodes.Status404NotFound,
+                    "Recurso nao encontrado",
+                    $"Maquina com ID {id} nao encontrada."));
+            }
+
+            return Ok(maquina);
         }
 
+        /// <summary>
+        /// Lista maquinas por estado com paginacao.
+        /// </summary>
+        /// <param name="estado">Estado operacional a filtrar.</param>
+        /// <param name="page">Pagina atual.</param>
+        /// <param name="pageSize">Tamanho da pagina.</param>
+        /// <returns>HTTP 200 com resultado paginado filtrado por estado.</returns>
         [Authorize(Roles = "ADMIN,GESTOR_PRODUCAO")]
-        [HttpGet("by-estado")]
-        public async Task<IActionResult> GetByEstado([FromQuery] EstadoMaquina estado)
+        [HttpGet("por-estado")]
+        public async Task<IActionResult> GetByEstado([FromQuery] EstadoMaquina estado, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
-            var maquinas = await _service.GetByEstadoAsync(estado);
-            return Ok(maquinas.Select(ToResponse));
+            if (page < 1 || pageSize < 1)
+                return BadRequest(CreateProblem(
+                    StatusCodes.Status400BadRequest,
+                    "Pedido invalido",
+                    "Page e pageSize devem ser maiores ou iguais a 1."));
+
+            var maquinas = await _service.GetByEstadoAsync(estado, page, pageSize);
+            return Ok(maquinas);
         }
 
+        /// <summary>
+        /// Cria uma nova maquina.
+        /// </summary>
+        /// <remarks>
+        /// O contrato de criacao tem de transportar numero fisico, nome/modelo,
+        /// fase dedicada e estado inicial para evitar registos operacionais incompletos.
+        /// </remarks>
+        /// <param name="dto">Dados de criacao da maquina.</param>
+        /// <returns>HTTP 201 com o recurso criado; HTTP 400 quando o body e invalido.</returns>
         [Authorize(Roles = "ADMIN")]
-        [HttpPost("create")]
+        [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateMaquinaDto dto)
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
-
-            var maquina = new Maquina
+            if (!ModelState.IsValid)
             {
-                Maquina_id = dto.Maquina_id,
-                NomeModelo = dto.NomeModelo.Trim(),
-                IpAddress = dto.IpAddress,
-                Estado = dto.Estado
-            };
+                return BadRequest(CreateProblem(
+                    StatusCodes.Status400BadRequest,
+                    "Pedido invalido",
+                    "Dados de criacao invalidos para a maquina."));
+            }
 
-            var created = await _service.CreateAsync(maquina);
-            return CreatedAtAction(nameof(GetById), new { id = created.Maquina_id }, ToResponse(created));
+            var created = await _service.CreateAsync(dto);
+
+            _logger.LogInformation("Controller: maquina {MaquinaId} criada.", created.Maquina_id);
+
+            return CreatedAtAction(nameof(GetById), new { id = created.Maquina_id }, created);
         }
 
+        /// <summary>
+        /// Atualiza parcialmente uma maquina.
+        /// </summary>
+        /// <remarks>
+        /// Campos omitidos preservam o valor atual e nunca aplicam defaults tecnicos com impacto operacional.
+        /// </remarks>
+        /// <param name="id">Identificador da maquina a atualizar.</param>
+        /// <param name="dto">Dados de atualizacao parcial.</param>
+        /// <returns>HTTP 204 quando a atualizacao e concluida; HTTP 400 quando o body e invalido.</returns>
         [Authorize(Roles = "ADMIN,GESTOR_PRODUCAO")]
-        [HttpPut("update/{id}")]
+        [HttpPut("{id:int}")]
         public async Task<IActionResult> Update(int id, [FromBody] UpdateMaquinaDto dto)
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
-
-            var maquina = new Maquina
+            if (!ModelState.IsValid)
             {
-                Maquina_id = id,
-                NomeModelo = dto.NomeModelo ?? string.Empty,
-                IpAddress = dto.IpAddress,
-                Estado = dto.Estado
-            };
+                return BadRequest(CreateProblem(
+                    StatusCodes.Status400BadRequest,
+                    "Pedido invalido",
+                    "Dados de atualizacao invalidos para a maquina."));
+            }
 
-            await _service.UpdateAsync(maquina);
+            await _service.UpdateAsync(id, dto);
+
+            _logger.LogInformation("Controller: maquina {MaquinaId} atualizada.", id);
+
             return NoContent();
         }
 
+        /// <summary>
+        /// Remove uma maquina.
+        /// </summary>
+        /// <param name="id">Identificador da maquina a remover.</param>
+        /// <returns>HTTP 204 quando a remocao e concluida.</returns>
         [Authorize(Roles = "ADMIN")]
-        [HttpDelete("delete/{id}")]
+        [HttpDelete("{id:int}")]
         public async Task<IActionResult> Delete(int id)
         {
             await _service.DeleteAsync(id);
+
+            _logger.LogInformation("Controller: maquina {MaquinaId} removida.", id);
+
             return NoContent();
         }
 
-        private static ResponseMaquinaDto ToResponse(Maquina m) => new()
+        /// <summary>
+        /// Cria objeto ProblemDetails para respostas de erro construidas no controller.
+        /// </summary>
+        /// <param name="status">Codigo HTTP do erro.</param>
+        /// <param name="title">Titulo curto do erro.</param>
+        /// <param name="detail">Detalhe funcional do erro.</param>
+        /// <returns>Objeto ProblemDetails preenchido com o contexto do request atual.</returns>
+        private ProblemDetails CreateProblem(int status, string title, string detail)
         {
-            Maquina_id = m.Maquina_id,
-            NomeModelo = m.NomeModelo,
-            IpAddress = m.IpAddress,
-            Estado = m.Estado
-        };
+            return new ProblemDetails
+            {
+                Status = status,
+                Title = title,
+                Detail = detail,
+                Instance = HttpContext?.Request?.Path
+            };
+        }
     }
 }

@@ -25,6 +25,14 @@ namespace TipMolde.Application.Interface.Producao.IPeca
         Task<Peca?> GetByDesignacaoAsync(string designacao, int moldeId);
 
         /// <summary>
+        /// Obtem uma peca pelo numero funcional dentro de um molde.
+        /// </summary>
+        /// <param name="numeroPeca">Numero funcional da peca.</param>
+        /// <param name="moldeId">Identificador do molde.</param>
+        /// <returns>Peca encontrada ou nulo quando nao existe correspondencia.</returns>
+        Task<Peca?> GetByNumeroPecaAsync(string numeroPeca, int moldeId);
+
+        /// <summary>
         /// Lista pecas pelos identificadores informados.
         /// </summary>
         /// <param name="ids">Colecao de identificadores a pesquisar.</param>

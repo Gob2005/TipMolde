@@ -39,11 +39,16 @@ namespace TipMolde.Domain.Entities.Producao
         public EstadoMaquina Estado { get; set; } = EstadoMaquina.DISPONIVEL;
 
         /// <summary>
-        /// Fase dedicada a que esta máquina pertence.
-        /// Impede erros operacionais (ex: usar máquina de erosão na maquinação).
-        /// Validado em RegistosProducaoService.CreateRegistoProducaoAsync.
+        /// Identificador da fase dedicada a esta maquina.
         /// </summary>
+        /// <remarks>
+        /// A fase deve existir e nao pode ser removida enquanto houver maquinas a referi-la.
+        /// </remarks>
         public int FaseDedicada_id { get; set; }
+
+        /// <summary>
+        /// Navegacao para a fase dedicada da maquina.
+        /// </summary>
         public FasesProducao? FaseDedicada { get; set; }
     }
 }

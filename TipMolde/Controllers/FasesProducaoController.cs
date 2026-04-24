@@ -1,80 +1,158 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using TipMolde.Application.Dtos.Fases_producaoDto;
+using TipMolde.Application.Dtos.FasesProducaoDto;
 using TipMolde.Application.Interface.Producao.IFasesProducao;
-using TipMolde.Domain.Entities.Producao;
 
 namespace TipMolde.API.Controllers
 {
+    /// <summary>
+    /// Disponibiliza endpoints HTTP para a feature FasesProducao.
+    /// </summary>
+    /// <remarks>
+    /// O controller valida input HTTP e delega regras de negocio ao servico de aplicacao.
+    /// </remarks>
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/fases-producao")]
     public class FasesProducaoController : ControllerBase
     {
         private readonly IFasesProducaoService _fasesProducaoService;
+        private readonly ILogger<FasesProducaoController> _logger;
 
-        public FasesProducaoController(IFasesProducaoService fasesProducaoService)
+        /// <summary>
+        /// Construtor de FasesProducaoController.
+        /// </summary>
+        /// <param name="fasesProducaoService">Servico responsavel pelos casos de uso da feature.</param>
+        /// <param name="logger">Logger para rastreabilidade das operacoes HTTP.</param>
+        public FasesProducaoController(
+            IFasesProducaoService fasesProducaoService,
+            ILogger<FasesProducaoController> logger)
         {
             _fasesProducaoService = fasesProducaoService;
+            _logger = logger;
         }
 
+        /// <summary>
+        /// Lista fases de producao com paginacao.
+        /// </summary>
+        /// <param name="page">Pagina atual.</param>
+        /// <param name="pageSize">Tamanho da pagina.</param>
+        /// <returns>HTTP 200 com resultado paginado; HTTP 400 para paginacao invalida.</returns>
         [Authorize(Roles = "ADMIN,GESTOR_PRODUCAO")]
-        [HttpGet("all-fases_producao")]
-        public async Task<IActionResult> GetAllFases_producao()
+        [HttpGet]
+        public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
-            var fasesProducao = await _fasesProducaoService.GetAllAsync();
-            return Ok(fasesProducao);
+            if (page < 1 || pageSize < 1)
+                return BadRequest(CreateProblem(
+                    StatusCodes.Status400BadRequest,
+                    "Pedido invalido",
+                    "Page e pageSize devem ser maiores ou iguais a 1."));
+
+            var fases = await _fasesProducaoService.GetAllAsync(page, pageSize);
+            return Ok(fases);
         }
 
+        /// <summary>
+        /// Obtem uma fase de producao por ID.
+        /// </summary>
+        /// <param name="id">Identificador interno da fase.</param>
+        /// <returns>HTTP 200 com a fase; HTTP 404 quando nao encontrada.</returns>
         [Authorize(Roles = "ADMIN,GESTOR_PRODUCAO")]
-        [HttpGet("fases_producao-byID")]
-        public async Task<IActionResult> GetFases_producaoById(int id)
+        [HttpGet("{id:int}")]
+        public async Task<IActionResult> GetById(int id)
         {
-            var fasesProducao = await _fasesProducaoService.GetByIdAsync(id);
-            if (fasesProducao == null) return NotFound();
-            return Ok(fasesProducao);
-        }
-
-        [Authorize(Roles = "ADMIN")]
-        [HttpPost("create-fases_producao")]
-        public async Task<IActionResult> CreateFases_producao([FromBody] CreateFasesProducaoDto dto)
-        {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
-
-            var fasesProducao = new FasesProducao
-            {
-                Nome = dto.Nome,
-                Descricao = dto.Descricao
-            };
-
-            var created = await _fasesProducaoService.CreateAsync(fasesProducao);
-            return CreatedAtAction(nameof(GetFases_producaoById), new { id = created.Fases_producao_id }, created);
-        }
-
-        [Authorize(Roles = "ADMIN")]
-        [HttpPut("update-fases_producao/{id:int}")]
-        public async Task<IActionResult> UpdateFases_producao(int id, [FromBody] UpdateFasesProducaoDto dto)
-        {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
-
             var fase = await _fasesProducaoService.GetByIdAsync(id);
-            if (fase == null) return NotFound();
+            if (fase == null)
+            {
+                return NotFound(CreateProblem(
+                    StatusCodes.Status404NotFound,
+                    "Recurso nao encontrado",
+                    $"Fase de producao com ID {id} nao encontrada."));
+            }
 
-            if (dto.Nome.HasValue) fase.Nome = dto.Nome.Value;
-            if (!string.IsNullOrWhiteSpace(dto.Descricao)) fase.Descricao = dto.Descricao;
+            return Ok(fase);
+        }
 
-            await _fasesProducaoService.UpdateAsync(fase);
+        /// <summary>
+        /// Cria uma nova fase de producao.
+        /// </summary>
+        /// <param name="dto">Dados de criacao da fase.</param>
+        /// <returns>HTTP 201 com a fase criada; HTTP 400 quando o body e invalido.</returns>
+        [Authorize(Roles = "ADMIN")]
+        [HttpPost]
+        public async Task<IActionResult> Create([FromBody] CreateFasesProducaoDto dto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(CreateProblem(
+                    StatusCodes.Status400BadRequest,
+                    "Pedido invalido",
+                    "Dados de criacao invalidos para a fase de producao."));
+            }
+
+            var created = await _fasesProducaoService.CreateAsync(dto);
+
+            _logger.LogInformation("Controller: fase de producao {FaseId} criada.", created.FasesProducao_id);
+
+            return CreatedAtAction(nameof(GetById), new { id = created.FasesProducao_id }, created);
+        }
+
+        /// <summary>
+        /// Atualiza parcialmente uma fase de producao.
+        /// </summary>
+        /// <param name="id">Identificador da fase a atualizar.</param>
+        /// <param name="dto">Dados de atualizacao parcial.</param>
+        /// <returns>HTTP 204 quando a atualizacao e concluida; HTTP 400 quando o body e invalido.</returns>
+        [Authorize(Roles = "ADMIN")]
+        [HttpPut("{id:int}")]
+        public async Task<IActionResult> Update(int id, [FromBody] UpdateFasesProducaoDto dto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(CreateProblem(
+                    StatusCodes.Status400BadRequest,
+                    "Pedido invalido",
+                    "Dados de atualizacao invalidos para a fase de producao."));
+            }
+
+            await _fasesProducaoService.UpdateAsync(id, dto);
+
+            _logger.LogInformation("Controller: fase de producao {FaseId} atualizada.", id);
+
             return NoContent();
         }
 
+        /// <summary>
+        /// Remove uma fase de producao.
+        /// </summary>
+        /// <param name="id">Identificador da fase a remover.</param>
+        /// <returns>HTTP 204 quando a remocao e concluida.</returns>
         [Authorize(Roles = "ADMIN")]
-        [HttpDelete("delete-fases_producao/{id:int}")]
-        public async Task<IActionResult> DeleteFases_producao(int id)
+        [HttpDelete("{id:int}")]
+        public async Task<IActionResult> Delete(int id)
         {
-            var fasesProducao = await _fasesProducaoService.GetByIdAsync(id);
-            if (fasesProducao == null) return NotFound();
-
             await _fasesProducaoService.DeleteAsync(id);
+
+            _logger.LogInformation("Controller: fase de producao {FaseId} removida.", id);
+
             return NoContent();
+        }
+
+        /// <summary>
+        /// Cria objeto ProblemDetails para respostas de erro construidas no controller.
+        /// </summary>
+        /// <param name="status">Codigo HTTP do erro.</param>
+        /// <param name="title">Titulo curto do erro.</param>
+        /// <param name="detail">Detalhe funcional do erro.</param>
+        /// <returns>Objeto ProblemDetails preenchido com o contexto do request atual.</returns>
+        private ProblemDetails CreateProblem(int status, string title, string detail)
+        {
+            return new ProblemDetails
+            {
+                Status = status,
+                Title = title,
+                Detail = detail,
+                Instance = HttpContext?.Request?.Path
+            };
         }
     }
 }

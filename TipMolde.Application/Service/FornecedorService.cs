@@ -34,7 +34,7 @@ namespace TipMolde.Application.Service
         /// <param name="page">Numero da pagina a consultar.</param>
         /// <param name="pageSize">Quantidade de itens por pagina.</param>
         /// <returns>Resultado paginado com fornecedores e metadados de navegacao.</returns>
-        public async Task<PagedResult<ResponseFornecedorDto>> GetAllAsync(int page = 1, int pageSize = 10)
+        public async Task<PagedResult<ResponseFornecedorDto>> GetAllAsync(int page, int pageSize)
         {
             var result = await _fornecedorRepository.GetAllAsync(page, pageSize);
             var mappedItems = _mapper.Map<IEnumerable<ResponseFornecedorDto>>(result.Items);
@@ -67,7 +67,7 @@ namespace TipMolde.Application.Service
         /// <param name="page">Numero da pagina a consultar.</param>
         /// <param name="pageSize">Quantidade de itens por pagina.</param>
         /// <returns>Colecao paginada de fornecedores que correspondem ao termo informado.</returns>
-        public async Task<PagedResult<ResponseFornecedorDto>> SearchByNameAsync(string searchTerm, int page = 1, int pageSize = 10)
+        public async Task<PagedResult<ResponseFornecedorDto>> SearchByNameAsync(string searchTerm, int page, int pageSize)
         {
             if (string.IsNullOrWhiteSpace(searchTerm))
                 return CreateEmptyPage(page, pageSize);

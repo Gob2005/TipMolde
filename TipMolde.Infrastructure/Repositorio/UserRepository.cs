@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using TipMolde.Application.Interface;
 using TipMolde.Application.Interface.Utilizador.IUser;
 using TipMolde.Domain.Entities;
 using TipMolde.Infrastructure.DB;
@@ -23,15 +24,27 @@ namespace TipMolde.Infrastructure.Repositorio
         /// Pesquisa utilizadores por nome.
         /// </summary>
         /// <param name="searchTerm">Termo parcial para pesquisa no nome.</param>
+        /// <param name="page">Numero da pagina a ser retornada.</param>
+        /// <param name="pageSize">Quantidade de itens por pagina.</param>
         /// <returns>Colecao de utilizadores ordenada alfabeticamente pelo nome.</returns>
-        public async Task<IEnumerable<User>> SearchByNameAsync(string searchTerm)
+        public async Task<PagedResult<User>> SearchByNameAsync(string searchTerm, int page, int pageSize)
         {
-            var term = searchTerm.Trim();
-            return await _context.Users
+            page = page < 1 ? 1 : page;
+            pageSize = pageSize < 1 ? 10 : pageSize > 200 ? 200 : pageSize;
+
+            var query = _context.Users
                 .AsNoTracking()
-                .Where(u => u.Nome.Contains(term))
+                .Where(u => u.Nome.Contains(searchTerm.Trim()));
+
+            var totalCount = await query.CountAsync();
+
+            var items = await query
                 .OrderBy(u => u.Nome)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
                 .ToListAsync();
+
+            return new PagedResult<User>(items, totalCount, page, pageSize);
         }
 
         /// <summary>

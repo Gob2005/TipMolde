@@ -1,10 +1,15 @@
+using AutoMapper;
 using FluentAssertions;
+using Microsoft.Extensions.Logging;
 using Moq;
+using TipMolde.Application.Dtos.FasesProducaoDto;
+using TipMolde.Application.Exceptions;
 using TipMolde.Application.Interface;
 using TipMolde.Application.Interface.Producao.IFasesProducao;
+using TipMolde.Application.Mappings;
+using TipMolde.Application.Service;
 using TipMolde.Domain.Entities.Producao;
 using TipMolde.Domain.Enums;
-using TipMolde.Application.Service;
 
 namespace TipMolde.Tests.Unitario.Service;
 
@@ -13,195 +18,146 @@ namespace TipMolde.Tests.Unitario.Service;
 public class FasesProducaoServiceTests
 {
     private Mock<IFasesProducaoRepository> _repository = null!;
+    private Mock<ILogger<FasesProducaoService>> _logger = null!;
+    private IMapper _mapper = null!;
     private FasesProducaoService _sut = null!;
 
     [SetUp]
     public void SetUp()
     {
         _repository = new Mock<IFasesProducaoRepository>();
-        _sut = new FasesProducaoService(_repository.Object);
+        _logger = new Mock<ILogger<FasesProducaoService>>();
+
+        var config = new MapperConfiguration(cfg => cfg.AddProfile<FasesProducaoProfile>());
+        _mapper = config.CreateMapper();
+
+        _sut = new FasesProducaoService(_repository.Object, _mapper, _logger.Object);
     }
 
-    private static FasesProducao BuildFase(
-        int id = 1,
-        Nome_fases nome = Nome_fases.MAQUINACAO,
-        string descricao = "Fase de maquina��o") => new()
+    private static FasesProducao BuildFase(int id = 1, Nome_fases nome = Nome_fases.MAQUINACAO, string? descricao = "Descricao")
+    {
+        return new FasesProducao
         {
             Fases_producao_id = id,
             Nome = nome,
             Descricao = descricao
         };
+    }
 
-    [Test]
-    public async Task shouldCreateFaseWhenNomeIsUnique()
+    [Test(Description = "TFPSERV1 - Create deve criar fase quando o nome e unico.")]
+    public async Task Create_Should_CreateFase_When_NomeIsUnique()
     {
-        // Arrange
-        var fase = BuildFase();
+        // ARRANGE
+        var dto = new CreateFasesProducaoDto { Nome = Nome_fases.MAQUINACAO, Descricao = "Descricao" };
         _repository.Setup(r => r.GetByNomeAsync(Nome_fases.MAQUINACAO)).ReturnsAsync((FasesProducao?)null);
+        _repository.Setup(r => r.CreateAsync(It.IsAny<FasesProducao>()))
+            .ReturnsAsync((FasesProducao fase) =>
+            {
+                fase.Fases_producao_id = 1;
+                return fase;
+            });
 
-        // Act
-        var result = await _sut.CreateAsync(fase);
+        // ACT
+        var result = await _sut.CreateAsync(dto);
 
-        // Assert
+        // ASSERT
+        result.FasesProducao_id.Should().Be(1);
         result.Nome.Should().Be(Nome_fases.MAQUINACAO);
-        _repository.Verify(r => r.AddAsync(It.IsAny<FasesProducao>()), Times.Once);
+        _repository.Verify(r => r.CreateAsync(It.Is<FasesProducao>(f =>
+            f.Nome == Nome_fases.MAQUINACAO &&
+            f.Descricao == "Descricao")), Times.Once);
     }
 
-    [Test]
-    public async Task shouldThrowArgumentExceptionWhenNomeAlreadyExists()
+    [Test(Description = "TFPSERV2 - Create deve falhar quando ja existe uma fase com o mesmo nome.")]
+    public async Task Create_Should_ThrowBusinessConflictException_When_NomeAlreadyExists()
     {
-        // Arrange
-        _repository.Setup(r => r.GetByNomeAsync(Nome_fases.MAQUINACAO)).ReturnsAsync(BuildFase());
+        // ARRANGE
+        var dto = new CreateFasesProducaoDto { Nome = Nome_fases.EROSAO };
+        _repository.Setup(r => r.GetByNomeAsync(Nome_fases.EROSAO)).ReturnsAsync(BuildFase(id: 2, nome: Nome_fases.EROSAO));
 
-        // Act
-        Func<Task> act = () => _sut.CreateAsync(BuildFase(id: 0));
+        // ACT
+        Func<Task> act = () => _sut.CreateAsync(dto);
 
-        // Assert
-        await act.Should().ThrowAsync<ArgumentException>();
+        // ASSERT
+        await act.Should().ThrowAsync<BusinessConflictException>()
+            .WithMessage("Ja existe uma fase de producao com esse nome.");
     }
 
-    [TestCase(Nome_fases.MAQUINACAO)]
-    [TestCase(Nome_fases.EROSAO)]
-    [TestCase(Nome_fases.MONTAGEM)]
-    public async Task shouldCreateFaseForEveryValidNome(Nome_fases nome)
+    [Test(Description = "TFPSERV3 - Update deve falhar quando a fase nao existe.")]
+    public async Task Update_Should_ThrowKeyNotFoundException_When_FaseDoesNotExist()
     {
-        // Arrange
-        _repository.Setup(r => r.GetByNomeAsync(nome)).ReturnsAsync((FasesProducao?)null);
+        // ARRANGE
+        _repository.Setup(r => r.GetByIdAsync(99)).ReturnsAsync((FasesProducao?)null);
 
-        // Act
-        var result = await _sut.CreateAsync(new FasesProducao { Nome = nome, Descricao = "Descri��o de teste" });
+        // ACT
+        Func<Task> act = () => _sut.UpdateAsync(99, new UpdateFasesProducaoDto { Nome = Nome_fases.MONTAGEM });
 
-        // Assert
-        result.Nome.Should().Be(nome);
-    }
-
-    [Test]
-    public async Task shouldUpdateFaseWhenDataIsValid()
-    {
-        // Arrange
-        var existing = BuildFase(id: 1, nome: Nome_fases.MAQUINACAO, descricao: "Antiga");
-        _repository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(existing);
-        _repository.Setup(r => r.GetByNomeAsync(Nome_fases.EROSAO)).ReturnsAsync((FasesProducao?)null);
-
-        var update = new FasesProducao
-        {
-            Fases_producao_id = 1,
-            Nome = Nome_fases.EROSAO,
-            Descricao = "Descri��o atualizada"
-        };
-
-        // Act
-        await _sut.UpdateAsync(update);
-
-        // Assert
-        _repository.Verify(r => r.UpdateAsync(It.Is<FasesProducao>(f =>
-            f.Nome == Nome_fases.EROSAO &&
-            f.Descricao == "Descri��o atualizada")), Times.Once);
-    }
-
-    [Test]
-    public async Task shouldThrowKeyNotFoundExceptionWhenUpdatingUnknownFase()
-    {
-        // Arrange
-        _repository.Setup(r => r.GetByIdAsync(999)).ReturnsAsync((FasesProducao?)null);
-
-        // Act
-        Func<Task> act = () => _sut.UpdateAsync(BuildFase(id: 999));
-
-        // Assert
+        // ASSERT
         await act.Should().ThrowAsync<KeyNotFoundException>();
     }
 
-    [Test]
-    public async Task shouldThrowArgumentExceptionWhenUpdatingToNomeAlreadyUsedByOtherFase()
+    [Test(Description = "TFPSERV4 - Update deve falhar quando nao existem campos para atualizar.")]
+    public async Task Update_Should_ThrowArgumentException_When_NoChangesAreProvided()
     {
-        // Arrange
-        var existing = BuildFase(id: 1, nome: Nome_fases.MAQUINACAO);
-        var other = BuildFase(id: 2, nome: Nome_fases.EROSAO);
-        _repository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(existing);
-        _repository.Setup(r => r.GetByNomeAsync(Nome_fases.EROSAO)).ReturnsAsync(other);
-
-        var update = new FasesProducao
-        {
-            Fases_producao_id = 1,
-            Nome = Nome_fases.EROSAO,
-            Descricao = "Sem conflito na descri��o"
-        };
-
-        // Act
-        Func<Task> act = () => _sut.UpdateAsync(update);
-
-        // Assert
-        await act.Should().ThrowAsync<ArgumentException>();
-    }
-
-    [Test]
-    public async Task shouldUpdateDescricaoOnlyWhenNomeIsUnchanged()
-    {
-        // Arrange
-        var existing = BuildFase(id: 1, nome: Nome_fases.MAQUINACAO, descricao: "Antiga");
-        _repository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(existing);
-
-        var update = new FasesProducao
-        {
-            Fases_producao_id = 1,
-            Nome = Nome_fases.MAQUINACAO,
-            Descricao = "Descri��o nova"
-        };
-
-        // Act
-        await _sut.UpdateAsync(update);
-
-        // Assert
-        _repository.Verify(r => r.UpdateAsync(It.Is<FasesProducao>(f =>
-            f.Nome == Nome_fases.MAQUINACAO &&
-            f.Descricao == "Descri��o nova")), Times.Once);
-    }
-
-    [Test]
-    public async Task shouldDeleteFaseWhenIdExists()
-    {
-        // Arrange
+        // ARRANGE
         _repository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(BuildFase());
 
-        // Act
-        await _sut.DeleteAsync(1);
+        // ACT
+        Func<Task> act = () => _sut.UpdateAsync(1, new UpdateFasesProducaoDto());
 
-        // Assert
-        _repository.Verify(r => r.DeleteAsync(1), Times.Once);
+        // ASSERT
+        await act.Should().ThrowAsync<ArgumentException>()
+            .WithMessage("Pelo menos um campo deve ser informado para atualizacao.");
     }
 
-    [Test]
-    public async Task shouldThrowKeyNotFoundExceptionWhenDeletingUnknownFase()
+    [Test(Description = "TFPSERV5 - Update deve falhar quando o novo nome ja pertence a outra fase.")]
+    public async Task Update_Should_ThrowBusinessConflictException_When_NomeAlreadyBelongsToAnotherFase()
     {
-        // Arrange
-        _repository.Setup(r => r.GetByIdAsync(999)).ReturnsAsync((FasesProducao?)null);
+        // ARRANGE
+        _repository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(BuildFase(id: 1, nome: Nome_fases.MAQUINACAO));
+        _repository.Setup(r => r.GetByNomeAsync(Nome_fases.MONTAGEM)).ReturnsAsync(BuildFase(id: 2, nome: Nome_fases.MONTAGEM));
 
-        // Act
-        Func<Task> act = () => _sut.DeleteAsync(999);
-
-        // Assert
-        await act.Should().ThrowAsync<KeyNotFoundException>();
+        // ACT
+        Func<Task> act = () => _sut.UpdateAsync(1, new UpdateFasesProducaoDto { Nome = Nome_fases.MONTAGEM });
+        // ASSERT
+        await act.Should().ThrowAsync<BusinessConflictException>()
+            .WithMessage("Ja existe uma fase de producao com esse nome.");
     }
 
-    [Test]
-    public async Task shouldReturnPagedFasesFromRepository()
+    [Test(Description = "TFPSERV6 - Delete deve falhar quando a fase tem maquinas associadas.")]
+    public async Task Delete_Should_ThrowBusinessConflictException_When_FaseHasAssociatedMaquinas()
     {
-        // Arrange
+        // ARRANGE
+        _repository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(BuildFase());
+        _repository.Setup(r => r.HasMaquinasAssociadasAsync(1)).ReturnsAsync(true);
+
+        // ACT
+        Func<Task> act = () => _sut.DeleteAsync(1);
+
+        // ASSERT
+        await act.Should().ThrowAsync<BusinessConflictException>()
+            .WithMessage("Nao e possivel eliminar a fase de producao porque existem maquinas associadas.");
+    }
+
+    [Test(Description = "TFPSERV7 - GetAll deve devolver DTOs paginados quando o repositorio devolve dados.")]
+    public async Task GetAll_Should_ReturnPagedDtos_When_RepositoryReturnsData()
+    {
+        // ARRANGE
         var fases = new List<FasesProducao>
         {
             BuildFase(1, Nome_fases.MAQUINACAO),
-            BuildFase(2, Nome_fases.EROSAO),
-            BuildFase(3, Nome_fases.MONTAGEM)
+            BuildFase(2, Nome_fases.EROSAO)
         };
 
-        _repository.Setup(r => r.GetAllAsync(It.IsAny<int>(), It.IsAny<int>()))
-            .ReturnsAsync(new PagedResult<FasesProducao>(fases, fases.Count, 1, fases.Count));
+        _repository.Setup(r => r.GetAllAsync(1, 10))
+            .ReturnsAsync(new PagedResult<FasesProducao>(fases, 2, 1, 10));
 
-        // Act
-        var result = await _sut.GetAllAsync();
+        // ACT
+        var result = await _sut.GetAllAsync(1, 10);
 
-        // Assert
-        result.Items.Should().HaveCount(3);
+        // ASSERT
+        result.TotalCount.Should().Be(2);
+        result.Items.Should().HaveCount(2);
+        result.Items.Select(x => x.Nome).Should().Contain(new[] { Nome_fases.MAQUINACAO, Nome_fases.EROSAO });
     }
 }

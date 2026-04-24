@@ -28,7 +28,7 @@ namespace TipMolde.Infrastructure.Repositorio
         /// <param name="page">Numero da pagina a ser retornada.</param>
         /// <param name="pageSize">Tamanho da pagina.</param>
         /// <returns>Colecao ordenada por data e identificador.</returns>
-        public async Task<PagedResult<RegistoTempoProjeto>> GetHistoricoAsync(int projetoId, int autorId, int page = 1, int pageSize = 10)
+        public async Task<PagedResult<RegistoTempoProjeto>> GetHistoricoAsync(int projetoId, int autorId, int page, int pageSize)
         {
             page = page < 1 ? 1 : page;
             pageSize = pageSize < 1 ? 10 : pageSize > 200 ? 200 : pageSize;

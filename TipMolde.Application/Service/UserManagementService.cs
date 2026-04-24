@@ -28,7 +28,7 @@ namespace TipMolde.Application.Service
             _logger = logger;
         }
 
-        public async Task<PagedResult<ResponseUserDto>> GetAllAsync(int page = 1, int pageSize = 10)
+        public async Task<PagedResult<ResponseUserDto>> GetAllAsync(int page, int pageSize)
         {
             var result = await _userRepository.GetAllAsync(page, pageSize);
             var mappedItems = _mapper.Map<IEnumerable<ResponseUserDto>>(result.Items);
@@ -41,21 +41,14 @@ namespace TipMolde.Application.Service
             return user == null ? null : _mapper.Map<ResponseUserDto>(user);
         }
 
-        public async Task<PagedResult<ResponseUserDto>> SearchByNameAsync(string searchTerm, int page = 1, int pageSize = 10)
+        public async Task<PagedResult<ResponseUserDto>> SearchByNameAsync(string searchTerm, int page, int pageSize)
         {
             if (string.IsNullOrWhiteSpace(searchTerm))
                 return new PagedResult<ResponseUserDto>(Enumerable.Empty<ResponseUserDto>(), 0, page, pageSize);
 
-            var users = await _userRepository.SearchByNameAsync(searchTerm);
-            var normalizedPage = page < 1 ? 1 : page;
-            var normalizedPageSize = pageSize < 1 ? 10 : pageSize > 200 ? 200 : pageSize;
-            var totalCount = users.Count();
-            var pagedItems = users
-                .Skip((normalizedPage - 1) * normalizedPageSize)
-                .Take(normalizedPageSize);
-            var mappedItems = _mapper.Map<IEnumerable<ResponseUserDto>>(pagedItems);
-
-            return new PagedResult<ResponseUserDto>(mappedItems, totalCount, normalizedPage, normalizedPageSize);
+            var result = await _userRepository.SearchByNameAsync(searchTerm, page, pageSize);
+            var mappedItems = _mapper.Map<IEnumerable<ResponseUserDto>>(result.Items);
+            return new PagedResult<ResponseUserDto>(mappedItems, result.TotalCount, result.CurrentPage, result.PageSize);
         }
 
         public async Task<ResponseUserDto?> GetByEmailAsync(string email)
@@ -116,19 +109,19 @@ namespace TipMolde.Application.Service
             _logger.LogInformation("Utilizador atualizado com sucesso {UserId}", id);
         }
 
-        public async Task ChangeRoleAsync(int userId, UserRole newRole)
+        public async Task ChangeRoleAsync(int id, UserRole newRole)
         {
-            _logger.LogInformation("Alteracao de role iniciada {UserId} -> {Role}", userId, newRole);
-            var user = await _userRepository.GetByIdAsync(userId);
+            _logger.LogInformation("Alteracao de role iniciada {UserId} -> {Role}", id, newRole);
+            var user = await _userRepository.GetByIdAsync(id);
             if (user == null)
             {
-                _logger.LogWarning("Alteracao de role falhou: utilizador nao encontrado {UserId}", userId);
-                throw new KeyNotFoundException($"Utilizador com ID {userId} não encontrado.");
+                _logger.LogWarning("Alteracao de role falhou: utilizador nao encontrado {UserId}", id);
+                throw new KeyNotFoundException($"Utilizador com ID {id} não encontrado.");
             }
 
             user.Role = newRole;
             await _userRepository.UpdateAsync(user);
-            _logger.LogInformation("Role alterada com sucesso {UserId} -> {Role}", userId, newRole);
+            _logger.LogInformation("Role alterada com sucesso {UserId} -> {Role}", id, newRole);
         }
 
         public async Task DeleteAsync(int id)

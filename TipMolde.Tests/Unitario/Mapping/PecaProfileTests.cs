@@ -39,9 +39,15 @@ public class PecaProfileTests
         var source = new Peca
         {
             Peca_id = 5,
+            NumeroPeca = "100A",
             Designacao = "Extrator",
             Prioridade = 2,
+            Quantidade = 3,
+            Referencia = "REF-1",
             MaterialDesignacao = "Aco",
+            TratamentoTermico = "Temperado",
+            Massa = "0,20kg",
+            Observacao = "34,92",
             MaterialRecebido = true,
             Molde_id = 7
         };
@@ -51,7 +57,13 @@ public class PecaProfileTests
 
         // ASSERT
         result.PecaId.Should().Be(5);
+        result.NumeroPeca.Should().Be("100A");
         result.Designacao.Should().Be("Extrator");
+        result.Quantidade.Should().Be(3);
+        result.Referencia.Should().Be("REF-1");
+        result.TratamentoTermico.Should().Be("Temperado");
+        result.Massa.Should().Be("0,20kg");
+        result.Observacao.Should().Be("34,92");
         result.MaterialRecebido.Should().BeTrue();
         result.Molde_id.Should().Be(7);
     }
@@ -62,9 +74,15 @@ public class PecaProfileTests
         // ARRANGE
         var source = new CreatePecaDto
         {
+            NumeroPeca = "  100A  ",
             Designacao = "  Extrator  ",
             Prioridade = 3,
+            Quantidade = 7,
+            Referencia = "  REF-1  ",
             MaterialDesignacao = "  Inox  ",
+            TratamentoTermico = "  Temperado  ",
+            Massa = "  0,20kg  ",
+            Observacao = "  34,92  ",
             MaterialRecebido = false,
             Molde_id = 11
         };
@@ -73,8 +91,16 @@ public class PecaProfileTests
         var result = _mapper.Map<Peca>(source);
 
         // ASSERT
+        result.NumeroPeca.Should().Be("100A");
         result.Designacao.Should().Be("Extrator");
+        result.Prioridade.Should().Be(3);
+        result.Quantidade.Should().Be(7);
+        result.Referencia.Should().Be("REF-1");
         result.MaterialDesignacao.Should().Be("Inox");
+        result.TratamentoTermico.Should().Be("Temperado");
+        result.Massa.Should().Be("0,20kg");
+        result.Observacao.Should().Be("34,92");
+        result.MaterialRecebido.Should().BeFalse();
         result.Molde_id.Should().Be(11);
     }
 
@@ -84,16 +110,28 @@ public class PecaProfileTests
         // ARRANGE
         var source = new UpdatePecaDto
         {
+            NumeroPeca = "  100A  ",
             Designacao = "  Nova Peca  ",
-            Prioridade = 4
+            Prioridade = 4,
+            Quantidade = 5,
+            Referencia = "  REF-2  ",
+            TratamentoTermico = "  Revenido  ",
+            Massa = "  0,30kg  ",
+            Observacao = "  55  "
         };
 
         var destination = new Peca
         {
             Peca_id = 9,
+            NumeroPeca = "090A",
             Designacao = "Peca Antiga",
             Prioridade = 1,
+            Quantidade = 1,
+            Referencia = "REF-1",
             MaterialDesignacao = "Aco",
+            TratamentoTermico = "Temperado",
+            Massa = "0,20kg",
+            Observacao = "34,92",
             MaterialRecebido = true,
             Molde_id = 3
         };
@@ -102,9 +140,15 @@ public class PecaProfileTests
         _mapper.Map(source, destination);
 
         // ASSERT
+        destination.NumeroPeca.Should().Be("100A");
         destination.Designacao.Should().Be("Nova Peca");
         destination.Prioridade.Should().Be(4);
+        destination.Quantidade.Should().Be(5);
+        destination.Referencia.Should().Be("REF-2");
         destination.MaterialDesignacao.Should().Be("Aco");
+        destination.TratamentoTermico.Should().Be("Revenido");
+        destination.Massa.Should().Be("0,30kg");
+        destination.Observacao.Should().Be("55");
         destination.MaterialRecebido.Should().BeTrue();
         destination.Molde_id.Should().Be(3);
     }

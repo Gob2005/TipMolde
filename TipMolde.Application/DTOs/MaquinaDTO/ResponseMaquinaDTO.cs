@@ -2,11 +2,39 @@
 
 namespace TipMolde.Application.Dtos.MaquinaDto
 {
+    /// <summary>
+    /// Representa a resposta publica da feature Maquina.
+    /// </summary>
     public class ResponseMaquinaDto
     {
+        /// <summary>
+        /// Identificador interno da maquina.
+        /// </summary>
         public int Maquina_id { get; set; }
+
+        /// <summary>
+        /// Numero fisico da maquina.
+        /// </summary>
+        public int Numero { get; set; }
+
+        /// <summary>
+        /// Nome/modelo do equipamento.
+        /// </summary>
         public string? NomeModelo { get; set; }
+
+        /// <summary>
+        /// Endereco IP da maquina.
+        /// </summary>
         public string? IpAddress { get; set; }
+
+        /// <summary>
+        /// Estado operacional atual da maquina.
+        /// </summary>
         public EstadoMaquina Estado { get; set; }
+
+        /// <summary>
+        /// Identificador da fase dedicada desta maquina.
+        /// </summary>
+        public int FaseDedicada_id { get; set; }
     }
 }

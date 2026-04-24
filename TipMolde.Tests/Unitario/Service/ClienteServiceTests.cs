@@ -221,7 +221,7 @@ public class ClienteServiceTests
         // ARRANGE
 
         // ACT
-        var result = await _sut.SearchByNameAsync("   ");
+        var result = await _sut.SearchByNameAsync("   ", 1, 10);
 
         // ASSERT
         result.Items.Should().BeEmpty();
@@ -235,7 +235,7 @@ public class ClienteServiceTests
         // ARRANGE
 
         // ACT
-        var result = await _sut.SearchBySiglaAsync(string.Empty);
+        var result = await _sut.SearchBySiglaAsync(string.Empty, 1, 10);
 
         // ASSERT
         result.Items.Should().BeEmpty();

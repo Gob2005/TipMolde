@@ -12,6 +12,11 @@
         public int Peca_id { get; set; }
 
         /// <summary>
+        /// Identificador funcional da peca no desenho/lista de materiais do molde.
+        /// </summary>
+        public string? NumeroPeca { get; set; }
+
+        /// <summary>
         /// Designacao funcional unica da peca dentro do mesmo molde.
         /// </summary>
         public required string Designacao { get; set; }
@@ -22,9 +27,34 @@
         public int Prioridade { get; set; }
 
         /// <summary>
+        /// Quantidade total consolidada da peca dentro do molde.
+        /// </summary>
+        public int Quantidade { get; set; } = 1;
+
+        /// <summary>
+        /// Referencia tecnica ou dimensional usada na lista de materiais.
+        /// </summary>
+        public string? Referencia { get; set; }
+
+        /// <summary>
         /// Designacao do material previsto para fabricar a peca.
         /// </summary>
         public string? MaterialDesignacao { get; set; }
+
+        /// <summary>
+        /// Tratamento termico previsto para a peca, quando aplicavel.
+        /// </summary>
+        public string? TratamentoTermico { get; set; }
+
+        /// <summary>
+        /// Massa registada na lista de materiais.
+        /// </summary>
+        public string? Massa { get; set; }
+
+        /// <summary>
+        /// Observacao adicional importada da lista de materiais.
+        /// </summary>
+        public string? Observacao { get; set; }
 
         /// <summary>
         /// Indica se o material necessario para a peca ja foi rececionado.

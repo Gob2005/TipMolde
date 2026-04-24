@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Moq;
+using System.Text;
 using TipMolde.API.Controllers;
 using TipMolde.Application.Dtos.PecaDto;
 using TipMolde.Application.Interface;
@@ -37,9 +38,15 @@ public class PecaControllerTests
     private static ResponsePecaDto BuildResponse(int id = 1, int moldeId = 7, string designacao = "Extrator") => new()
     {
         PecaId = id,
+        NumeroPeca = "100A",
         Designacao = designacao,
         Prioridade = 2,
+        Quantidade = 3,
+        Referencia = "REF-1",
         MaterialDesignacao = "Aco",
+        TratamentoTermico = "Temperado",
+        Massa = "0,20kg",
+        Observacao = "34,92",
         MaterialRecebido = false,
         Molde_id = moldeId
     };
@@ -171,5 +178,47 @@ public class PecaControllerTests
         _service.Verify(s => s.UpdateAsync(55, It.Is<UpdatePecaDto>(x =>
             x.Designacao == "Nova Peca" &&
             x.MaterialRecebido == true)), Times.Once);
+    }
+
+    [Test(Description = "TPECACONT8 - ImportarCsv deve devolver bad request quando o ficheiro nao e enviado.")]
+    public async Task ImportarCsv_Should_ReturnBadRequest_When_FileIsMissing()
+    {
+        // ACT
+        var result = await _controller.ImportarCsv(7, null!);
+
+        // ASSERT
+        result.Should().BeOfType<BadRequestObjectResult>();
+        _service.Verify(s => s.ImportarCsvAsync(It.IsAny<int>(), It.IsAny<Stream>()), Times.Never);
+    }
+
+    [Test(Description = "TPECACONT9 - ImportarCsv deve devolver ok com resumo da importacao quando o ficheiro e valido.")]
+    public async Task ImportarCsv_Should_ReturnOk_When_FileIsValid()
+    {
+        // ARRANGE
+        var fileContent = Encoding.UTF8.GetBytes("csv");
+        using var stream = new MemoryStream(fileContent);
+        IFormFile file = new FormFile(stream, 0, stream.Length, "file", "pecas.csv");
+
+        var response = new ImportPecasCsvResultDto
+        {
+            MoldeId = 7,
+            ReferenciaMolde = "Molde",
+            MassaMolde = "433,73kg",
+            TotalLinhasPecaLidas = 4,
+            TotalPecasConsolidadas = 2,
+            TotalQuantidadeConsolidada = 7,
+            PecasImportadas = new List<ResponsePecaDto> { BuildResponse(id: 20, moldeId: 7) }
+        };
+
+        _service.Setup(s => s.ImportarCsvAsync(7, It.IsAny<Stream>())).ReturnsAsync(response);
+
+        // ACT
+        var result = await _controller.ImportarCsv(7, file);
+
+        // ASSERT
+        var ok = result as OkObjectResult;
+        ok.Should().NotBeNull();
+        ok!.Value.Should().BeEquivalentTo(response);
+        _service.Verify(s => s.ImportarCsvAsync(7, It.IsAny<Stream>()), Times.Once);
     }
 }

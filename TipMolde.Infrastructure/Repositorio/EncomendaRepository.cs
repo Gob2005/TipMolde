@@ -21,7 +21,7 @@ namespace TipMolde.Infrastructure.Repositorio
         /// <summary>
         /// Lista encomendas por estado.
         /// </summary>
-        public async Task<PagedResult<Encomenda>> GetByEstadoAsync(EstadoEncomenda estado, int page = 1, int pageSize = 10)
+        public async Task<PagedResult<Encomenda>> GetByEstadoAsync(EstadoEncomenda estado, int page, int pageSize)
         {
             page = page < 1 ? 1 : page;
             pageSize = pageSize < 1 ? 10 : pageSize > 200 ? 200 : pageSize;
@@ -43,7 +43,7 @@ namespace TipMolde.Infrastructure.Repositorio
         /// <summary>
         /// Lista encomendas por concluir (nao concluidas e nao canceladas).
         /// </summary>
-        public async Task<PagedResult<Encomenda>> GetEncomendasPorConcluirAsync(int page = 1, int pageSize = 10)
+        public async Task<PagedResult<Encomenda>> GetEncomendasPorConcluirAsync(int page, int pageSize)
         {
             page = page < 1 ? 1 : page;
             pageSize = pageSize < 1 ? 10 : pageSize > 200 ? 200 : pageSize;

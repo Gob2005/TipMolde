@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using TipMolde.Application.Dtos.PecaDto;
 using TipMolde.Application.Interface.Producao.IPeca;
@@ -117,6 +118,28 @@ namespace TipMolde.API.Controllers
             _logger.LogInformation("Controller: Peca {PecaId} criada", created.PecaId);
 
             return CreatedAtAction(nameof(GetById), new { id = created.PecaId }, created);
+        }
+
+        /// <summary>
+        /// Importa pecas de um molde a partir de um ficheiro CSV.
+        /// </summary>
+        /// <param name="moldeId">Identificador do molde que recebe as pecas.</param>
+        /// <param name="file">Ficheiro CSV com a lista de materiais.</param>
+        /// <returns>HTTP 200 com o resumo da importacao; HTTP 400 quando o ficheiro nao e valido.</returns>
+        [Authorize(Roles = "ADMIN,GESTOR_DESENHO")]
+        [HttpPost("por-molde/{moldeId:int}/importacao-csv")]
+        [Consumes("multipart/form-data")]
+        public async Task<IActionResult> ImportarCsv(int moldeId, IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+                return BadRequest(CreateProblem(StatusCodes.Status400BadRequest, "Pedido invalido", "O ficheiro CSV e obrigatorio."));
+
+            await using var stream = file.OpenReadStream();
+            var result = await _pecaService.ImportarCsvAsync(moldeId, stream);
+
+            _logger.LogInformation("Controller: importacao CSV de pecas concluida para o molde {MoldeId}", moldeId);
+
+            return Ok(result);
         }
 
         /// <summary>

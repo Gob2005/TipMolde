@@ -24,7 +24,7 @@ namespace TipMolde.Infrastructure.Repositorio
         /// <param name="page">Pagina atual.</param>
         /// <param name="pageSize">Tamanho da pagina.</param>
         /// <returns>Resultado paginado com projetos associados.</returns>
-        public async Task<PagedResult<Projeto>> GetByMoldeIdAsync(int moldeId, int page = 1, int pageSize = 10)
+        public async Task<PagedResult<Projeto>> GetByMoldeIdAsync(int moldeId, int page, int pageSize)
         {
             page = page < 1 ? 1 : page;
             pageSize = pageSize < 1 ? 10 : pageSize > 200 ? 200 : pageSize;    

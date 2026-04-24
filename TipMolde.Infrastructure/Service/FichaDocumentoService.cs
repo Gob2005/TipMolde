@@ -17,7 +17,7 @@ namespace TipMolde.Infrastructure.Service
             _config = config;
         }
 
-        public async Task<FichaDocumento> GuardarGeradoAsync(int fichaId, byte[] content, string fileName, string tipoFicheiro, int userId, string origem = "SISTEMA")
+        public async Task<FichaDocumento> GuardarGeradoAsync(int fichaId, byte[] content, string fileName, string tipoFicheiro, int userId, string origem)
         {
             if (!await _fdRepository.FichaExisteAsync(fichaId))
                 throw new KeyNotFoundException($"Ficha {fichaId} nao existe.");

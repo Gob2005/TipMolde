@@ -26,7 +26,7 @@ namespace TipMolde.Infrastructure.Repositorio
         /// <param name="page">Numero da pagina a consultar.</param>
         /// <param name="pageSize">Quantidade de itens por pagina.</param>
         /// <returns>Resultado paginado com pecas pertencentes ao molde informado.</returns>
-        public async Task<PagedResult<Peca>> GetByMoldeIdAsync(int moldeId, int page = 1, int pageSize = 10)
+        public async Task<PagedResult<Peca>> GetByMoldeIdAsync(int moldeId, int page, int pageSize)
         {
             page = page < 1 ? 1 : page;
             pageSize = pageSize < 1 ? 10 : pageSize > 200 ? 200 : pageSize;
@@ -57,13 +57,25 @@ namespace TipMolde.Infrastructure.Repositorio
         }
 
         /// <summary>
+        /// Obtem uma peca pelo numero funcional dentro de um molde.
+        /// </summary>
+        /// <param name="numeroPeca">Numero funcional da peca.</param>
+        /// <param name="moldeId">Identificador do molde.</param>
+        /// <returns>Peca encontrada ou nulo quando nao existe correspondencia.</returns>
+        public Task<Peca?> GetByNumeroPecaAsync(string numeroPeca, int moldeId)
+        {
+            return _context.Pecas
+                .FirstOrDefaultAsync(p => p.NumeroPeca == numeroPeca && p.Molde_id == moldeId);
+        }
+
+        /// <summary>
         /// Lista pecas pelos identificadores informados.
         /// </summary>
         /// <param name="ids">Colecao de identificadores a pesquisar.</param>
         /// <param name="page">Numero da pagina a consultar.</param>
         /// <param name="pageSize">Quantidade de itens por pagina.</param>
         /// <returns>Resultado paginado com pecas encontradas para os ids informados.</returns>
-        public async Task<PagedResult<Peca>> GetByIdsAsync(IEnumerable<int> ids, int page = 1, int pageSize = 10)
+        public async Task<PagedResult<Peca>> GetByIdsAsync(IEnumerable<int> ids, int page, int pageSize)
         {
             page = page < 1 ? 1 : page;
             pageSize = pageSize < 1 ? 10 : pageSize > 200 ? 200 : pageSize;

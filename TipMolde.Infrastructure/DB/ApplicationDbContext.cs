@@ -117,6 +117,35 @@ namespace TipMolde.Infrastructure.DB
                 .WithMany(m => m.EncomendasMoldes)
                 .HasForeignKey(em => em.Molde_id);
 
+            modelBuilder.Entity<Peca>()
+                .Property(p => p.NumeroPeca)
+                .HasMaxLength(50);
+
+            modelBuilder.Entity<Peca>()
+                .Property(p => p.Designacao)
+                .HasMaxLength(100)
+                .IsRequired();
+
+            modelBuilder.Entity<Peca>()
+                .Property(p => p.Referencia)
+                .HasMaxLength(200);
+
+            modelBuilder.Entity<Peca>()
+                .Property(p => p.MaterialDesignacao)
+                .HasMaxLength(100);
+
+            modelBuilder.Entity<Peca>()
+                .Property(p => p.TratamentoTermico)
+                .HasMaxLength(100);
+
+            modelBuilder.Entity<Peca>()
+                .Property(p => p.Massa)
+                .HasMaxLength(50);
+
+            modelBuilder.Entity<Peca>()
+                .Property(p => p.Observacao)
+                .HasMaxLength(100);
+
             modelBuilder.Entity<Fornecedor>()
                 .HasIndex(f => f.NIF)
                 .IsUnique();
@@ -135,12 +164,17 @@ namespace TipMolde.Infrastructure.DB
 
             modelBuilder.Entity<Maquina>()
                 .HasOne(m => m.FaseDedicada)
-                .WithMany()
-                .HasForeignKey(m => m.FaseDedicada_id);
+                .WithMany(f => f.MaquinasDedicadas)
+                .HasForeignKey(m => m.FaseDedicada_id)
+                .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<FasesProducao>()
                 .HasIndex(f => f.Nome)
                 .IsUnique();
+
+            modelBuilder.Entity<FasesProducao>()
+                .Property(f => f.Descricao)
+                .HasMaxLength(255);
 
             modelBuilder.Entity<RegistosProducao>()
                 .HasOne(r => r.Maquina)

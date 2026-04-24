@@ -3,27 +3,32 @@
 namespace TipMolde.Domain.Entities.Producao
 {
     /// <summary>
-    /// Representa uma fase do processo produtivo (Maquinação, Erosão, Montagem).
-    /// Configurável pelo administrador para adaptar o sistema a mudanças no processo.
+    /// Representa uma fase configuravel do processo produtivo.
     /// </summary>
     /// <remarks>
-    /// O nome é único e validado por índice na base de dados.
-    /// Novas fases podem ser adicionadas sem alteração de código.
+    /// O nome da fase e gerido pelo administrador e deve permanecer unico.
+    /// Uma fase nao deve ser removida enquanto existir pelo menos uma maquina associada.
     /// </remarks>
     public class FasesProducao
     {
+        /// <summary>
+        /// Identificador interno da fase de producao.
+        /// </summary>
         public int Fases_producao_id { get; set; }
 
         /// <summary>
-        /// Nome da fase extraído de enum para garantir valores válidos.
-        /// Alternativa a magic strings no código.
+        /// Nome funcional da fase de producao.
         /// </summary>
         public required Nome_fases Nome { get; set; }
 
         /// <summary>
-        /// Descrição textual da fase, útil para novos colaboradores.
-        /// Pode incluir instruções resumidas ou referências a procedimentos.
+        /// Descricao funcional da fase para apoio a utilizadores e administracao.
         /// </summary>
         public string? Descricao { get; set; }
+
+        /// <summary>
+        /// Maquinas atualmente associadas a esta fase.
+        /// </summary>
+        public ICollection<Maquina> MaquinasDedicadas { get; set; } = [];
     }
 }

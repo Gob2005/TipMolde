@@ -18,69 +18,62 @@ namespace TipMolde.Application.Mappings
         /// </summary>
         public ClienteProfile()
         {
+            ConfigureCreateMap();
+            ConfigureUpdateMap();
+            ConfigureResponseMap();
+            ConfigureResponseWithEncomendasMap();
+        }
+
+        private void ConfigureCreateMap()
+        {
             CreateMap<CreateClienteDto, Cliente>()
-                .ForMember(dest => dest.Nome, opt => opt.MapFrom(src => src.Nome.Trim()))
-                .ForMember(dest => dest.NIF, opt => opt.MapFrom(src => src.NIF.Trim()))
-                .ForMember(dest => dest.Sigla, opt => opt.MapFrom(src => src.Sigla.Trim()))
-                .ForMember(dest => dest.Pais, opt => opt.MapFrom(src => string.IsNullOrWhiteSpace(src.Pais) ? null : src.Pais.Trim()))
-                .ForMember(dest => dest.Email, opt => opt.MapFrom(src => string.IsNullOrWhiteSpace(src.Email) ? null : src.Email.Trim()))
-                .ForMember(dest => dest.Telefone, opt => opt.MapFrom(src => string.IsNullOrWhiteSpace(src.Telefone) ? null : src.Telefone.Trim()))
+                .MapTrimmedRequired(dest => dest.Nome, src => src.Nome)
+                .MapTrimmedRequired(dest => dest.NIF, src => src.NIF)
+                .MapTrimmedRequired(dest => dest.Sigla, src => src.Sigla)
+                .MapTrimmedOptional(dest => dest.Pais, src => src.Pais)
+                .MapTrimmedOptional(dest => dest.Email, src => src.Email)
+                .MapTrimmedOptional(dest => dest.Telefone, src => src.Telefone)
                 .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(_ => DateTime.UtcNow))
                 .ForMember(dest => dest.Cliente_id, opt => opt.Ignore())
                 .ForMember(dest => dest.Encomendas, opt => opt.Ignore());
+        }
 
+        private void ConfigureUpdateMap()
+        {
             CreateMap<UpdateClienteDto, Cliente>()
-                .ForMember(dest => dest.Nome, opt =>
-                {
-                    opt.Condition(src => !string.IsNullOrWhiteSpace(src.Nome));
-                    opt.MapFrom(src => src.Nome!.Trim());
-                })
-                .ForMember(dest => dest.NIF, opt =>
-                {
-                    opt.Condition(src => !string.IsNullOrWhiteSpace(src.NIF));
-                    opt.MapFrom(src => src.NIF!.Trim());
-                })
-                .ForMember(dest => dest.Sigla, opt =>
-                {
-                    opt.Condition(src => !string.IsNullOrWhiteSpace(src.Sigla));
-                    opt.MapFrom(src => src.Sigla!.Trim());
-                })
-                .ForMember(dest => dest.Pais, opt =>
-                {
-                    opt.Condition(src => !string.IsNullOrWhiteSpace(src.Pais));
-                    opt.MapFrom(src => src.Pais!.Trim());
-                })
-                .ForMember(dest => dest.Email, opt =>
-                {
-                    opt.Condition(src => !string.IsNullOrWhiteSpace(src.Email));
-                    opt.MapFrom(src => src.Email!.Trim());
-                })
-                .ForMember(dest => dest.Telefone, opt =>
-                {
-                    opt.Condition(src => !string.IsNullOrWhiteSpace(src.Telefone));
-                    opt.MapFrom(src => src.Telefone!.Trim());
-                })
+                .MapTrimmedIfProvided(dest => dest.Nome, src => src.Nome)
+                .MapTrimmedIfProvided(dest => dest.NIF, src => src.NIF)
+                .MapTrimmedIfProvided(dest => dest.Sigla, src => src.Sigla)
+                .MapTrimmedIfProvided(dest => dest.Pais, src => src.Pais)
+                .MapTrimmedIfProvided(dest => dest.Email, src => src.Email)
+                .MapTrimmedIfProvided(dest => dest.Telefone, src => src.Telefone)
                 .ForMember(dest => dest.Cliente_id, opt => opt.Ignore())
                 .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
                 .ForMember(dest => dest.Encomendas, opt => opt.Ignore());
+        }
 
+        private void ConfigureResponseMap()
+        {
             CreateMap<Cliente, ResponseClienteDto>()
                 .ForMember(dest => dest.Cliente_id, opt => opt.MapFrom(src => src.Cliente_id))
-                .ForMember(dest => dest.Nome, opt => opt.MapFrom(src => src.Nome.Trim()))
-                .ForMember(dest => dest.NIF, opt => opt.MapFrom(src => src.NIF.Trim()))
-                .ForMember(dest => dest.Sigla, opt => opt.MapFrom(src => src.Sigla.Trim()))
-                .ForMember(dest => dest.Pais, opt => opt.MapFrom(src => string.IsNullOrWhiteSpace(src.Pais) ? null : src.Pais.Trim()))
-                .ForMember(dest => dest.Email, opt => opt.MapFrom(src => string.IsNullOrWhiteSpace(src.Email) ? null : src.Email.Trim()))
-                .ForMember(dest => dest.Telefone, opt => opt.MapFrom(src => string.IsNullOrWhiteSpace(src.Telefone) ? null : src.Telefone.Trim()));
+                .MapTrimmedRequired(dest => dest.Nome, src => src.Nome)
+                .MapTrimmedRequired(dest => dest.NIF, src => src.NIF)
+                .MapTrimmedRequired(dest => dest.Sigla, src => src.Sigla)
+                .MapTrimmedOptional(dest => dest.Pais, src => src.Pais)
+                .MapTrimmedOptional(dest => dest.Email, src => src.Email)
+                .MapTrimmedOptional(dest => dest.Telefone, src => src.Telefone);
+        }
 
+        private void ConfigureResponseWithEncomendasMap()
+        {
             CreateMap<Cliente, ResponseClienteWithEncomendasDto>()
                 .ForMember(dest => dest.ClienteId, opt => opt.MapFrom(src => src.Cliente_id))
-                .ForMember(dest => dest.Nome, opt => opt.MapFrom(src => src.Nome.Trim()))
-                .ForMember(dest => dest.NIF, opt => opt.MapFrom(src => src.NIF.Trim()))
-                .ForMember(dest => dest.Sigla, opt => opt.MapFrom(src => src.Sigla.Trim()))
-                .ForMember(dest => dest.Pais, opt => opt.MapFrom(src => string.IsNullOrWhiteSpace(src.Pais) ? null : src.Pais.Trim()))
-                .ForMember(dest => dest.Email, opt => opt.MapFrom(src => string.IsNullOrWhiteSpace(src.Email) ? null : src.Email.Trim()))
-                .ForMember(dest => dest.Telefone, opt => opt.MapFrom(src => string.IsNullOrWhiteSpace(src.Telefone) ? null : src.Telefone.Trim()))
+                .MapTrimmedRequired(dest => dest.Nome, src => src.Nome)
+                .MapTrimmedRequired(dest => dest.NIF, src => src.NIF)
+                .MapTrimmedRequired(dest => dest.Sigla, src => src.Sigla)
+                .MapTrimmedOptional(dest => dest.Pais, src => src.Pais)
+                .MapTrimmedOptional(dest => dest.Email, src => src.Email)
+                .MapTrimmedOptional(dest => dest.Telefone, src => src.Telefone)
                 .ForMember(dest => dest.Encomendas, opt => opt.MapFrom(src => src.Encomendas));
         }
     }

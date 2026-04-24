@@ -34,7 +34,7 @@ namespace TipMolde.Application.Service
         /// <param name="page">Numero da pagina a consultar.</param>
         /// <param name="pageSize">Quantidade de itens por pagina.</param>
         /// <returns>Resultado paginado com clientes e metadados de navegacao.</returns>
-        public async Task<PagedResult<ResponseClienteDto>> GetAllAsync(int page = 1, int pageSize = 10)
+        public async Task<PagedResult<ResponseClienteDto>> GetAllAsync(int page, int pageSize)
         {
             var result = await _clienteRepository.GetAllAsync(page, pageSize);
             var mappedItems = _mapper.Map<IEnumerable<ResponseClienteDto>>(result.Items);
@@ -65,7 +65,7 @@ namespace TipMolde.Application.Service
         /// </remarks>
         /// <param name="searchTerm">Termo parcial para pesquisa no nome.</param>
         /// <returns>Colecao de clientes que correspondem ao termo informado.</returns>
-        public async Task<PagedResult<ResponseClienteDto>> SearchByNameAsync(string searchTerm, int page = 1, int pageSize = 10)
+        public async Task<PagedResult<ResponseClienteDto>> SearchByNameAsync(string searchTerm, int page, int pageSize)
         {
             if (string.IsNullOrWhiteSpace(searchTerm))
                 return CreateEmptyPage(page, pageSize);
@@ -88,7 +88,7 @@ namespace TipMolde.Application.Service
         /// </remarks>
         /// <param name="searchTerm">Termo parcial para pesquisa na sigla.</param>
         /// <returns>Colecao de clientes que correspondem ao termo informado.</returns>
-        public async Task<PagedResult<ResponseClienteDto>> SearchBySiglaAsync(string searchTerm, int page = 1, int pageSize = 10)
+        public async Task<PagedResult<ResponseClienteDto>> SearchBySiglaAsync(string searchTerm, int page, int pageSize)
         {
             if (string.IsNullOrWhiteSpace(searchTerm))
                 return CreateEmptyPage(page, pageSize);
@@ -170,30 +170,9 @@ namespace TipMolde.Application.Service
         /// <returns>Task assincrona concluida apos atualizacao do cliente.</returns>
         public async Task UpdateAsync(int id, UpdateClienteDto dto)
         {
-            var existing = await _clienteRepository.GetByIdAsync(id);
-            if (existing == null)
-                throw new KeyNotFoundException($"Cliente com ID {id} não encontrado.");
-            if (!string.IsNullOrWhiteSpace(dto.NIF) && dto.NIF != existing.NIF)
-            {
-                var nifExists = await _clienteRepository.GetByNifAsync(dto.NIF.Trim());
-                if (nifExists != null && nifExists.Cliente_id != existing.Cliente_id)
-                    throw new ArgumentException("Ja existe cliente com este NIF.");
-            }
-
-            if (!string.IsNullOrWhiteSpace(dto.Sigla) && dto.Sigla != existing.Sigla)
-            {
-                var siglaExists = await _clienteRepository.GetBySiglaAsync(dto.Sigla.Trim());
-                if (siglaExists != null && siglaExists.Cliente_id != existing.Cliente_id)
-                    throw new ArgumentException("Ja existe cliente com esta Sigla.");
-            }
-
-            existing.Nome = string.IsNullOrWhiteSpace(dto.Nome) ? existing.Nome : dto.Nome.Trim();
-            existing.Pais = string.IsNullOrWhiteSpace(dto.Pais) ? existing.Pais : dto.Pais.Trim();
-            existing.Email = string.IsNullOrWhiteSpace(dto.Email) ? existing.Email : dto.Email.Trim();
-            existing.Telefone = string.IsNullOrWhiteSpace(dto.Telefone) ? existing.Telefone : dto.Telefone.Trim();
-            existing.NIF = string.IsNullOrWhiteSpace(dto.NIF) ? existing.NIF : dto.NIF.Trim();
-            existing.Sigla = string.IsNullOrWhiteSpace(dto.Sigla) ? existing.Sigla : dto.Sigla.Trim();
-
+            var existing = await GetExistingClienteAsync(id);
+            await ValidateUniqueFieldsAsync(dto, existing);
+            ApplyUpdates(existing, dto);
             await _clienteRepository.UpdateAsync(existing);
         }
 
@@ -225,6 +204,73 @@ namespace TipMolde.Application.Service
                 0,
                 normalizedPage,
                 normalizedPageSize);
+        }
+
+        private async Task<Cliente> GetExistingClienteAsync(int id)
+        {
+            var existing = await _clienteRepository.GetByIdAsync(id);
+            if (existing == null)
+                throw new KeyNotFoundException($"Cliente com ID {id} não encontrado.");
+
+            return existing;
+        }
+
+        private async Task ValidateUniqueFieldsAsync(UpdateClienteDto dto, Cliente existing)
+        {
+            await ValidateUniqueNifAsync(dto.NIF, existing);
+            await ValidateUniqueSiglaAsync(dto.Sigla, existing);
+        }
+
+        private async Task ValidateUniqueNifAsync(string? nif, Cliente existing)
+        {
+            var normalizedNif = NormalizeOrNull(nif);
+            if (!HasChanged(normalizedNif, existing.NIF))
+                return;
+
+            var nifExists = await _clienteRepository.GetByNifAsync(normalizedNif!);
+            if (nifExists != null && nifExists.Cliente_id != existing.Cliente_id)
+                throw new ArgumentException("Ja existe cliente com este NIF.");
+        }
+
+        private async Task ValidateUniqueSiglaAsync(string? sigla, Cliente existing)
+        {
+            var normalizedSigla = NormalizeOrNull(sigla);
+            if (!HasChanged(normalizedSigla, existing.Sigla))
+                return;
+
+            var siglaExists = await _clienteRepository.GetBySiglaAsync(normalizedSigla!);
+            if (siglaExists != null && siglaExists.Cliente_id != existing.Cliente_id)
+                throw new ArgumentException("Ja existe cliente com esta Sigla.");
+        }
+
+        private static void ApplyUpdates(Cliente existing, UpdateClienteDto dto)
+        {
+            existing.Nome = PreserveRequiredWhenEmpty(existing.Nome, dto.Nome);
+            existing.Pais = PreserveOptionalWhenEmpty(existing.Pais, dto.Pais);
+            existing.Email = PreserveOptionalWhenEmpty(existing.Email, dto.Email);
+            existing.Telefone = PreserveOptionalWhenEmpty(existing.Telefone, dto.Telefone);
+            existing.NIF = PreserveRequiredWhenEmpty(existing.NIF, dto.NIF);
+            existing.Sigla = PreserveRequiredWhenEmpty(existing.Sigla, dto.Sigla);
+        }
+
+        private static bool HasChanged(string? incomingValue, string existingValue)
+        {
+            return incomingValue != null && !string.Equals(incomingValue, existingValue, StringComparison.Ordinal);
+        }
+
+        private static string PreserveRequiredWhenEmpty(string existingValue, string? incomingValue)
+        {
+            return NormalizeOrNull(incomingValue) ?? existingValue;
+        }
+
+        private static string? PreserveOptionalWhenEmpty(string? existingValue, string? incomingValue)
+        {
+            return NormalizeOrNull(incomingValue) ?? existingValue;
+        }
+
+        private static string? NormalizeOrNull(string? value)
+        {
+            return string.IsNullOrWhiteSpace(value) ? null : value.Trim();
         }
     }
 }

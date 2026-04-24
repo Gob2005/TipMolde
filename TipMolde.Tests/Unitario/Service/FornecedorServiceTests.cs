@@ -250,7 +250,7 @@ public class FornecedorServiceTests
         // ARRANGE
 
         // ACT
-        var result = await _sut.SearchByNameAsync("   ");
+        var result = await _sut.SearchByNameAsync("   ", 1, 10);
 
         // ASSERT
         result.Items.Should().BeEmpty();

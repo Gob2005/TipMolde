@@ -8,30 +8,35 @@ namespace TipMolde.Application.Mappings
     {
         public UserProfile()
         {
+            ConfigureCreateMap();
+            ConfigureUpdateMap();
+            ConfigureChangeRoleMap();
+            ConfigureResponseMap();
+        }
+
+        private void ConfigureCreateMap()
+        {
             CreateMap<CreateUserDto, User>()
-                .ForMember(dest => dest.Nome, opt => opt.MapFrom(src => src.Nome.Trim()))
-                .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.Email.Trim()))
+                .MapTrimmedRequired(dest => dest.Nome, src => src.Nome)
+                .MapTrimmedRequired(dest => dest.Email, src => src.Email)
                 .ForMember(dest => dest.Role, opt => opt.MapFrom(src => src.Role))
                 .ForMember(dest => dest.User_id, opt => opt.Ignore())
                 .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(_ => DateTime.UtcNow));
+        }
 
+        private void ConfigureUpdateMap()
+        {
             CreateMap<UpdateUserDto, User>()
-                .ForMember(dest => dest.Nome, opt =>
-                {
-                    opt.Condition(src => !string.IsNullOrWhiteSpace(src.Nome));
-                    opt.MapFrom(src => src.Nome!.Trim());
-                })
-                .ForMember(dest => dest.Email, opt =>
-                {
-                    opt.Condition(src => !string.IsNullOrWhiteSpace(src.Email));
-                    opt.MapFrom(src => src.Email!.Trim());
-                })
+                .MapTrimmedIfProvided(dest => dest.Nome, src => src.Nome)
+                .MapTrimmedIfProvided(dest => dest.Email, src => src.Email)
                 .ForMember(dest => dest.Role, opt => opt.Ignore())
                 .ForMember(dest => dest.Password, opt => opt.Ignore())
                 .ForMember(dest => dest.User_id, opt => opt.Ignore())
-                .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
-                .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
+                .ForMember(dest => dest.CreatedAt, opt => opt.Ignore());
+        }
 
+        private void ConfigureChangeRoleMap()
+        {
             CreateMap<ChangeUserRoleDto, User>()
                 .ForMember(dest => dest.Role, opt => opt.MapFrom(src => src.Role))
                 .ForMember(dest => dest.User_id, opt => opt.Ignore())
@@ -39,9 +44,11 @@ namespace TipMolde.Application.Mappings
                 .ForMember(dest => dest.Email, opt => opt.Ignore())
                 .ForMember(dest => dest.Password, opt => opt.Ignore())
                 .ForMember(dest => dest.CreatedAt, opt => opt.Ignore());
+        }
 
+        private void ConfigureResponseMap()
+        {
             CreateMap<User, ResponseUserDto>();
-
         }
     }
 }

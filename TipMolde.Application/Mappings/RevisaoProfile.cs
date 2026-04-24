@@ -18,6 +18,12 @@ namespace TipMolde.Application.Mappings
         /// </summary>
         public RevisaoProfile()
         {
+            ConfigureCreateMap();
+            ConfigureResponseMap();
+        }
+
+        private void ConfigureCreateMap()
+        {
             CreateMap<CreateRevisaoDto, Revisao>()
                 .ForMember(dest => dest.Revisao_id, opt => opt.Ignore())
                 .ForMember(dest => dest.NumRevisao, opt => opt.Ignore())
@@ -27,8 +33,11 @@ namespace TipMolde.Application.Mappings
                 .ForMember(dest => dest.FeedbackTexto, opt => opt.Ignore())
                 .ForMember(dest => dest.FeedbackImagemPath, opt => opt.Ignore())
                 .ForMember(dest => dest.Projeto, opt => opt.Ignore())
-                .ForMember(dest => dest.DescricaoAlteracoes, opt => opt.MapFrom(src => src.DescricaoAlteracoes.Trim()));
+                .MapTrimmedRequired(dest => dest.DescricaoAlteracoes, src => src.DescricaoAlteracoes);
+        }
 
+        private void ConfigureResponseMap()
+        {
             CreateMap<Revisao, ResponseRevisaoDto>();
         }
     }

@@ -83,7 +83,7 @@ public class UserManagementServiceTests
         _userRepository.Setup(r => r.GetAllAsync(1, 10)).ReturnsAsync(pagedResult);
 
         // ACT
-        var result = await _sut.GetAllAsync();
+        var result = await _sut.GetAllAsync(1, 10);
 
         // ASSERT
         result.Items.Should().HaveCount(2);
@@ -279,15 +279,21 @@ public class UserManagementServiceTests
             BuildUser(id: 2, nome: "Anabela"),
             BuildUser(id: 3, nome: "Anselmo")
         };
-        _userRepository.Setup(r => r.SearchByNameAsync("Ana")).ReturnsAsync(users);
+
+        _userRepository
+       .Setup(r => r.SearchByNameAsync("Ana", 1, 2))
+       .ReturnsAsync(new PagedResult<User>(users.Take(2).ToList(), users.Count, 1, 2));
 
         // ACT
         var result = await _sut.SearchByNameAsync("Ana", 1, 2);
 
         // ASSERT
         result.TotalCount.Should().Be(3);
+        result.CurrentPage.Should().Be(1);
+        result.PageSize.Should().Be(2);
         result.Items.Should().HaveCount(2);
         result.Items.Select(x => x.User_id).Should().Contain(new[] { 1, 2 });
+        result.Items.Select(x => x.User_id).Should().NotContain(3);
     }
 
     [Test(Description = "T15USR - GetByEmail deve devolver nulo quando utilizador nao existe.")]

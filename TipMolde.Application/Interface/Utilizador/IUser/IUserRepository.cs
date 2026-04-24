@@ -14,8 +14,10 @@ namespace TipMolde.Application.Interface.Utilizador.IUser
         /// Pesquisa utilizadores por nome.
         /// </summary>
         /// <param name="searchTerm">Termo parcial para pesquisa no nome do utilizador.</param>
+        /// <param name="page">Numero da pagina a ser retornada.</param>
+        /// <param name="pageSize">Quantidade de itens por pagina.</param>
         /// <returns>Colecao de utilizadores que correspondem ao termo informado.</returns>
-        Task<IEnumerable<User>> SearchByNameAsync(string searchTerm);
+        Task<PagedResult<User>> SearchByNameAsync(string searchTerm, int page = 1, int pageSize = 10);
 
         /// <summary>
         /// Obtem um utilizador pelo email.

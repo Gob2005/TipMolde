@@ -30,7 +30,7 @@ namespace TipMolde.Infrastructure.Repositorio
         /// <param name="page">Numero da pagina a consultar.</param>
         /// <param name="pageSize">Quantidade de itens por pagina.</param>
         /// <returns>Resultado paginado com pedidos enriquecidos com itens.</returns>
-        public async Task<PagedResult<PedidoMaterial>> GetPagedWithItensAsync(int page = 1, int pageSize = 10)
+        public async Task<PagedResult<PedidoMaterial>> GetPagedWithItensAsync(int page, int pageSize)
         {
             page = page < 1 ? 1 : page;
             pageSize = pageSize < 1 ? 10 : pageSize > 200 ? 200 : pageSize;
@@ -68,7 +68,7 @@ namespace TipMolde.Infrastructure.Repositorio
         /// <param name="page">Numero da pagina solicitada.</param>
         /// <param name="pageSize">Quantidade de itens por pagina.</param>
         /// <returns>Resultado paginado com pedidos associados ao fornecedor.</returns>
-        public async Task<PagedResult<PedidoMaterial>> GetByFornecedorIdWithItensAsync(int fornecedorId, int page = 1, int pageSize = 10)
+        public async Task<PagedResult<PedidoMaterial>> GetByFornecedorIdWithItensAsync(int fornecedorId, int page, int pageSize)
         {
             page = page < 1 ? 1 : page;
             pageSize = pageSize < 1 ? 10 : pageSize > 200 ? 200 : pageSize;

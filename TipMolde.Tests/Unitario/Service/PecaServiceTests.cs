@@ -2,6 +2,7 @@ using AutoMapper;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Moq;
+using System.Text;
 using TipMolde.Application.Dtos.PecaDto;
 using TipMolde.Application.Interface;
 using TipMolde.Application.Interface.Producao.IMolde;
@@ -52,15 +53,26 @@ public class PecaServiceTests
         TipoPedido = TipoPedido.NOVO_MOLDE
     };
 
-    private static Peca BuildPeca(int id = 1, int moldeId = 1, string designacao = "Extrator") => new()
+    private static Peca BuildPeca(int id = 1, int moldeId = 1, string designacao = "Extrator", string? numeroPeca = "100A") => new()
     {
         Peca_id = id,
+        NumeroPeca = numeroPeca,
         Designacao = designacao,
         Prioridade = 1,
+        Quantidade = 1,
+        Referencia = "REF-1",
         MaterialDesignacao = "Aco",
+        TratamentoTermico = "Temperado",
+        Massa = "0,20kg",
+        Observacao = "34,92",
         MaterialRecebido = false,
         Molde_id = moldeId
     };
+
+    private static Stream BuildCsvStream(string content)
+    {
+        return new MemoryStream(Encoding.UTF8.GetBytes(content));
+    }
 
     [Test(Description = "TPECASRV1 - Create deve persistir peca e devolver DTO quando os dados sao validos.")]
     public async Task CreateAsync_Should_CreatePeca_When_DataIsValid()
@@ -68,15 +80,21 @@ public class PecaServiceTests
         // ARRANGE
         var dto = new CreatePecaDto
         {
+            NumeroPeca = "  100A  ",
             Designacao = "  Extrator  ",
             Prioridade = 1,
+            Quantidade = 2,
+            Referencia = "  REF-1  ",
             MaterialDesignacao = "Aco",
+            TratamentoTermico = "  Temperado  ",
+            Massa = "  0,20kg  ",
+            Observacao = "  34,92  ",
             MaterialRecebido = false,
             Molde_id = 1
         };
 
         _moldeRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(BuildMolde());
-        _pecaRepository.Setup(r => r.GetByDesignacaoAsync("Extrator", 1)).ReturnsAsync((Peca?)null);
+        _pecaRepository.Setup(r => r.GetByNumeroPecaAsync("100A", 1)).ReturnsAsync((Peca?)null);
         _pecaRepository.Setup(r => r.AddAsync(It.IsAny<Peca>()))
             .ReturnsAsync((Peca entity) =>
             {
@@ -89,10 +107,23 @@ public class PecaServiceTests
 
         // ASSERT
         result.PecaId.Should().Be(12);
+        result.NumeroPeca.Should().Be("100A");
         result.Designacao.Should().Be("Extrator");
+        result.Quantidade.Should().Be(2);
+        result.Referencia.Should().Be("REF-1");
+        result.TratamentoTermico.Should().Be("Temperado");
+        result.Massa.Should().Be("0,20kg");
+        result.Observacao.Should().Be("34,92");
         result.Molde_id.Should().Be(1);
         _pecaRepository.Verify(r => r.AddAsync(It.Is<Peca>(p =>
+            p.NumeroPeca == "100A" &&
             p.Designacao == "Extrator" &&
+            p.Prioridade == 1 &&
+            p.Quantidade == 2 &&
+            p.Referencia == "REF-1" &&
+            p.TratamentoTermico == "Temperado" &&
+            p.Massa == "0,20kg" &&
+            p.Observacao == "34,92" &&
             p.Molde_id == 1)), Times.Once);
     }
 
@@ -141,6 +172,7 @@ public class PecaServiceTests
         existing.MaterialRecebido = true;
 
         _pecaRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(existing);
+        _pecaRepository.Setup(r => r.GetByNumeroPecaAsync("100A", 1)).ReturnsAsync(existing);
 
         var dto = new UpdatePecaDto
         {
@@ -161,8 +193,8 @@ public class PecaServiceTests
     public async Task UpdateAsync_Should_ThrowArgumentException_When_DesignacaoAlreadyExistsInMolde()
     {
         // ARRANGE
-        var existing = BuildPeca(id: 1, moldeId: 7, designacao: "Extrator");
-        var duplicate = BuildPeca(id: 2, moldeId: 7, designacao: "Coluna");
+        var existing = BuildPeca(id: 1, moldeId: 7, designacao: "Extrator", numeroPeca: null);
+        var duplicate = BuildPeca(id: 2, moldeId: 7, designacao: "Coluna", numeroPeca: null);
 
         _pecaRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(existing);
         _pecaRepository.Setup(r => r.GetByDesignacaoAsync("Coluna", 7)).ReturnsAsync(duplicate);
@@ -208,5 +240,86 @@ public class PecaServiceTests
         result.Should().NotBeNull();
         result!.PecaId.Should().Be(5);
         result.Molde_id.Should().Be(2);
+    }
+
+    [Test(Description = "TPECASRV8 - ImportarCsvAsync deve consolidar quantidades quando o NumeroPeca tem dados equivalentes.")]
+    public async Task ImportarCsvAsync_Should_ConsolidateRows_When_NumeroPecaHasEquivalentData()
+    {
+        // ARRANGE
+        const string csv =
+            "Nº Peça;Designação;Qtd.;Ref.;Material;Trat. Térmico;Mass;Obs.\n" +
+            ";;1;Molde;;;433,73kg;\n" +
+            "100A;Postico das Cavidades;4;E 1710 / 4 x 40;Meusburger;;0,00kg;34,92\n" +
+            "100A;Postico das Cavidades;1;E 1710 / 4 x 40;Meusburger;;0,00kg;34,92\n" +
+            "101;Extrator;2;REF-2;Aco;Temperado;0,20kg;\n";
+
+        _moldeRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(BuildMolde());
+        _pecaRepository.Setup(r => r.GetByNumeroPecaAsync(It.IsAny<string>(), 1)).ReturnsAsync((Peca?)null);
+
+        var nextId = 25;
+        _pecaRepository.Setup(r => r.AddAsync(It.IsAny<Peca>()))
+            .ReturnsAsync((Peca entity) =>
+            {
+                entity.Peca_id = nextId++;
+                return entity;
+            });
+
+        await using var stream = BuildCsvStream(csv);
+
+        // ACT
+        var result = await _sut.ImportarCsvAsync(1, stream);
+
+        // ASSERT
+        result.MoldeId.Should().Be(1);
+        result.ReferenciaMolde.Should().Be("Molde");
+        result.MassaMolde.Should().Be("433,73kg");
+        result.TotalLinhasPecaLidas.Should().Be(3);
+        result.TotalPecasConsolidadas.Should().Be(2);
+        result.TotalQuantidadeConsolidada.Should().Be(7);
+        result.PecasImportadas.Should().HaveCount(2);
+        result.PecasImportadas.Should().ContainSingle(x =>
+            x.NumeroPeca == "100A" &&
+            x.Designacao == "Postico das Cavidades" &&
+            x.Quantidade == 5 &&
+            x.Prioridade == 1);
+        result.PecasImportadas.Should().ContainSingle(x =>
+            x.NumeroPeca == "101" &&
+            x.Designacao == "Extrator" &&
+            x.Quantidade == 2 &&
+            x.Prioridade == 2);
+
+        _pecaRepository.Verify(r => r.AddAsync(It.Is<Peca>(p =>
+            p.NumeroPeca == "100A" &&
+            p.Designacao == "Postico das Cavidades" &&
+            p.Quantidade == 5 &&
+            p.Referencia == "E 1710 / 4 x 40" &&
+            p.MaterialDesignacao == "Meusburger" &&
+            p.Massa == "0,00kg" &&
+            p.Observacao == "34,92" &&
+            p.Molde_id == 1 &&
+            p.Prioridade == 1)), Times.Once);
+    }
+
+    [Test(Description = "TPECASRV9 - ImportarCsvAsync deve rejeitar NumeroPeca repetido quando os restantes campos divergem.")]
+    public async Task ImportarCsvAsync_Should_ThrowArgumentException_When_RepeatedNumeroPecaHasConflictingData()
+    {
+        // ARRANGE
+        const string csv =
+            "Nº Peça;Designação;Qtd.;Ref.;Material;Trat. Térmico;Mass;Obs.\n" +
+            ";;1;Molde;;;433,73kg;\n" +
+            "100A;Postico das Cavidades;4;E 1710 / 4 x 40;Meusburger;;0,00kg;34,92\n" +
+            "100A;Postico das Cavidades;1;E 1710 / 4 x 40;Aco;;0,00kg;34,92\n";
+
+        _moldeRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(BuildMolde());
+
+        await using var stream = BuildCsvStream(csv);
+
+        // ACT
+        Func<Task> act = () => _sut.ImportarCsvAsync(1, stream);
+
+        // ASSERT
+        await act.Should().ThrowAsync<ArgumentException>()
+            .WithMessage("*dados contraditorios*");
+        _pecaRepository.Verify(r => r.AddAsync(It.IsAny<Peca>()), Times.Never);
     }
 }

@@ -26,7 +26,7 @@ namespace TipMolde.Infrastructure.Repositorio
         /// <param name="page">Numero da pagina a consultar.</param>
         /// <param name="pageSize">Quantidade de itens por pagina.</param>
         /// <returns>Resultado paginado com linhas associadas ao pedido informado.</returns>
-        public async Task<PagedResult<ItemPedidoMaterial>> GetByPedidoIdAsync(int pedidoId, int page = 1, int pageSize = 10)
+        public async Task<PagedResult<ItemPedidoMaterial>> GetByPedidoIdAsync(int pedidoId, int page, int pageSize)
         {
             page = page < 1 ? 1 : page;
             pageSize = pageSize < 1 ? 10 : pageSize > 200 ? 200 : pageSize;

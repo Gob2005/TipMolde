@@ -18,12 +18,23 @@ namespace TipMolde.Application.Mappings
         /// </summary>
         public PedidoMaterialProfile()
         {
+            ConfigureItemCreateMap();
+            ConfigurePedidoCreateMap();
+            ConfigureItemResponseMap();
+            ConfigurePedidoResponseMap();
+        }
+
+        private void ConfigureItemCreateMap()
+        {
             CreateMap<CreateItemPedidoMaterialDto, ItemPedidoMaterial>()
                 .ForMember(dest => dest.ItemPedidoMaterial_id, opt => opt.Ignore())
                 .ForMember(dest => dest.PedidoMaterial_id, opt => opt.Ignore())
                 .ForMember(dest => dest.PedidoMaterial, opt => opt.Ignore())
                 .ForMember(dest => dest.Peca, opt => opt.Ignore());
+        }
 
+        private void ConfigurePedidoCreateMap()
+        {
             CreateMap<CreatePedidoMaterialDto, PedidoMaterial>()
                 .ForMember(dest => dest.PedidoMaterial_id, opt => opt.Ignore())
                 .ForMember(dest => dest.DataPedido, opt => opt.Ignore())
@@ -33,11 +44,17 @@ namespace TipMolde.Application.Mappings
                 .ForMember(dest => dest.UserConferente_id, opt => opt.Ignore())
                 .ForMember(dest => dest.Conferente, opt => opt.Ignore())
                 .ForMember(dest => dest.Itens, opt => opt.MapFrom(src => src.Itens));
+        }
 
+        private void ConfigureItemResponseMap()
+        {
             CreateMap<ItemPedidoMaterial, ResponseItemPedidoMaterialDto>()
                 .ForMember(dest => dest.ItemId, opt => opt.MapFrom(src => src.ItemPedidoMaterial_id))
                 .ForMember(dest => dest.PecaId, opt => opt.MapFrom(src => src.Peca_id));
+        }
 
+        private void ConfigurePedidoResponseMap()
+        {
             CreateMap<PedidoMaterial, ResponsePedidoMaterialDto>()
                 .ForMember(dest => dest.PedidoMaterialId, opt => opt.MapFrom(src => src.PedidoMaterial_id))
                 .ForMember(dest => dest.FornecedorId, opt => opt.MapFrom(src => src.Fornecedor_id))
