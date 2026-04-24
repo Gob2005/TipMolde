@@ -2,7 +2,7 @@
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Moq;
-using TipMolde.Application.DTOs.PedidoMaterialDTO;
+using TipMolde.Application.Dtos.PedidoMaterialDto;
 using TipMolde.Application.Exceptions;
 using TipMolde.Application.Interface;
 using TipMolde.Application.Interface.Comercio.IFornecedor;
@@ -55,13 +55,13 @@ public class PedidoMaterialServiceTests
             _logger.Object);
     }
 
-    private static CreatePedidoMaterialDTO BuildCreateDto() => new()
+    private static CreatePedidoMaterialDto BuildCreateDto() => new()
     {
         Fornecedor_id = 10,
         Itens =
         {
-            new CreateItemPedidoMaterialDTO { Peca_id = 1, Quantidade = 2 },
-            new CreateItemPedidoMaterialDTO { Peca_id = 2, Quantidade = 4 }
+            new CreateItemPedidoMaterialDto { Peca_id = 1, Quantidade = 2 },
+            new CreateItemPedidoMaterialDto { Peca_id = 2, Quantidade = 4 }
         }
     };
 
@@ -141,13 +141,13 @@ public class PedidoMaterialServiceTests
     public async Task CreateAsync_Should_ThrowArgumentException_When_PecaIsDuplicated()
     {
         // ARRANGE
-        var dto = new CreatePedidoMaterialDTO
+        var dto = new CreatePedidoMaterialDto
         {
             Fornecedor_id = 10,
             Itens =
             {
-                new CreateItemPedidoMaterialDTO { Peca_id = 1, Quantidade = 2 },
-                new CreateItemPedidoMaterialDTO { Peca_id = 1, Quantidade = 5 }
+                new CreateItemPedidoMaterialDto { Peca_id = 1, Quantidade = 2 },
+                new CreateItemPedidoMaterialDto { Peca_id = 1, Quantidade = 5 }
             }
         };
 

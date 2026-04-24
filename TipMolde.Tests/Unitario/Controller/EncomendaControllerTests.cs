@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Moq;
 using TipMolde.API.Controllers;
-using TipMolde.Application.DTOs.EncomendaDTO;
+using TipMolde.Application.Dtos.EncomendaDto;
 using TipMolde.Application.Interface;
 using TipMolde.Application.Interface.Comercio.IEncomenda;
 using TipMolde.Domain.Enums;
@@ -34,9 +34,9 @@ public class EncomendaControllerTests
         };
     }
 
-    private static ResponseEncomendaDTO BuildResponse(int id = 1, string numero = "ENC-001")
+    private static ResponseEncomendaDto BuildResponse(int id = 1, string numero = "ENC-001")
     {
-        return new ResponseEncomendaDTO
+        return new ResponseEncomendaDto
         {
             Encomenda_id = id,
             NumeroEncomendaCliente = numero,
@@ -66,7 +66,7 @@ public class EncomendaControllerTests
     public async Task GetEncomendaById_Should_ReturnNotFound_When_EncomendaDoesNotExist()
     {
         // ARRANGE
-        _encomendaService.Setup(s => s.GetByIdAsync(88)).ReturnsAsync((ResponseEncomendaDTO?)null);
+        _encomendaService.Setup(s => s.GetByIdAsync(88)).ReturnsAsync((ResponseEncomendaDto?)null);
 
         // ACT
         var result = await _controller.GetEncomendaById(88);
@@ -96,7 +96,7 @@ public class EncomendaControllerTests
     {
         // ARRANGE
         _controller.ModelState.AddModelError("NumeroEncomendaCliente", "Obrigatorio");
-        var dto = new CreateEncomendaDTO
+        var dto = new CreateEncomendaDto
         {
             Cliente_id = 1,
             NumeroEncomendaCliente = "ENC-1"
@@ -107,14 +107,14 @@ public class EncomendaControllerTests
 
         // ASSERT
         result.Should().BeOfType<BadRequestObjectResult>();
-        _encomendaService.Verify(s => s.CreateAsync(It.IsAny<CreateEncomendaDTO>()), Times.Never);
+        _encomendaService.Verify(s => s.CreateAsync(It.IsAny<CreateEncomendaDto>()), Times.Never);
     }
 
     [Test(Description = "TENCCONT5 - Create deve devolver created at action quando dados sao validos.")]
     public async Task CreateEncomenda_Should_ReturnCreatedAtAction_When_RequestIsValid()
     {
         // ARRANGE
-        var dto = new CreateEncomendaDTO
+        var dto = new CreateEncomendaDto
         {
             Cliente_id = 10,
             NumeroEncomendaCliente = "ENC-100",
@@ -142,7 +142,7 @@ public class EncomendaControllerTests
     public async Task UpdateEncomenda_Should_ReturnNoContent_When_RequestIsValid()
     {
         // ARRANGE
-        var dto = new UpdateEncomendaDTO
+        var dto = new UpdateEncomendaDto
         {
             NumeroEncomendaCliente = "ENC-500",
             NomeServicoCliente = "Servico Novo"
@@ -153,7 +153,7 @@ public class EncomendaControllerTests
 
         // ASSERT
         result.Should().BeOfType<NoContentResult>();
-        _encomendaService.Verify(s => s.UpdateAsync(500, It.Is<UpdateEncomendaDTO>(e =>
+        _encomendaService.Verify(s => s.UpdateAsync(500, It.Is<UpdateEncomendaDto>(e =>
             e.NumeroEncomendaCliente == "ENC-500" &&
             e.NomeServicoCliente == "Servico Novo")), Times.Once);
     }
@@ -162,14 +162,14 @@ public class EncomendaControllerTests
     public async Task UpdateEstado_Should_ReturnNoContent_When_RequestIsValid()
     {
         // ARRANGE
-        var dto = new UpdateEstadoEncomendaDTO { Estado = EstadoEncomenda.EM_PRODUCAO };
+        var dto = new UpdateEstadoEncomendaDto { Estado = EstadoEncomenda.EM_PRODUCAO };
 
         // ACT
         var result = await _controller.UpdateEstado(9, dto);
 
         // ASSERT
         result.Should().BeOfType<NoContentResult>();
-        _encomendaService.Verify(s => s.UpdateEstadoAsync(9, It.Is<UpdateEstadoEncomendaDTO>(x => x.Estado == EstadoEncomenda.EM_PRODUCAO)), Times.Once);
+        _encomendaService.Verify(s => s.UpdateEstadoAsync(9, It.Is<UpdateEstadoEncomendaDto>(x => x.Estado == EstadoEncomenda.EM_PRODUCAO)), Times.Once);
     }
 
     [Test(Description = "TENCCONT8 - Delete deve devolver no content quando pedido e valido.")]
@@ -189,9 +189,9 @@ public class EncomendaControllerTests
     public async Task GetAllEncomendas_Should_ReturnPagedPayload_When_RequestIsValid()
     {
         // ARRANGE
-        var items = new List<ResponseEncomendaDTO> { BuildResponse(id: 1), BuildResponse(id: 2) };
+        var items = new List<ResponseEncomendaDto> { BuildResponse(id: 1), BuildResponse(id: 2) };
         _encomendaService.Setup(s => s.GetAllAsync(1, 10))
-            .ReturnsAsync(new PagedResult<ResponseEncomendaDTO>(items, 2, 1, 10));
+            .ReturnsAsync(new PagedResult<ResponseEncomendaDto>(items, 2, 1, 10));
 
         // ACT
         var result = await _controller.GetAllEncomendas(1, 10);
@@ -234,7 +234,7 @@ public class EncomendaControllerTests
     public async Task GetEncomendasPorConcluir_Should_ReturnOk_When_RequestIsValid()
     {
         // ARRANGE
-        var paged = new PagedResult<ResponseEncomendaDTO>(new[] { BuildResponse(id: 4) }, 1, 1, 10);
+        var paged = new PagedResult<ResponseEncomendaDto>(new[] { BuildResponse(id: 4) }, 1, 1, 10);
         _encomendaService.Setup(s => s.GetEncomendasPorConcluirAsync(1, 10)).ReturnsAsync(paged);
 
         // ACT
@@ -250,7 +250,7 @@ public class EncomendaControllerTests
     public async Task GetByEstado_Should_ReturnOk_When_RequestIsValid()
     {
         // ARRANGE
-        var paged = new PagedResult<ResponseEncomendaDTO>(new[] { BuildResponse(id: 5) }, 1, 2, 5);
+        var paged = new PagedResult<ResponseEncomendaDto>(new[] { BuildResponse(id: 5) }, 1, 2, 5);
         _encomendaService
             .Setup(s => s.GetByEstadoAsync(EstadoEncomenda.EM_PRODUCAO, 2, 5))
             .ReturnsAsync(paged);
@@ -280,7 +280,7 @@ public class EncomendaControllerTests
         // ARRANGE
         _encomendaService
             .Setup(s => s.GetByNumeroEncomendaClienteAsync("ENC-404"))
-            .ReturnsAsync((ResponseEncomendaDTO?)null);
+            .ReturnsAsync((ResponseEncomendaDto?)null);
 
         // ACT
         var result = await _controller.GetByNumeroCliente("ENC-404");
@@ -312,11 +312,11 @@ public class EncomendaControllerTests
         _controller.ModelState.AddModelError("NumeroEncomendaCliente", "Obrigatorio");
 
         // ACT
-        var result = await _controller.UpdateEncomenda(1, new UpdateEncomendaDTO { NumeroEncomendaCliente = "ENC-1" });
+        var result = await _controller.UpdateEncomenda(1, new UpdateEncomendaDto { NumeroEncomendaCliente = "ENC-1" });
 
         // ASSERT
         result.Should().BeOfType<BadRequestObjectResult>();
-        _encomendaService.Verify(s => s.UpdateAsync(It.IsAny<int>(), It.IsAny<UpdateEncomendaDTO>()), Times.Never);
+        _encomendaService.Verify(s => s.UpdateAsync(It.IsAny<int>(), It.IsAny<UpdateEncomendaDto>()), Times.Never);
     }
 
     [Test(Description = "TENCCONT18 - UpdateEstado deve devolver bad request quando model state e invalido.")]
@@ -326,10 +326,10 @@ public class EncomendaControllerTests
         _controller.ModelState.AddModelError("Estado", "Obrigatorio");
 
         // ACT
-        var result = await _controller.UpdateEstado(1, new UpdateEstadoEncomendaDTO { Estado = EstadoEncomenda.EM_PRODUCAO });
+        var result = await _controller.UpdateEstado(1, new UpdateEstadoEncomendaDto { Estado = EstadoEncomenda.EM_PRODUCAO });
 
         // ASSERT
         result.Should().BeOfType<BadRequestObjectResult>();
-        _encomendaService.Verify(s => s.UpdateEstadoAsync(It.IsAny<int>(), It.IsAny<UpdateEstadoEncomendaDTO>()), Times.Never);
+        _encomendaService.Verify(s => s.UpdateEstadoAsync(It.IsAny<int>(), It.IsAny<UpdateEstadoEncomendaDto>()), Times.Never);
     }
 }

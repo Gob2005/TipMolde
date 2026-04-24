@@ -1,8 +1,8 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace TipMolde.Application.DTOs.UserDTO
+namespace TipMolde.Application.Dtos.UserDto
 {
-    public class ChangeUserPasswordDTO
+    public class ChangeUserPasswordDto
     {
         [Required, MinLength(8), MaxLength(255)]
         public required string CurrentPassword { get; set; }

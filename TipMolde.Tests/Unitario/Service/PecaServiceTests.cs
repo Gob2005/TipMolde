@@ -2,7 +2,7 @@ using AutoMapper;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Moq;
-using TipMolde.Application.DTOs.PecaDTO;
+using TipMolde.Application.Dtos.PecaDto;
 using TipMolde.Application.Interface;
 using TipMolde.Application.Interface.Producao.IMolde;
 using TipMolde.Application.Interface.Producao.IPeca;
@@ -66,7 +66,7 @@ public class PecaServiceTests
     public async Task CreateAsync_Should_CreatePeca_When_DataIsValid()
     {
         // ARRANGE
-        var dto = new CreatePecaDTO
+        var dto = new CreatePecaDto
         {
             Designacao = "  Extrator  ",
             Prioridade = 1,
@@ -100,7 +100,7 @@ public class PecaServiceTests
     public async Task CreateAsync_Should_ThrowKeyNotFoundException_When_MoldeDoesNotExist()
     {
         // ARRANGE
-        var dto = new CreatePecaDTO
+        var dto = new CreatePecaDto
         {
             Designacao = "Extrator",
             Prioridade = 1,
@@ -116,7 +116,7 @@ public class PecaServiceTests
         await act.Should().ThrowAsync<KeyNotFoundException>();
     }
 
-    [Test(Description = "TPECASRV3 - GetAll deve devolver DTOs paginados com PecaId preenchido.")]
+    [Test(Description = "TPECASRV3 - GetAll deve devolver Dtos paginados com PecaId preenchido.")]
     public async Task GetAllAsync_Should_ReturnPagedDtos_When_RequestIsValid()
     {
         // ARRANGE
@@ -142,7 +142,7 @@ public class PecaServiceTests
 
         _pecaRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(existing);
 
-        var dto = new UpdatePecaDTO
+        var dto = new UpdatePecaDto
         {
             Designacao = "Atualizada"
         };
@@ -167,7 +167,7 @@ public class PecaServiceTests
         _pecaRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(existing);
         _pecaRepository.Setup(r => r.GetByDesignacaoAsync("Coluna", 7)).ReturnsAsync(duplicate);
 
-        var dto = new UpdatePecaDTO
+        var dto = new UpdatePecaDto
         {
             Designacao = "Coluna"
         };

@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Moq;
 using TipMolde.API.Controllers;
-using TipMolde.Application.DTOs.PecaDTO;
+using TipMolde.Application.Dtos.PecaDto;
 using TipMolde.Application.Interface;
 using TipMolde.Application.Interface.Producao.IPeca;
 
@@ -34,7 +34,7 @@ public class PecaControllerTests
         };
     }
 
-    private static ResponsePecaDTO BuildResponse(int id = 1, int moldeId = 7, string designacao = "Extrator") => new()
+    private static ResponsePecaDto BuildResponse(int id = 1, int moldeId = 7, string designacao = "Extrator") => new()
     {
         PecaId = id,
         Designacao = designacao,
@@ -61,7 +61,7 @@ public class PecaControllerTests
     public async Task GetAll_Should_ReturnOk_When_RequestIsValid()
     {
         // ARRANGE
-        var paged = new PagedResult<ResponsePecaDTO>(new[] { BuildResponse(id: 3) }, 1, 1, 10);
+        var paged = new PagedResult<ResponsePecaDto>(new[] { BuildResponse(id: 3) }, 1, 1, 10);
         _service.Setup(s => s.GetAllAsync(1, 10)).ReturnsAsync(paged);
 
         // ACT
@@ -77,7 +77,7 @@ public class PecaControllerTests
     public async Task GetById_Should_ReturnNotFound_When_PecaDoesNotExist()
     {
         // ARRANGE
-        _service.Setup(s => s.GetByIdAsync(99)).ReturnsAsync((ResponsePecaDTO?)null);
+        _service.Setup(s => s.GetByIdAsync(99)).ReturnsAsync((ResponsePecaDto?)null);
 
         // ACT
         var result = await _controller.GetById(99);
@@ -90,8 +90,8 @@ public class PecaControllerTests
     public async Task GetByMoldeId_Should_ReturnOkWithPagedPayload_When_RequestIsValid()
     {
         // ARRANGE
-        var items = new List<ResponsePecaDTO> { BuildResponse(id: 1, moldeId: 7), BuildResponse(id: 2, moldeId: 7) };
-        var paged = new PagedResult<ResponsePecaDTO>(items, 2, 1, 10);
+        var items = new List<ResponsePecaDto> { BuildResponse(id: 1, moldeId: 7), BuildResponse(id: 2, moldeId: 7) };
+        var paged = new PagedResult<ResponsePecaDto>(items, 2, 1, 10);
 
         _service.Setup(s => s.GetByMoldeIdAsync(7, 1, 10)).ReturnsAsync(paged);
 
@@ -109,7 +109,7 @@ public class PecaControllerTests
     {
         // ARRANGE
         _controller.ModelState.AddModelError("Designacao", "Obrigatorio");
-        var dto = new CreatePecaDTO
+        var dto = new CreatePecaDto
         {
             Designacao = "Extrator",
             Prioridade = 1,
@@ -123,14 +123,14 @@ public class PecaControllerTests
         var objectResult = result as ObjectResult;
         objectResult.Should().NotBeNull();
         objectResult!.StatusCode.Should().Be(StatusCodes.Status400BadRequest);
-        _service.Verify(s => s.CreateAsync(It.IsAny<CreatePecaDTO>()), Times.Never);
+        _service.Verify(s => s.CreateAsync(It.IsAny<CreatePecaDto>()), Times.Never);
     }
 
     [Test(Description = "TPECACONT6 - Create deve devolver created at action quando pedido e valido.")]
     public async Task Create_Should_ReturnCreatedAtAction_When_RequestIsValid()
     {
         // ARRANGE
-        var dto = new CreatePecaDTO
+        var dto = new CreatePecaDto
         {
             Designacao = "Extrator",
             Prioridade = 1,
@@ -157,7 +157,7 @@ public class PecaControllerTests
     public async Task Update_Should_ReturnNoContent_When_RequestIsValid()
     {
         // ARRANGE
-        var dto = new UpdatePecaDTO
+        var dto = new UpdatePecaDto
         {
             Designacao = "Nova Peca",
             MaterialRecebido = true
@@ -168,7 +168,7 @@ public class PecaControllerTests
 
         // ASSERT
         result.Should().BeOfType<NoContentResult>();
-        _service.Verify(s => s.UpdateAsync(55, It.Is<UpdatePecaDTO>(x =>
+        _service.Verify(s => s.UpdateAsync(55, It.Is<UpdatePecaDto>(x =>
             x.Designacao == "Nova Peca" &&
             x.MaterialRecebido == true)), Times.Once);
     }

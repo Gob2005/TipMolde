@@ -1,4 +1,4 @@
-﻿using TipMolde.Application.DTOs.EncomendaMoldeDTO;
+﻿using TipMolde.Application.Dtos.EncomendaMoldeDto;
 using TipMolde.Application.Interface;
 
 namespace TipMolde.Application.Interface.Comercio.IEncomendaMolde
@@ -7,7 +7,7 @@ namespace TipMolde.Application.Interface.Comercio.IEncomendaMolde
     /// Define os casos de uso da feature EncomendaMolde.
     /// </summary>
     /// <remarks>
-    /// O contrato usa DTOs de aplicacao para evitar acoplamento API-Domain.
+    /// O contrato usa Dtos de aplicacao para evitar acoplamento API-Domain.
     /// </remarks>
     public interface IEncomendaMoldeService
     {
@@ -16,7 +16,7 @@ namespace TipMolde.Application.Interface.Comercio.IEncomendaMolde
         /// </summary>
         /// <param name="id">Identificador da associacao.</param>
         /// <returns>DTO de resposta quando encontrado; nulo caso nao exista.</returns>
-        Task<ResponseEncomendaMoldeDTO?> GetByIdAsync(int id);
+        Task<ResponseEncomendaMoldeDto?> GetByIdAsync(int id);
 
         /// <summary>
         /// Lista associacoes por encomenda com paginacao.
@@ -24,8 +24,8 @@ namespace TipMolde.Application.Interface.Comercio.IEncomendaMolde
         /// <param name="encomendaId">Identificador da encomenda para filtro.</param>
         /// <param name="page">Pagina atual (>= 1).</param>
         /// <param name="pageSize">Tamanho da pagina (>= 1).</param>
-        /// <returns>Resultado paginado com DTOs de associacao.</returns>
-        Task<PagedResult<ResponseEncomendaMoldeDTO>> GetByEncomendaIdAsync(
+        /// <returns>Resultado paginado com Dtos de associacao.</returns>
+        Task<PagedResult<ResponseEncomendaMoldeDto>> GetByEncomendaIdAsync(
             int encomendaId,
             int page = 1,
             int pageSize = 10);
@@ -36,8 +36,8 @@ namespace TipMolde.Application.Interface.Comercio.IEncomendaMolde
         /// <param name="moldeId">Identificador do molde para filtro.</param>
         /// <param name="page">Pagina atual (>= 1).</param>
         /// <param name="pageSize">Tamanho da pagina (>= 1).</param>
-        /// <returns>Resultado paginado com DTOs de associacao.</returns>
-        Task<PagedResult<ResponseEncomendaMoldeDTO>> GetByMoldeIdAsync(
+        /// <returns>Resultado paginado com Dtos de associacao.</returns>
+        Task<PagedResult<ResponseEncomendaMoldeDto>> GetByMoldeIdAsync(
             int moldeId,
             int page = 1,
             int pageSize = 10);
@@ -47,7 +47,7 @@ namespace TipMolde.Application.Interface.Comercio.IEncomendaMolde
         /// </summary>
         /// <param name="dto">Dados de criacao da associacao.</param>
         /// <returns>DTO da associacao criada e persistida.</returns>
-        Task<ResponseEncomendaMoldeDTO> CreateAsync(CreateEncomendaMoldeDTO dto);
+        Task<ResponseEncomendaMoldeDto> CreateAsync(CreateEncomendaMoldeDto dto);
 
         /// <summary>
         /// Atualiza parcialmente uma associacao Encomenda-Molde.
@@ -55,7 +55,7 @@ namespace TipMolde.Application.Interface.Comercio.IEncomendaMolde
         /// <param name="id">Identificador da associacao a atualizar.</param>
         /// <param name="dto">Dados de atualizacao parcial.</param>
         /// <returns>Task de conclusao da atualizacao.</returns>
-        Task UpdateAsync(int id, UpdateEncomendaMoldeDTO dto);
+        Task UpdateAsync(int id, UpdateEncomendaMoldeDto dto);
 
         /// <summary>
         /// Remove uma associacao Encomenda-Molde por identificador.

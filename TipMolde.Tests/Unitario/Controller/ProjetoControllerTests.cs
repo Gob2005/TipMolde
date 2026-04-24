@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Moq;
 using TipMolde.API.Controllers;
-using TipMolde.Application.DTOs.ProjetoDTO;
+using TipMolde.Application.Dtos.ProjetoDto;
 using TipMolde.Application.Interface;
 using TipMolde.Application.Interface.Desenho.IProjeto;
 using TipMolde.Domain.Enums;
@@ -36,9 +36,9 @@ public class ProjetoControllerTests
         };
     }
 
-    private static ResponseProjetoDTO BuildResponse(int id = 1)
+    private static ResponseProjetoDto BuildResponse(int id = 1)
     {
-        return new ResponseProjetoDTO
+        return new ResponseProjetoDto
         {
             Projeto_id = id,
             NomeProjeto = "Projeto",
@@ -65,7 +65,7 @@ public class ProjetoControllerTests
     public async Task GetById_Should_ReturnNotFound_When_ProjetoDoesNotExist()
     {
         // ARRANGE
-        _projetoService.Setup(s => s.GetByIdAsync(99)).ReturnsAsync((ResponseProjetoDTO?)null);
+        _projetoService.Setup(s => s.GetByIdAsync(99)).ReturnsAsync((ResponseProjetoDto?)null);
 
         // ACT
         var result = await _controller.GetById(99);
@@ -80,7 +80,7 @@ public class ProjetoControllerTests
         // ARRANGE
         _controller.ModelState.AddModelError("NomeProjeto", "Obrigatorio");
 
-        var dto = new CreateProjetoDTO
+        var dto = new CreateProjetoDto
         {
             NomeProjeto = "Projeto X",
             SoftwareUtilizado = "AutoCAD",
@@ -97,14 +97,14 @@ public class ProjetoControllerTests
         objectResult.Should().NotBeNull();
         objectResult!.StatusCode.Should().Be(StatusCodes.Status400BadRequest);
 
-        _projetoService.Verify(s => s.CreateAsync(It.IsAny<CreateProjetoDTO>()), Times.Never);
+        _projetoService.Verify(s => s.CreateAsync(It.IsAny<CreateProjetoDto>()), Times.Never);
     }
 
     [Test(Description = "TPROJCONT4 - Create deve devolver created at action quando pedido e valido.")]
     public async Task Create_Should_ReturnCreatedAtAction_When_RequestIsValid()
     {
         // ARRANGE
-        var dto = new CreateProjetoDTO
+        var dto = new CreateProjetoDto
         {
             NomeProjeto = "Projeto 200",
             SoftwareUtilizado = "NX",
@@ -133,7 +133,7 @@ public class ProjetoControllerTests
     public async Task Update_Should_ReturnNoContent_When_RequestIsValid()
     {
         // ARRANGE
-        var dto = new UpdateProjetoDTO
+        var dto = new UpdateProjetoDto
         {
             NomeProjeto = "Projeto Atualizado"
         };
@@ -143,7 +143,7 @@ public class ProjetoControllerTests
 
         // ASSERT
         result.Should().BeOfType<NoContentResult>();
-        _projetoService.Verify(s => s.UpdateAsync(55, It.Is<UpdateProjetoDTO>(x =>
+        _projetoService.Verify(s => s.UpdateAsync(55, It.Is<UpdateProjetoDto>(x =>
             x.NomeProjeto == "Projeto Atualizado")), Times.Once);
     }
 
@@ -151,7 +151,7 @@ public class ProjetoControllerTests
     public async Task GetWithRevisoes_Should_ReturnOk_When_ProjetoExists()
     {
         // ARRANGE
-        var response = new ResponseProjetoWithRevisoesDTO
+        var response = new ResponseProjetoWithRevisoesDto
         {
             Projeto_id = 10,
             NomeProjeto = "Projeto 10",
@@ -159,7 +159,7 @@ public class ProjetoControllerTests
             TipoProjeto = TipoProjeto.PROJETO_3D,
             CaminhoPastaServidor = @"\\srv\projetos\proj-10",
             Molde_id = 4,
-            Revisoes = new List<TipMolde.Application.DTOs.RevisaoDTO.ResponseRevisaoDTO>
+            Revisoes = new List<TipMolde.Application.Dtos.RevisaoDto.ResponseRevisaoDto>
             {
                 new() { Revisao_id = 1, NumRevisao = 2, DescricaoAlteracoes = "Rev 2", Projeto_id = 10 }
             }
@@ -180,8 +180,8 @@ public class ProjetoControllerTests
     public async Task GetAll_Should_ReturnOkWithPagedPayload_When_RequestIsValid()
     {
         // ARRANGE
-        var items = new List<ResponseProjetoDTO> { BuildResponse(1), BuildResponse(2) };
-        var paged = new PagedResult<ResponseProjetoDTO>(items, 2, 1, 10);
+        var items = new List<ResponseProjetoDto> { BuildResponse(1), BuildResponse(2) };
+        var paged = new PagedResult<ResponseProjetoDto>(items, 2, 1, 10);
 
         _projetoService.Setup(s => s.GetAllAsync(1, 10)).ReturnsAsync(paged);
 
@@ -214,7 +214,7 @@ public class ProjetoControllerTests
     public async Task GetWithRevisoes_Should_ReturnNotFound_When_ProjetoDoesNotExist()
     {
         // ARRANGE
-        _projetoService.Setup(s => s.GetWithRevisoesAsync(90)).ReturnsAsync((ResponseProjetoWithRevisoesDTO?)null);
+        _projetoService.Setup(s => s.GetWithRevisoesAsync(90)).ReturnsAsync((ResponseProjetoWithRevisoesDto?)null);
 
         // ACT
         var result = await _controller.GetWithRevisoes(90);
@@ -237,7 +237,7 @@ public class ProjetoControllerTests
     public async Task GetByMoldeId_Should_ReturnOk_When_RequestIsValid()
     {
         // ARRANGE
-        var paged = new PagedResult<ResponseProjetoDTO>(new[] { BuildResponse(id: 8) }, 1, 1, 10);
+        var paged = new PagedResult<ResponseProjetoDto>(new[] { BuildResponse(id: 8) }, 1, 1, 10);
         _projetoService.Setup(s => s.GetByMoldeIdAsync(7, 1, 10)).ReturnsAsync(paged);
 
         // ACT
@@ -256,11 +256,11 @@ public class ProjetoControllerTests
         _controller.ModelState.AddModelError("NomeProjeto", "Obrigatorio");
 
         // ACT
-        var result = await _controller.Update(4, new UpdateProjetoDTO { NomeProjeto = "Novo Projeto" });
+        var result = await _controller.Update(4, new UpdateProjetoDto { NomeProjeto = "Novo Projeto" });
 
         // ASSERT
         result.Should().BeOfType<BadRequestObjectResult>();
-        _projetoService.Verify(s => s.UpdateAsync(It.IsAny<int>(), It.IsAny<UpdateProjetoDTO>()), Times.Never);
+        _projetoService.Verify(s => s.UpdateAsync(It.IsAny<int>(), It.IsAny<UpdateProjetoDto>()), Times.Never);
     }
 
     [Test(Description = "TPROJCONT13 - Delete deve devolver no content quando pedido e valido.")]

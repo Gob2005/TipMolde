@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
-using TipMolde.Application.DTOs.ProjetoDTO;
-using TipMolde.Application.DTOs.RevisaoDTO;
+using TipMolde.Application.Dtos.ProjetoDto;
+using TipMolde.Application.Dtos.RevisaoDto;
 using TipMolde.Domain.Entities.Desenho;
 
 namespace TipMolde.Application.Mappings
@@ -9,7 +9,7 @@ namespace TipMolde.Application.Mappings
     /// Profile AutoMapper dedicado ao agregado Projeto.
     /// </summary>
     /// <remarks>
-    /// Centraliza o mapping entre DTOs e entidades para evitar logica dispersa no controller.
+    /// Centraliza o mapping entre Dtos e entidades para evitar logica dispersa no controller.
     /// </remarks>
     public class ProjetoProfile : Profile
     {
@@ -18,7 +18,7 @@ namespace TipMolde.Application.Mappings
         /// </summary>
         public ProjetoProfile()
         {
-            CreateMap<CreateProjetoDTO, Projeto>()
+            CreateMap<CreateProjetoDto, Projeto>()
                 .ForMember(dest => dest.Projeto_id, opt => opt.Ignore())
                 .ForMember(dest => dest.NomeProjeto, opt => opt.MapFrom(src => src.NomeProjeto.Trim()))
                 .ForMember(dest => dest.SoftwareUtilizado, opt => opt.MapFrom(src => src.SoftwareUtilizado.Trim()))
@@ -27,7 +27,7 @@ namespace TipMolde.Application.Mappings
                 .ForMember(dest => dest.Revisoes, opt => opt.Ignore())
                 .ForMember(dest => dest.RegistosTempo, opt => opt.Ignore());
 
-            CreateMap<UpdateProjetoDTO, Projeto>()
+            CreateMap<UpdateProjetoDto, Projeto>()
                 .ForMember(dest => dest.NomeProjeto, opt =>
                 {
                     opt.Condition(src => !string.IsNullOrWhiteSpace(src.NomeProjeto));
@@ -54,9 +54,9 @@ namespace TipMolde.Application.Mappings
                 .ForMember(dest => dest.Revisoes, opt => opt.Ignore())
                 .ForMember(dest => dest.RegistosTempo, opt => opt.Ignore());
 
-            CreateMap<Projeto, ResponseProjetoDTO>();
+            CreateMap<Projeto, ResponseProjetoDto>();
 
-            CreateMap<Projeto, ResponseProjetoWithRevisoesDTO>()
+            CreateMap<Projeto, ResponseProjetoWithRevisoesDto>()
                 .ForMember(
                     dest => dest.Revisoes,
                     opt => opt.MapFrom(src => src.Revisoes.OrderByDescending(r => r.NumRevisao)));

@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using TipMolde.Domain.Enums;
 
-namespace TipMolde.Application.DTOs.ProjetoDTO
+namespace TipMolde.Application.Dtos.ProjetoDto
 {
     /// <summary>
     /// Representa o pedido de criacao de um projeto de desenho.
@@ -9,7 +9,7 @@ namespace TipMolde.Application.DTOs.ProjetoDTO
     /// <remarks>
     /// O contrato inclui o caminho funcional da pasta no servidor, que passa a ser persistido no agregado.
     /// </remarks>
-    public class CreateProjetoDTO
+    public class CreateProjetoDto
     {
         [Required, MaxLength(100)]
         public required string NomeProjeto { get; set; }

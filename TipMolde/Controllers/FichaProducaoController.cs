@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using TipMolde.Application.DTOs.FichaProducaoDTO;
+using TipMolde.Application.Dtos.FichaProducaoDto;
 using TipMolde.Application.Interface.Fichas.IFichaProducao;
 using TipMolde.Application.Interface.Relatorios;
 using TipMolde.Domain.Entities.Fichas;
@@ -100,7 +100,7 @@ namespace TipMolde.API.Controllers
 
         [Authorize(Roles = "ADMIN")]
         [HttpPost("create")]
-        public async Task<IActionResult> Create([FromBody] CreateFichaProducaoDTO dto)
+        public async Task<IActionResult> Create([FromBody] CreateFichaProducaoDto dto)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 

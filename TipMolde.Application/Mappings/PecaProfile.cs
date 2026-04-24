@@ -1,5 +1,5 @@
 ﻿using AutoMapper;
-using TipMolde.Application.DTOs.PecaDTO;
+using TipMolde.Application.Dtos.PecaDto;
 using TipMolde.Domain.Entities.Producao;
 
 namespace TipMolde.Application.Mappings
@@ -8,7 +8,7 @@ namespace TipMolde.Application.Mappings
     /// Profile AutoMapper dedicado ao agregado Peca.
     /// </summary>
     /// <remarks>
-    /// Centraliza o mapping entre DTOs e entidade para evitar logica dispersa no controller
+    /// Centraliza o mapping entre Dtos e entidade para evitar logica dispersa no controller
     /// e reduzir divergencias no contrato HTTP.
     /// </remarks>
     public class PecaProfile : Profile
@@ -18,14 +18,14 @@ namespace TipMolde.Application.Mappings
         /// </summary>
         public PecaProfile()
         {
-            CreateMap<CreatePecaDTO, Peca>()
+            CreateMap<CreatePecaDto, Peca>()
                 .ForMember(dest => dest.Peca_id, opt => opt.Ignore())
                 .ForMember(dest => dest.Designacao, opt => opt.MapFrom(src => src.Designacao.Trim()))
                 .ForMember(dest => dest.MaterialDesignacao, opt => opt.MapFrom(src => NormalizeOptionalString(src.MaterialDesignacao)))
                 .ForMember(dest => dest.Molde_id, opt => opt.MapFrom(src => src.Molde_id))
                 .ForMember(dest => dest.Molde, opt => opt.Ignore());
 
-            CreateMap<UpdatePecaDTO, Peca>()
+            CreateMap<UpdatePecaDto, Peca>()
                 .ForMember(dest => dest.Designacao, opt =>
                 {
                     opt.Condition(src => !string.IsNullOrWhiteSpace(src.Designacao));
@@ -50,7 +50,7 @@ namespace TipMolde.Application.Mappings
                 .ForMember(dest => dest.Molde_id, opt => opt.Ignore())
                 .ForMember(dest => dest.Molde, opt => opt.Ignore());
 
-            CreateMap<Peca, ResponsePecaDTO>()
+            CreateMap<Peca, ResponsePecaDto>()
                 .ForMember(dest => dest.PecaId, opt => opt.MapFrom(src => src.Peca_id))
                 .ForMember(dest => dest.Molde_id, opt => opt.MapFrom(src => src.Molde_id));
         }

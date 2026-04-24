@@ -7,7 +7,7 @@ using Moq;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using TipMolde.API.Controllers;
-using TipMolde.Application.DTOs.UserDTO;
+using TipMolde.Application.Dtos.UserDto;
 using TipMolde.Application.Interface;
 using TipMolde.Application.Interface.Utilizador.IUser;
 using TipMolde.Domain.Enums;
@@ -44,7 +44,7 @@ public class UserControllerTests
     [Test]
     public async Task shouldReturnResponseUserDtoWhenGettingById()
     {
-        _userService.Setup(s => s.GetByIdAsync(1)).ReturnsAsync(new ResponseUserDTO
+        _userService.Setup(s => s.GetByIdAsync(1)).ReturnsAsync(new ResponseUserDto
         {
             User_id = 1,
             Nome = "Ana",
@@ -56,7 +56,7 @@ public class UserControllerTests
 
         var ok = result as OkObjectResult;
         ok.Should().NotBeNull();
-        ok!.Value.Should().BeOfType<ResponseUserDTO>();
+        ok!.Value.Should().BeOfType<ResponseUserDto>();
     }
 
     [Test]
@@ -64,7 +64,7 @@ public class UserControllerTests
     {
         SetAuthenticatedUser(_controller, new Claim(JwtRegisteredClaimNames.Sub, "2"));
 
-        _userService.Setup(s => s.GetByIdAsync(2)).ReturnsAsync(new ResponseUserDTO
+        _userService.Setup(s => s.GetByIdAsync(2)).ReturnsAsync(new ResponseUserDto
         {
             User_id = 2,
             Nome = "User2",
@@ -72,13 +72,13 @@ public class UserControllerTests
             Role = UserRole.GESTOR_PRODUCAO
         });
 
-        var dto = new UpdateUserDTO { Nome = "Novo Nome", Email = "novo@tipmolde.pt" };
+        var dto = new UpdateUserDto { Nome = "Novo Nome", Email = "novo@tipmolde.pt" };
         var result = await _controller.UpdateUser(5, dto);
 
         var forbidden = result as ObjectResult;
         forbidden.Should().NotBeNull();
         forbidden!.StatusCode.Should().Be(StatusCodes.Status403Forbidden);
-        _userService.Verify(s => s.UpdateAsync(It.IsAny<int>(), It.IsAny<UpdateUserDTO>()), Times.Never);
+        _userService.Verify(s => s.UpdateAsync(It.IsAny<int>(), It.IsAny<UpdateUserDto>()), Times.Never);
     }
 
     [Test]
@@ -86,7 +86,7 @@ public class UserControllerTests
     {
         SetAuthenticatedUser(_controller, new Claim(JwtRegisteredClaimNames.Sub, "2"));
 
-        var sameUser = new ResponseUserDTO
+        var sameUser = new ResponseUserDto
         {
             User_id = 2,
             Nome = "Nome Antigo",
@@ -96,11 +96,11 @@ public class UserControllerTests
 
         _userService.Setup(s => s.GetByIdAsync(2)).ReturnsAsync(sameUser);
 
-        var dto = new UpdateUserDTO { Nome = "  Novo Nome  ", Email = null };
+        var dto = new UpdateUserDto { Nome = "  Novo Nome  ", Email = null };
         var result = await _controller.UpdateUser(2, dto);
 
         result.Should().BeOfType<NoContentResult>();
-        _userService.Verify(s => s.UpdateAsync(2, It.Is<UpdateUserDTO>(u => u.Nome == "  Novo Nome  " && u.Email == null)), Times.Once);
+        _userService.Verify(s => s.UpdateAsync(2, It.Is<UpdateUserDto>(u => u.Nome == "  Novo Nome  " && u.Email == null)), Times.Once);
     }
 
     [Test]
@@ -113,7 +113,7 @@ public class UserControllerTests
     [Test]
     public async Task shouldReturnPagedResponseWithDtoItemsWhenGettingAllUsers()
     {
-        var users = new List<ResponseUserDTO>
+        var users = new List<ResponseUserDto>
         {
             new()
             {
@@ -125,7 +125,7 @@ public class UserControllerTests
         };
 
         _userService.Setup(s => s.GetAllAsync(1, 10))
-            .ReturnsAsync(new PagedResult<ResponseUserDTO>(users, 1, 1, 10));
+            .ReturnsAsync(new PagedResult<ResponseUserDto>(users, 1, 1, 10));
 
         var result = await _controller.GetAllUsers(1, 10);
 
@@ -137,13 +137,13 @@ public class UserControllerTests
         itemsProp.Should().NotBeNull();
 
         var items = itemsProp!.GetValue(payload);
-        items.Should().BeAssignableTo<IEnumerable<ResponseUserDTO>>();
+        items.Should().BeAssignableTo<IEnumerable<ResponseUserDto>>();
     }
 
     [Test]
     public async Task shouldReturnNotFoundWhenGettingByIdAndUserDoesNotExist()
     {
-        _userService.Setup(s => s.GetByIdAsync(44)).ReturnsAsync((ResponseUserDTO?)null);
+        _userService.Setup(s => s.GetByIdAsync(44)).ReturnsAsync((ResponseUserDto?)null);
 
         var result = await _controller.GetUserById(44);
 
@@ -169,15 +169,15 @@ public class UserControllerTests
     [Test]
     public async Task shouldReturnOkWhenSearchingByNameWithValidRequest()
     {
-        var users = new List<ResponseUserDTO> { BuildUserDto(id: 9, nome: "Ana") };
+        var users = new List<ResponseUserDto> { BuildUserDto(id: 9, nome: "Ana") };
         _userService.Setup(s => s.SearchByNameAsync("Ana", 2, 5))
-            .ReturnsAsync(new PagedResult<ResponseUserDTO>(users, 1, 2, 5));
+            .ReturnsAsync(new PagedResult<ResponseUserDto>(users, 1, 2, 5));
 
         var result = await _controller.SearchByName("Ana", 2, 5);
 
         var ok = result as OkObjectResult;
         ok.Should().NotBeNull();
-        ok!.Value.Should().BeEquivalentTo(new PagedResult<ResponseUserDTO>(users, 1, 2, 5));
+        ok!.Value.Should().BeEquivalentTo(new PagedResult<ResponseUserDto>(users, 1, 2, 5));
     }
 
     [Test]
@@ -186,10 +186,10 @@ public class UserControllerTests
         SetAuthenticatedUser(_controller, new Claim(JwtRegisteredClaimNames.Sub, "1"));
         _controller.ModelState.AddModelError("Email", "Obrigatorio");
 
-        var result = await _controller.CreateUser(new CreateUserDTO { Email = null , Nome = null, Password = null, Role = UserRole.ADMIN });
+        var result = await _controller.CreateUser(new CreateUserDto { Email = null , Nome = null, Password = null, Role = UserRole.ADMIN });
 
         result.Should().BeOfType<BadRequestObjectResult>();
-        _userService.Verify(s => s.CreateAsync(It.IsAny<CreateUserDTO>()), Times.Never);
+        _userService.Verify(s => s.CreateAsync(It.IsAny<CreateUserDto>()), Times.Never);
     }
 
     [Test]
@@ -197,7 +197,7 @@ public class UserControllerTests
     {
         SetAuthenticatedUser(_controller, new Claim(JwtRegisteredClaimNames.Sub, "1"));
 
-        var dto = new CreateUserDTO
+        var dto = new CreateUserDto
         {
             Nome = "Ana",
             Email = "ana@tipmolde.pt",
@@ -222,10 +222,10 @@ public class UserControllerTests
     {
         _controller.ModelState.AddModelError("Nome", "Obrigatorio");
 
-        var result = await _controller.UpdateUser(1, new UpdateUserDTO { Nome = "Ana" });
+        var result = await _controller.UpdateUser(1, new UpdateUserDto { Nome = "Ana" });
 
         result.Should().BeOfType<BadRequestObjectResult>();
-        _userService.Verify(s => s.UpdateAsync(It.IsAny<int>(), It.IsAny<UpdateUserDTO>()), Times.Never);
+        _userService.Verify(s => s.UpdateAsync(It.IsAny<int>(), It.IsAny<UpdateUserDto>()), Times.Never);
     }
 
     [Test]
@@ -233,7 +233,7 @@ public class UserControllerTests
     {
         SetAuthenticatedUser(_controller);
 
-        var result = await _controller.UpdateUser(1, new UpdateUserDTO { Nome = "Ana" });
+        var result = await _controller.UpdateUser(1, new UpdateUserDto { Nome = "Ana" });
 
         result.Should().BeOfType<UnauthorizedObjectResult>();
     }
@@ -242,9 +242,9 @@ public class UserControllerTests
     public async Task shouldReturnUnauthorizedWhenAuthenticatedUserDoesNotExist()
     {
         SetAuthenticatedUser(_controller, new Claim(JwtRegisteredClaimNames.Sub, "2"));
-        _userService.Setup(s => s.GetByIdAsync(2)).ReturnsAsync((ResponseUserDTO?)null);
+        _userService.Setup(s => s.GetByIdAsync(2)).ReturnsAsync((ResponseUserDto?)null);
 
-        var result = await _controller.UpdateUser(2, new UpdateUserDTO { Nome = "Ana" });
+        var result = await _controller.UpdateUser(2, new UpdateUserDto { Nome = "Ana" });
 
         result.Should().BeOfType<UnauthorizedObjectResult>();
     }
@@ -255,9 +255,9 @@ public class UserControllerTests
         SetAuthenticatedUser(_controller, new Claim(JwtRegisteredClaimNames.Sub, "1"));
 
         _userService.Setup(s => s.GetByIdAsync(1)).ReturnsAsync(BuildUserDto(id: 1, role: UserRole.ADMIN));
-        _userService.Setup(s => s.GetByIdAsync(5)).ReturnsAsync((ResponseUserDTO?)null);
+        _userService.Setup(s => s.GetByIdAsync(5)).ReturnsAsync((ResponseUserDto?)null);
 
-        var result = await _controller.UpdateUser(5, new UpdateUserDTO { Nome = "Novo Nome" });
+        var result = await _controller.UpdateUser(5, new UpdateUserDto { Nome = "Novo Nome" });
 
         result.Should().BeOfType<NotFoundObjectResult>();
     }
@@ -267,7 +267,7 @@ public class UserControllerTests
     {
         _controller.ModelState.AddModelError("Role", "Obrigatorio");
 
-        var result = await _controller.ChangeRole(4, new ChangeUserRoleDTO { Role = UserRole.ADMIN });
+        var result = await _controller.ChangeRole(4, new ChangeUserRoleDto { Role = UserRole.ADMIN });
 
         result.Should().BeOfType<BadRequestObjectResult>();
         _userService.Verify(s => s.ChangeRoleAsync(It.IsAny<int>(), It.IsAny<UserRole>()), Times.Never);
@@ -276,7 +276,7 @@ public class UserControllerTests
     [Test]
     public async Task shouldReturnNoContentWhenChangingRoleWithValidRequest()
     {
-        var result = await _controller.ChangeRole(4, new ChangeUserRoleDTO { Role = UserRole.ADMIN });
+        var result = await _controller.ChangeRole(4, new ChangeUserRoleDto { Role = UserRole.ADMIN });
 
         result.Should().BeOfType<NoContentResult>();
         _userService.Verify(s => s.ChangeRoleAsync(4, UserRole.ADMIN), Times.Once);
@@ -291,13 +291,13 @@ public class UserControllerTests
         _userService.Verify(s => s.DeleteAsync(6), Times.Once);
     }
 
-    private static ResponseUserDTO BuildUserDto(
+    private static ResponseUserDto BuildUserDto(
         int id = 1,
         string nome = "Ana",
         string email = "ana@tipmolde.pt",
         UserRole role = UserRole.ADMIN)
     {
-        return new ResponseUserDTO
+        return new ResponseUserDto
         {
             User_id = id,
             Nome = nome,

@@ -2,7 +2,7 @@ using AutoMapper;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Moq;
-using TipMolde.Application.DTOs.EncomendaMoldeDTO;
+using TipMolde.Application.Dtos.EncomendaMoldeDto;
 using TipMolde.Application.Exceptions;
 using TipMolde.Application.Interface;
 using TipMolde.Application.Interface.Comercio.IEncomenda;
@@ -41,7 +41,7 @@ public class EncomendaMoldeServiceTests
     public async Task CreateAsync_Should_ThrowBusinessConflictException_When_AssociationAlreadyExists()
     {
         // ARRANGE
-        var dto = new CreateEncomendaMoldeDTO
+        var dto = new CreateEncomendaMoldeDto
         {
             Encomenda_id = 1,
             Molde_id = 2,
@@ -65,7 +65,7 @@ public class EncomendaMoldeServiceTests
     public async Task UpdateAsync_Should_ThrowArgumentException_When_NoFieldsProvided()
     {
         // ARRANGE
-        var dto = new UpdateEncomendaMoldeDTO();
+        var dto = new UpdateEncomendaMoldeDto();
         _repo.Setup(r => r.GetByIdAsync(10)).ReturnsAsync(new EncomendaMolde
         {
             EncomendaMolde_id = 10,
@@ -101,9 +101,9 @@ public class EncomendaMoldeServiceTests
     {
         // ARRANGE
         var entity = new EncomendaMolde { EncomendaMolde_id = 10, Encomenda_id = 1, Molde_id = 2, Quantidade = 5, Prioridade = 1 };
-        var dto = new ResponseEncomendaMoldeDTO { EncomendaMolde_id = 10, Encomenda_id = 1, Molde_id = 2, Quantidade = 5, Prioridade = 1 };
+        var dto = new ResponseEncomendaMoldeDto { EncomendaMolde_id = 10, Encomenda_id = 1, Molde_id = 2, Quantidade = 5, Prioridade = 1 };
         _repo.Setup(r => r.GetByIdAsync(10)).ReturnsAsync(entity);
-        _mapper.Setup(m => m.Map<ResponseEncomendaMoldeDTO>(entity)).Returns(dto);
+        _mapper.Setup(m => m.Map<ResponseEncomendaMoldeDto>(entity)).Returns(dto);
 
         // ACT
         var result = await _sut.GetByIdAsync(10);
@@ -117,10 +117,10 @@ public class EncomendaMoldeServiceTests
     {
         // ARRANGE
         var entity = new EncomendaMolde { EncomendaMolde_id = 3, Encomenda_id = 1, Molde_id = 2, Quantidade = 8, Prioridade = 2 };
-        var dto = new ResponseEncomendaMoldeDTO { EncomendaMolde_id = 3, Encomenda_id = 1, Molde_id = 2, Quantidade = 8, Prioridade = 2 };
+        var dto = new ResponseEncomendaMoldeDto { EncomendaMolde_id = 3, Encomenda_id = 1, Molde_id = 2, Quantidade = 8, Prioridade = 2 };
         _repo.Setup(r => r.GetByEncomendaIdAsync(1, 2, 5))
             .ReturnsAsync(new PagedResult<EncomendaMolde>(new[] { entity }, 1, 2, 5));
-        _mapper.Setup(m => m.Map<IEnumerable<ResponseEncomendaMoldeDTO>>(It.IsAny<IEnumerable<EncomendaMolde>>()))
+        _mapper.Setup(m => m.Map<IEnumerable<ResponseEncomendaMoldeDto>>(It.IsAny<IEnumerable<EncomendaMolde>>()))
             .Returns(new[] { dto });
 
         // ACT
@@ -136,10 +136,10 @@ public class EncomendaMoldeServiceTests
     {
         // ARRANGE
         var entity = new EncomendaMolde { EncomendaMolde_id = 4, Encomenda_id = 1, Molde_id = 9, Quantidade = 6, Prioridade = 1 };
-        var dto = new ResponseEncomendaMoldeDTO { EncomendaMolde_id = 4, Encomenda_id = 1, Molde_id = 9, Quantidade = 6, Prioridade = 1 };
+        var dto = new ResponseEncomendaMoldeDto { EncomendaMolde_id = 4, Encomenda_id = 1, Molde_id = 9, Quantidade = 6, Prioridade = 1 };
         _repo.Setup(r => r.GetByMoldeIdAsync(9, 1, 10))
             .ReturnsAsync(new PagedResult<EncomendaMolde>(new[] { entity }, 1, 1, 10));
-        _mapper.Setup(m => m.Map<IEnumerable<ResponseEncomendaMoldeDTO>>(It.IsAny<IEnumerable<EncomendaMolde>>()))
+        _mapper.Setup(m => m.Map<IEnumerable<ResponseEncomendaMoldeDto>>(It.IsAny<IEnumerable<EncomendaMolde>>()))
             .Returns(new[] { dto });
 
         // ACT
@@ -154,7 +154,7 @@ public class EncomendaMoldeServiceTests
     public async Task CreateAsync_Should_ThrowKeyNotFoundException_When_EncomendaDoesNotExist()
     {
         // ARRANGE
-        var dto = new CreateEncomendaMoldeDTO { Encomenda_id = 1, Molde_id = 2, Quantidade = 10, Prioridade = 1 };
+        var dto = new CreateEncomendaMoldeDto { Encomenda_id = 1, Molde_id = 2, Quantidade = 10, Prioridade = 1 };
         _encomendaRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync((Encomenda?)null);
 
         // ACT
@@ -168,7 +168,7 @@ public class EncomendaMoldeServiceTests
     public async Task CreateAsync_Should_ThrowKeyNotFoundException_When_MoldeDoesNotExist()
     {
         // ARRANGE
-        var dto = new CreateEncomendaMoldeDTO { Encomenda_id = 1, Molde_id = 2, Quantidade = 10, Prioridade = 1 };
+        var dto = new CreateEncomendaMoldeDto { Encomenda_id = 1, Molde_id = 2, Quantidade = 10, Prioridade = 1 };
         _encomendaRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(new Encomenda { Encomenda_id = 1, NumeroEncomendaCliente = "ENC-1" });
         _moldeRepo.Setup(r => r.GetByIdAsync(2)).ReturnsAsync((Molde?)null);
 
@@ -195,7 +195,7 @@ public class EncomendaMoldeServiceTests
 
         _repo.Setup(r => r.GetByIdAsync(10)).ReturnsAsync(existente);
 
-        var dto = new UpdateEncomendaMoldeDTO
+        var dto = new UpdateEncomendaMoldeDto
         {
             Quantidade = 9,
             Prioridade = 3,

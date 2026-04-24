@@ -1,9 +1,9 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using TipMolde.Domain.Enums;
 
-namespace TipMolde.Application.DTOs.RegistoProducaoDTO
+namespace TipMolde.Application.Dtos.RegistoProducaoDto
 {
-    public class CreateRegistosProducaoDTO
+    public class CreateRegistosProducaoDto
     {
         [Required]
         [Range(1, int.MaxValue)]

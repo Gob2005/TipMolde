@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace TipMolde.Application.DTOs.PecaDTO
+namespace TipMolde.Application.Dtos.PecaDto
 {
     /// <summary>
     /// Representa os dados de criacao de uma peca associada a um molde.
@@ -9,7 +9,7 @@ namespace TipMolde.Application.DTOs.PecaDTO
     /// Este DTO pertence ao contrato de entrada da API e nao deve expor a entidade
     /// de dominio diretamente.
     /// </remarks>
-    public class CreatePecaDTO
+    public class CreatePecaDto
     {
         [Required]
         [MinLength(2)]

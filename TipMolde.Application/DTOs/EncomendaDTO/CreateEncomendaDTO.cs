@@ -1,8 +1,8 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace TipMolde.Application.DTOs.EncomendaDTO
+namespace TipMolde.Application.Dtos.EncomendaDto
 {
-    public class CreateEncomendaDTO
+    public class CreateEncomendaDto
     {
         [Required]
         public int Cliente_id { get; set; }

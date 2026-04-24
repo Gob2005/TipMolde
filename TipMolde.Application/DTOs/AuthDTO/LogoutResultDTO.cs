@@ -1,6 +1,6 @@
-﻿namespace TipMolde.Application.DTOs.AuthDTO
+﻿namespace TipMolde.Application.Dtos.AuthDto
 {
-    public class LogoutResultDTO
+    public class LogoutResultDto
     {
         public bool Success { get; set; }
         public string Message { get; set; } = string.Empty;

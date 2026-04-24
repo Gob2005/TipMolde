@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.Extensions.Logging;
-using TipMolde.Application.DTOs.PecaDTO;
+using TipMolde.Application.Dtos.PecaDto;
 using TipMolde.Application.Interface;
 using TipMolde.Application.Interface.Producao.IMolde;
 using TipMolde.Application.Interface.Producao.IPeca;
@@ -27,7 +27,7 @@ namespace TipMolde.Application.Service
         /// </summary>
         /// <param name="pecaRepository">Repositorio do agregado Peca.</param>
         /// <param name="moldeRepository">Repositorio usado para validar o molde associado.</param>
-        /// <param name="mapper">Mapper para conversao entre DTOs e entidade.</param>
+        /// <param name="mapper">Mapper para conversao entre Dtos e entidade.</param>
         /// <param name="logger">Logger para rastreabilidade das operacoes criticas.</param>
         public PecaService(
             IPecaRepository pecaRepository,
@@ -46,12 +46,12 @@ namespace TipMolde.Application.Service
         /// </summary>
         /// <param name="page">Pagina atual.</param>
         /// <param name="pageSize">Tamanho da pagina.</param>
-        /// <returns>Resultado paginado com DTOs de peca.</returns>
-        public async Task<PagedResult<ResponsePecaDTO>> GetAllAsync(int page = 1, int pageSize = 10)
+        /// <returns>Resultado paginado com Dtos de peca.</returns>
+        public async Task<PagedResult<ResponsePecaDto>> GetAllAsync(int page = 1, int pageSize = 10)
         {
             var result = await _pecaRepository.GetAllAsync(page, pageSize);
-            var items = _mapper.Map<IEnumerable<ResponsePecaDTO>>(result.Items);
-            return new PagedResult<ResponsePecaDTO>(items, result.TotalCount, result.CurrentPage, result.PageSize);
+            var items = _mapper.Map<IEnumerable<ResponsePecaDto>>(result.Items);
+            return new PagedResult<ResponsePecaDto>(items, result.TotalCount, result.CurrentPage, result.PageSize);
         }
 
         /// <summary>
@@ -59,10 +59,10 @@ namespace TipMolde.Application.Service
         /// </summary>
         /// <param name="id">Identificador interno da peca.</param>
         /// <returns>DTO da peca quando encontrada; nulo caso contrario.</returns>
-        public async Task<ResponsePecaDTO?> GetByIdAsync(int id)
+        public async Task<ResponsePecaDto?> GetByIdAsync(int id)
         {
             var peca = await _pecaRepository.GetByIdAsync(id);
-            return peca == null ? null : _mapper.Map<ResponsePecaDTO>(peca);
+            return peca == null ? null : _mapper.Map<ResponsePecaDto>(peca);
         }
 
         /// <summary>
@@ -71,12 +71,12 @@ namespace TipMolde.Application.Service
         /// <param name="moldeId">Identificador do molde.</param>
         /// <param name="page">Pagina atual.</param>
         /// <param name="pageSize">Tamanho da pagina.</param>
-        /// <returns>Resultado paginado com DTOs de peca.</returns>
-        public async Task<PagedResult<ResponsePecaDTO>> GetByMoldeIdAsync(int moldeId, int page = 1, int pageSize = 10)
+        /// <returns>Resultado paginado com Dtos de peca.</returns>
+        public async Task<PagedResult<ResponsePecaDto>> GetByMoldeIdAsync(int moldeId, int page = 1, int pageSize = 10)
         {
             var result = await _pecaRepository.GetByMoldeIdAsync(moldeId, page, pageSize);
-            var items = _mapper.Map<IEnumerable<ResponsePecaDTO>>(result.Items);
-            return new PagedResult<ResponsePecaDTO>(items, result.TotalCount, result.CurrentPage, result.PageSize);
+            var items = _mapper.Map<IEnumerable<ResponsePecaDto>>(result.Items);
+            return new PagedResult<ResponsePecaDto>(items, result.TotalCount, result.CurrentPage, result.PageSize);
         }
 
         /// <summary>
@@ -85,11 +85,11 @@ namespace TipMolde.Application.Service
         /// <param name="designacao">Designacao funcional da peca.</param>
         /// <param name="moldeId">Identificador do molde.</param>
         /// <returns>DTO da peca quando encontrada; nulo caso contrario.</returns>
-        public async Task<ResponsePecaDTO?> GetByDesignacaoAsync(string designacao, int moldeId)
+        public async Task<ResponsePecaDto?> GetByDesignacaoAsync(string designacao, int moldeId)
         {
             var designacaoNormalizada = designacao.Trim();
             var peca = await _pecaRepository.GetByDesignacaoAsync(designacaoNormalizada, moldeId);
-            return peca == null ? null : _mapper.Map<ResponsePecaDTO>(peca);
+            return peca == null ? null : _mapper.Map<ResponsePecaDto>(peca);
         }
 
         /// <summary>
@@ -104,7 +104,7 @@ namespace TipMolde.Application.Service
         /// </remarks>
         /// <param name="dto">Dados de criacao da peca.</param>
         /// <returns>DTO da peca criada.</returns>
-        public async Task<ResponsePecaDTO> CreateAsync(CreatePecaDTO dto)
+        public async Task<ResponsePecaDto> CreateAsync(CreatePecaDto dto)
         {
             if (string.IsNullOrWhiteSpace(dto.Designacao))
                 throw new ArgumentException("Designacao e obrigatoria.");
@@ -128,7 +128,7 @@ namespace TipMolde.Application.Service
                 peca.Peca_id,
                 dto.Molde_id);
 
-            return _mapper.Map<ResponsePecaDTO>(peca);
+            return _mapper.Map<ResponsePecaDto>(peca);
         }
 
         /// <summary>
@@ -140,7 +140,7 @@ namespace TipMolde.Application.Service
         /// <param name="id">Identificador da peca a atualizar.</param>
         /// <param name="dto">Dados de atualizacao parcial.</param>
         /// <returns>Task de conclusao da atualizacao.</returns>
-        public async Task UpdateAsync(int id, UpdatePecaDTO dto)
+        public async Task UpdateAsync(int id, UpdatePecaDto dto)
         {
             var existente = await _pecaRepository.GetByIdAsync(id);
             if (existente == null)
@@ -190,7 +190,7 @@ namespace TipMolde.Application.Service
         /// </summary>
         /// <param name="dto">DTO de atualizacao parcial.</param>
         /// <returns>True quando existe pelo menos um campo preenchido; false caso contrario.</returns>
-        private static bool HasAnyChanges(UpdatePecaDTO dto)
+        private static bool HasAnyChanges(UpdatePecaDto dto)
         {
             return !string.IsNullOrWhiteSpace(dto.Designacao)
                 || dto.Prioridade.HasValue

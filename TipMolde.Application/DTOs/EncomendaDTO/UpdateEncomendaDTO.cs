@@ -1,8 +1,8 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace TipMolde.Application.DTOs.EncomendaDTO
+namespace TipMolde.Application.Dtos.EncomendaDto
 {
-    public class UpdateEncomendaDTO
+    public class UpdateEncomendaDto
     {
         [MinLength(1)]
         [MaxLength(50)]

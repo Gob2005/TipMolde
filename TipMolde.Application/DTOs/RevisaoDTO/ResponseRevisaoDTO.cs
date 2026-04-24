@@ -1,9 +1,9 @@
-﻿namespace TipMolde.Application.DTOs.RevisaoDTO
+﻿namespace TipMolde.Application.Dtos.RevisaoDto
 {
     /// <summary>
     /// Representa a resposta publica da feature Revisao.
     /// </summary>
-    public class ResponseRevisaoDTO
+    public class ResponseRevisaoDto
     {
         public int Revisao_id { get; set; }
         public int NumRevisao { get; set; }

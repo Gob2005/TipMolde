@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MySqlX.XDevAPI.Common;
-using TipMolde.Application.DTOs.MaquinaDTO;
+using TipMolde.Application.Dtos.MaquinaDto;
 using TipMolde.Application.Interface.Producao.IMaquina;
 using TipMolde.Domain.Entities.Producao;
 using TipMolde.Domain.Enums;
@@ -52,7 +52,7 @@ namespace TipMolde.API.Controllers
 
         [Authorize(Roles = "ADMIN")]
         [HttpPost("create")]
-        public async Task<IActionResult> Create([FromBody] CreateMaquinaDTO dto)
+        public async Task<IActionResult> Create([FromBody] CreateMaquinaDto dto)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
@@ -70,7 +70,7 @@ namespace TipMolde.API.Controllers
 
         [Authorize(Roles = "ADMIN,GESTOR_PRODUCAO")]
         [HttpPut("update/{id}")]
-        public async Task<IActionResult> Update(int id, [FromBody] UpdateMaquinaDTO dto)
+        public async Task<IActionResult> Update(int id, [FromBody] UpdateMaquinaDto dto)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
@@ -94,7 +94,7 @@ namespace TipMolde.API.Controllers
             return NoContent();
         }
 
-        private static ResponseMaquinaDTO ToResponse(Maquina m) => new()
+        private static ResponseMaquinaDto ToResponse(Maquina m) => new()
         {
             Maquina_id = m.Maquina_id,
             NomeModelo = m.NomeModelo,

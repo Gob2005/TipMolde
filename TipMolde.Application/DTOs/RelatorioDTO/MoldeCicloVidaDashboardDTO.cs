@@ -1,6 +1,6 @@
-﻿namespace TipMolde.Application.DTOs.RelatorioDTO
+﻿namespace TipMolde.Application.Dtos.RelatorioDto
 {
-    public class MoldeCicloVidaDashboardDTO
+    public class MoldeCicloVidaDashboardDto
     {
         public int MoldeId { get; set; }
         public string NumeroMolde { get; set; } = string.Empty;

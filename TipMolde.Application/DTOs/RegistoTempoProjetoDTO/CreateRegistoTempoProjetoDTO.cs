@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using TipMolde.Domain.Enums;
 
-namespace TipMolde.Application.DTOs.RegistoTempoProjetoDTO
+namespace TipMolde.Application.Dtos.RegistoTempoProjetoDto
 {
     /// <summary>
     /// Representa o pedido de criacao de um registo de tempo de projeto.
@@ -10,7 +10,7 @@ namespace TipMolde.Application.DTOs.RegistoTempoProjetoDTO
     /// O Estado_tempo e anulavel para que a validacao do model binder consiga
     /// distinguir entre campo omisso e valor explicitamente enviado pelo cliente.
     /// </remarks>
-    public class CreateRegistoTempoProjetoDTO
+    public class CreateRegistoTempoProjetoDto
     {
         /// <summary>
         /// Novo estado temporal a registar no historico.

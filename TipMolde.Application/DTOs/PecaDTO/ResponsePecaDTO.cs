@@ -1,9 +1,9 @@
-﻿namespace TipMolde.Application.DTOs.PecaDTO
+﻿namespace TipMolde.Application.Dtos.PecaDto
 {
     /// <summary>
     /// Representa a resposta publica da feature Peca.
     /// </summary>
-    public class ResponsePecaDTO
+    public class ResponsePecaDto
     {
         public int PecaId { get; set; }
         public string? Designacao { get; set; }

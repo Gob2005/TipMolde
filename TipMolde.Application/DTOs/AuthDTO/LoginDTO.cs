@@ -1,8 +1,8 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace TipMolde.Application.DTOs.AuthDTO
+namespace TipMolde.Application.Dtos.AuthDto
 {
-    public class LoginDTO
+    public class LoginDto
     {
         [Required, EmailAddress]
         public required string Email { get; set; }

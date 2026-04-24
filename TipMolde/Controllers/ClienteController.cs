@@ -1,7 +1,7 @@
 using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using TipMolde.Application.DTOs.ClienteDTO;
+using TipMolde.Application.Dtos.ClienteDto;
 using TipMolde.Application.Interface.Comercio.ICliente;
 using TipMolde.Domain.Entities.Comercio;
 
@@ -167,7 +167,7 @@ namespace TipMolde.API.Controllers
         /// <returns>Resultado HTTP de criacao com o cliente persistido.</returns>
         [Authorize(Roles = "ADMIN,GESTOR_COMERCIAL")]
         [HttpPost]
-        public async Task<IActionResult> CreateCliente([FromBody] CreateClienteDTO dto)
+        public async Task<IActionResult> CreateCliente([FromBody] CreateClienteDto dto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(CreateProblem(StatusCodes.Status400BadRequest, "Pedido invalido", "Dados de criacao invalidos."));
@@ -187,7 +187,7 @@ namespace TipMolde.API.Controllers
         /// <returns>Resultado HTTP sem conteudo quando a atualizacao e concluida.</returns>
         [Authorize(Roles = "ADMIN,GESTOR_COMERCIAL")]
         [HttpPut("{id:int}")]
-        public async Task<IActionResult> UpdateCliente(int id, [FromBody] UpdateClienteDTO dto)
+        public async Task<IActionResult> UpdateCliente(int id, [FromBody] UpdateClienteDto dto)
         {
             var existingCliente = await _clienteService.GetByIdAsync(id);
             if (existingCliente == null)

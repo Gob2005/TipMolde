@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace TipMolde.Application.DTOs.ClienteDTO
+namespace TipMolde.Application.Dtos.ClienteDto
 {
     /// <summary>
     /// DTO de entrada para criacao de um cliente no modulo comercial.
@@ -8,7 +8,7 @@ namespace TipMolde.Application.DTOs.ClienteDTO
     /// <remarks>
     /// Agrega os dados base de identificacao e contacto necessarios para registo inicial do cliente.
     /// </remarks>
-    public class CreateClienteDTO
+    public class CreateClienteDto
     {
         [Required]
         [MinLength(3)]

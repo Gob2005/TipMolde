@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.Extensions.Logging;
-using TipMolde.Application.DTOs.EncomendaMoldeDTO;
+using TipMolde.Application.Dtos.EncomendaMoldeDto;
 using TipMolde.Application.Exceptions;
 using TipMolde.Application.Interface;
 using TipMolde.Application.Interface.Comercio.IEncomenda;
@@ -30,7 +30,7 @@ namespace TipMolde.Application.Service
         /// <param name="repo">Repositorio da relacao Encomenda-Molde.</param>
         /// <param name="encomendaRepo">Repositorio de encomenda para validacao de FK.</param>
         /// <param name="moldeRepo">Repositorio de molde para validacao de FK.</param>
-        /// <param name="mapper">Mapper para conversao entre entidades e DTOs.</param>
+        /// <param name="mapper">Mapper para conversao entre entidades e Dtos.</param>
         /// <param name="logger">Logger para rastreabilidade das operacoes criticas.</param>
         public EncomendaMoldeService(
             IEncomendaMoldeRepository repo,
@@ -51,10 +51,10 @@ namespace TipMolde.Application.Service
         /// </summary>
         /// <param name="id">Identificador da associacao.</param>
         /// <returns>DTO de resposta quando encontrado; nulo caso nao exista.</returns>
-        public async Task<ResponseEncomendaMoldeDTO?> GetByIdAsync(int id)
+        public async Task<ResponseEncomendaMoldeDto?> GetByIdAsync(int id)
         {
             var entity = await _repo.GetByIdAsync(id);
-            return entity == null ? null : _mapper.Map<ResponseEncomendaMoldeDTO>(entity);
+            return entity == null ? null : _mapper.Map<ResponseEncomendaMoldeDto>(entity);
         }
 
         /// <summary>
@@ -63,15 +63,15 @@ namespace TipMolde.Application.Service
         /// <param name="encomendaId">Identificador da encomenda para filtro.</param>
         /// <param name="page">Pagina atual (>= 1).</param>
         /// <param name="pageSize">Tamanho da pagina (>= 1).</param>
-        /// <returns>Resultado paginado com DTOs de associacao.</returns>
-        public async Task<PagedResult<ResponseEncomendaMoldeDTO>> GetByEncomendaIdAsync(
+        /// <returns>Resultado paginado com Dtos de associacao.</returns>
+        public async Task<PagedResult<ResponseEncomendaMoldeDto>> GetByEncomendaIdAsync(
             int encomendaId,
             int page = 1,
             int pageSize = 10)
         {
             var result = await _repo.GetByEncomendaIdAsync(encomendaId, page, pageSize);
-            var mapped = _mapper.Map<IEnumerable<ResponseEncomendaMoldeDTO>>(result.Items);
-            return new PagedResult<ResponseEncomendaMoldeDTO>(mapped, result.TotalCount, result.CurrentPage, result.PageSize);
+            var mapped = _mapper.Map<IEnumerable<ResponseEncomendaMoldeDto>>(result.Items);
+            return new PagedResult<ResponseEncomendaMoldeDto>(mapped, result.TotalCount, result.CurrentPage, result.PageSize);
         }
 
         /// <summary>
@@ -80,15 +80,15 @@ namespace TipMolde.Application.Service
         /// <param name="moldeId">Identificador do molde para filtro.</param>
         /// <param name="page">Pagina atual (>= 1).</param>
         /// <param name="pageSize">Tamanho da pagina (>= 1).</param>
-        /// <returns>Resultado paginado com DTOs de associacao.</returns>
-        public async Task<PagedResult<ResponseEncomendaMoldeDTO>> GetByMoldeIdAsync(
+        /// <returns>Resultado paginado com Dtos de associacao.</returns>
+        public async Task<PagedResult<ResponseEncomendaMoldeDto>> GetByMoldeIdAsync(
             int moldeId,
             int page = 1,
             int pageSize = 10)
         {
             var result = await _repo.GetByMoldeIdAsync(moldeId, page, pageSize);
-            var mapped = _mapper.Map<IEnumerable<ResponseEncomendaMoldeDTO>>(result.Items);
-            return new PagedResult<ResponseEncomendaMoldeDTO>(mapped, result.TotalCount, result.CurrentPage, result.PageSize);
+            var mapped = _mapper.Map<IEnumerable<ResponseEncomendaMoldeDto>>(result.Items);
+            return new PagedResult<ResponseEncomendaMoldeDto>(mapped, result.TotalCount, result.CurrentPage, result.PageSize);
         }
 
         /// <summary>
@@ -102,7 +102,7 @@ namespace TipMolde.Application.Service
         /// </remarks>
         /// <param name="dto">Dados de criacao da associacao.</param>
         /// <returns>DTO da associacao criada e persistida.</returns>
-        public async Task<ResponseEncomendaMoldeDTO> CreateAsync(CreateEncomendaMoldeDTO dto)
+        public async Task<ResponseEncomendaMoldeDto> CreateAsync(CreateEncomendaMoldeDto dto)
         {
             var encomenda = await _encomendaRepo.GetByIdAsync(dto.Encomenda_id);
             if (encomenda == null)
@@ -125,7 +125,7 @@ namespace TipMolde.Application.Service
                 entity.Encomenda_id,
                 entity.Molde_id);
 
-            return _mapper.Map<ResponseEncomendaMoldeDTO>(entity);
+            return _mapper.Map<ResponseEncomendaMoldeDto>(entity);
         }
 
         /// <summary>
@@ -137,7 +137,7 @@ namespace TipMolde.Application.Service
         /// <param name="id">Identificador da associacao a atualizar.</param>
         /// <param name="dto">Dados de atualizacao parcial.</param>
         /// <returns>Task de conclusao da atualizacao.</returns>
-        public async Task UpdateAsync(int id, UpdateEncomendaMoldeDTO dto)
+        public async Task UpdateAsync(int id, UpdateEncomendaMoldeDto dto)
         {
             var existente = await _repo.GetByIdAsync(id);
             if (existente == null)

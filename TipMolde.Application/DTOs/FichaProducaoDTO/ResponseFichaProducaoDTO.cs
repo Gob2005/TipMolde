@@ -1,8 +1,8 @@
 ﻿using TipMolde.Domain.Enums;
 
-namespace TipMolde.Application.DTOs.FichaProducaoDTO
+namespace TipMolde.Application.Dtos.FichaProducaoDto
 {
-    public class ResponseFichaProducaoDTO
+    public class ResponseFichaProducaoDto
     {
         public int FichaProducao_id { get; set; }
         public TipoFicha Tipo { get; set; }

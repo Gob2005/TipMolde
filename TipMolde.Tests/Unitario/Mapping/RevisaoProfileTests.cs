@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
 using FluentAssertions;
-using TipMolde.Application.DTOs.RevisaoDTO;
+using TipMolde.Application.Dtos.RevisaoDto;
 using TipMolde.Application.Mappings;
 using TipMolde.Domain.Entities.Desenho;
 
@@ -32,11 +32,11 @@ public class RevisaoProfileTests
         act.Should().NotThrow();
     }
 
-    [Test(Description = "TREVMAP2 - CreateRevisaoDTO deve mapear para Revisao com descricao trimada.")]
+    [Test(Description = "TREVMAP2 - CreateRevisaoDto deve mapear para Revisao com descricao trimada.")]
     public void CreateRevisaoDTO_Should_MapTo_Revisao()
     {
         // ARRANGE
-        var source = new CreateRevisaoDTO
+        var source = new CreateRevisaoDto
         {
             Projeto_id = 5,
             DescricaoAlteracoes = " Alteracao importante "
@@ -50,8 +50,8 @@ public class RevisaoProfileTests
         result.DescricaoAlteracoes.Should().Be("Alteracao importante");
     }
 
-    [Test(Description = "TREVMAP3 - Entidade Revisao deve mapear para ResponseRevisaoDTO com dados de resposta.")]
-    public void Revisao_Should_MapTo_ResponseRevisaoDTO()
+    [Test(Description = "TREVMAP3 - Entidade Revisao deve mapear para ResponseRevisaoDto com dados de resposta.")]
+    public void Revisao_Should_MapTo_ResponseRevisaoDto()
     {
         // ARRANGE
         var source = new Revisao
@@ -68,7 +68,7 @@ public class RevisaoProfileTests
         };
 
         // ACT
-        var result = _mapper.Map<ResponseRevisaoDTO>(source);
+        var result = _mapper.Map<ResponseRevisaoDto>(source);
 
         // ASSERT
         result.Revisao_id.Should().Be(10);

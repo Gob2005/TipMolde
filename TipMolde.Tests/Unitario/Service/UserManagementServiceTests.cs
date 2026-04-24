@@ -2,7 +2,7 @@ using AutoMapper;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Moq;
-using TipMolde.Application.DTOs.UserDTO;
+using TipMolde.Application.Dtos.UserDto;
 using TipMolde.Application.Interface;
 using TipMolde.Application.Interface.Utilizador.ISecurity;
 using TipMolde.Application.Interface.Utilizador.IUser;
@@ -51,7 +51,7 @@ public class UserManagementServiceTests
         Role = UserRole.GESTOR_PRODUCAO
     };
 
-    private static CreateUserDTO BuildCreateUserDto(
+    private static CreateUserDto BuildCreateUserDto(
         string nome = "Operador",
         string email = "operador@tipmolde.pt",
         string password = "Passw0rd!",
@@ -63,7 +63,7 @@ public class UserManagementServiceTests
         Role = role
     };
 
-    private static UpdateUserDTO BuildUpdateUserDto(string? nome = "Operador", string? email = "operador@tipmolde.pt") => new()
+    private static UpdateUserDto BuildUpdateUserDto(string? nome = "Operador", string? email = "operador@tipmolde.pt") => new()
     {
         Nome = nome,
         Email = email
@@ -324,7 +324,7 @@ public class UserManagementServiceTests
         _userRepository.Setup(r => r.GetByIdAsync(5)).ReturnsAsync(BuildUser(id: 5));
 
         // ACT
-        Func<Task> act = () => _sut.UpdateAsync(5, new UpdateUserDTO());
+        Func<Task> act = () => _sut.UpdateAsync(5, new UpdateUserDto());
 
         // ASSERT
         await act.Should().ThrowAsync<ArgumentException>();

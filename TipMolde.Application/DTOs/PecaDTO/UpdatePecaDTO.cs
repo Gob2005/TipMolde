@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace TipMolde.Application.DTOs.PecaDTO
+namespace TipMolde.Application.Dtos.PecaDto
 {
     /// <summary>
     /// Representa os dados de atualizacao parcial de uma peca.
@@ -8,7 +8,7 @@ namespace TipMolde.Application.DTOs.PecaDTO
     /// <remarks>
     /// Campos omitidos devem preservar o valor atual da entidade.
     /// </remarks>
-    public class UpdatePecaDTO
+    public class UpdatePecaDto
     {
         [MinLength(2)]
         [MaxLength(100)]

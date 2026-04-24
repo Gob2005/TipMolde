@@ -1,11 +1,11 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace TipMolde.Application.DTOs.PedidoMaterialDTO
+namespace TipMolde.Application.Dtos.PedidoMaterialDto
 {
     /// <summary>
     /// Representa uma linha de criacao de pedido de material.
     /// </summary>
-    public class CreateItemPedidoMaterialDTO
+    public class CreateItemPedidoMaterialDto
     {
         /// <summary>
         /// Identificador da peca que necessita de material.

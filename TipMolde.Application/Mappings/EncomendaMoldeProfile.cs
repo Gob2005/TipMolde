@@ -1,5 +1,5 @@
 ﻿using AutoMapper;
-using TipMolde.Application.DTOs.EncomendaMoldeDTO;
+using TipMolde.Application.Dtos.EncomendaMoldeDto;
 using TipMolde.Domain.Entities.Comercio;
 
 namespace TipMolde.Application.Mappings
@@ -11,13 +11,13 @@ namespace TipMolde.Application.Mappings
     {
         public EncomendaMoldeProfile()
         {
-            CreateMap<CreateEncomendaMoldeDTO, EncomendaMolde>()
+            CreateMap<CreateEncomendaMoldeDto, EncomendaMolde>()
                 .ForMember(dest => dest.EncomendaMolde_id, opt => opt.Ignore())
                 .ForMember(dest => dest.Encomenda, opt => opt.Ignore())
                 .ForMember(dest => dest.Molde, opt => opt.Ignore())
                 .ForMember(dest => dest.Fichas, opt => opt.Ignore());
 
-            CreateMap<UpdateEncomendaMoldeDTO, EncomendaMolde>()
+            CreateMap<UpdateEncomendaMoldeDto, EncomendaMolde>()
                 .ForMember(dest => dest.Quantidade, opt =>
                 {
                     opt.Condition(src => src.Quantidade.HasValue);
@@ -40,7 +40,7 @@ namespace TipMolde.Application.Mappings
                 .ForMember(dest => dest.Molde, opt => opt.Ignore())
                 .ForMember(dest => dest.Fichas, opt => opt.Ignore());
 
-            CreateMap<EncomendaMolde, ResponseEncomendaMoldeDTO>()
+            CreateMap<EncomendaMolde, ResponseEncomendaMoldeDto>()
                 .ForMember(dest => dest.NumeroEncomendaCliente, opt => opt.MapFrom(src => src.Encomenda == null ? null : src.Encomenda.NumeroEncomendaCliente))
                 .ForMember(dest => dest.NumeroMolde, opt => opt.MapFrom(src => src.Molde == null ? null : src.Molde.Numero));
         }

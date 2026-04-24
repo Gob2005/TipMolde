@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Moq;
 using TipMolde.API.Controllers;
-using TipMolde.Application.DTOs.PedidoMaterialDTO;
+using TipMolde.Application.Dtos.PedidoMaterialDto;
 using TipMolde.Application.Interface;
 using TipMolde.Application.Interface.Comercio.IPedidoMaterial;
 using TipMolde.Domain.Enums;
@@ -37,7 +37,7 @@ public class PedidoMaterialControllerTests
         };
     }
 
-    private static ResponsePedidoMaterialDTO BuildResponse(int id = 1) => new()
+    private static ResponsePedidoMaterialDto BuildResponse(int id = 1) => new()
     {
         PedidoMaterialId = id,
         DataPedido = new DateTime(2026, 4, 23, 10, 0, 0, DateTimeKind.Utc),
@@ -45,7 +45,7 @@ public class PedidoMaterialControllerTests
         FornecedorId = 10,
         Itens =
         {
-            new ResponseItemPedidoMaterialDTO { ItemId = 1, PecaId = 100, Quantidade = 2 }
+            new ResponseItemPedidoMaterialDto { ItemId = 1, PecaId = 100, Quantidade = 2 }
         }
     };
 
@@ -66,7 +66,7 @@ public class PedidoMaterialControllerTests
     public async Task GetById_Should_ReturnNotFound_When_PedidoDoesNotExist()
     {
         // ARRANGE
-        _service.Setup(s => s.GetByIdAsync(44)).ReturnsAsync((ResponsePedidoMaterialDTO?)null);
+        _service.Setup(s => s.GetByIdAsync(44)).ReturnsAsync((ResponsePedidoMaterialDto?)null);
 
         // ACT
         var result = await _controller.GetById(44);
@@ -79,12 +79,12 @@ public class PedidoMaterialControllerTests
     public async Task Create_Should_ReturnCreatedAtAction_When_RequestIsValid()
     {
         // ARRANGE
-        var dto = new CreatePedidoMaterialDTO
+        var dto = new CreatePedidoMaterialDto
         {
             Fornecedor_id = 10,
             Itens =
             {
-                new CreateItemPedidoMaterialDTO { Peca_id = 100, Quantidade = 3 }
+                new CreateItemPedidoMaterialDto { Peca_id = 100, Quantidade = 3 }
             }
         };
 

@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
 using FluentAssertions;
-using TipMolde.Application.DTOs.PedidoMaterialDTO;
+using TipMolde.Application.Dtos.PedidoMaterialDto;
 using TipMolde.Application.Mappings;
 using TipMolde.Domain.Entities.Comercio;
 using TipMolde.Domain.Enums;
@@ -40,16 +40,16 @@ public class PedidoMaterialProfileTests
         act.Should().NotThrow();
     }
 
-    [Test(Description = "TPMMAP2 - CreatePedidoMaterialDTO deve mapear linhas para o agregado de dominio.")]
+    [Test(Description = "TPMMAP2 - CreatePedidoMaterialDto deve mapear linhas para o agregado de dominio.")]
     public void CreatePedidoMaterialDTO_Should_MapItens_When_DtoContainsLines()
     {
         // ARRANGE
-        var dto = new CreatePedidoMaterialDTO
+        var dto = new CreatePedidoMaterialDto
         {
             Fornecedor_id = 10,
             Itens =
             {
-                new CreateItemPedidoMaterialDTO { Peca_id = 2, Quantidade = 5 }
+                new CreateItemPedidoMaterialDto { Peca_id = 2, Quantidade = 5 }
             }
         };
 
@@ -87,7 +87,7 @@ public class PedidoMaterialProfileTests
         };
 
         // ACT
-        var result = _mapper.Map<ResponsePedidoMaterialDTO>(entity);
+        var result = _mapper.Map<ResponsePedidoMaterialDto>(entity);
 
         // ASSERT
         result.PedidoMaterialId.Should().Be(30);

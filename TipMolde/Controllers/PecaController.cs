@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using TipMolde.Application.DTOs.PecaDTO;
+using TipMolde.Application.Dtos.PecaDto;
 using TipMolde.Application.Interface.Producao.IPeca;
 
 namespace TipMolde.API.Controllers
@@ -107,7 +107,7 @@ namespace TipMolde.API.Controllers
         /// <returns>HTTP 201 com a peca criada; HTTP 400 quando o body e invalido.</returns>
         [Authorize(Roles = "ADMIN,GESTOR_DESENHO")]
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] CreatePecaDTO dto)
+        public async Task<IActionResult> Create([FromBody] CreatePecaDto dto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(CreateProblem(StatusCodes.Status400BadRequest, "Pedido invalido", "Dados de criacao invalidos."));
@@ -130,7 +130,7 @@ namespace TipMolde.API.Controllers
         /// <returns>HTTP 204 quando a atualizacao e concluida; HTTP 400 quando o body e invalido.</returns>
         [Authorize(Roles = "ADMIN,GESTOR_DESENHO")]
         [HttpPut("{id:int}")]
-        public async Task<IActionResult> Update(int id, [FromBody] UpdatePecaDTO dto)
+        public async Task<IActionResult> Update(int id, [FromBody] UpdatePecaDto dto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(CreateProblem(StatusCodes.Status400BadRequest, "Pedido invalido", "Dados de atualizacao invalidos."));

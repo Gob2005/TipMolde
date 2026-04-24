@@ -1,8 +1,8 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace TipMolde.Application.DTOs.EncomendaMoldeDTO
+namespace TipMolde.Application.Dtos.EncomendaMoldeDto
 {
-    public class CreateEncomendaMoldeDTO
+    public class CreateEncomendaMoldeDto
     {
         [Required]
         [Range(1, int.MaxValue)]

@@ -12,7 +12,7 @@ namespace TipMolde.Infrastructure.Repositorio
     /// Implementa a persistencia do agregado Molde.
     /// </summary>
     /// <remarks>
-    /// As leituras de negocio carregam as especificacoes tecnicas para evitar DTOs de resposta incompletos.
+    /// As leituras de negocio carregam as especificacoes tecnicas para evitar Dtos de resposta incompletos.
     /// </remarks>
     public class MoldeRepository : GenericRepository<Molde, int>, IMoldeRepository
     {

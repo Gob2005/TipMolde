@@ -1,7 +1,7 @@
-﻿FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
 WORKDIR /app
-EXPOSE 80
-EXPOSE 443
+ENV ASPNETCORE_HTTP_PORTS=8080
+EXPOSE 8080
 
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
@@ -13,11 +13,16 @@ COPY ["TipMolde.Infrastructure/TipMolde.Infrastructure.csproj", "TipMolde.Infras
 
 RUN dotnet restore "TipMolde/TipMolde.API.csproj"
 
-COPY . .
+COPY ["TipMolde/", "TipMolde/"]
+COPY ["TipMolde.Domain/", "TipMolde.Domain/"]
+COPY ["TipMolde.Application/", "TipMolde.Application/"]
+COPY ["TipMolde.Infrastructure/", "TipMolde.Infrastructure/"]
+
 WORKDIR "/src/TipMolde"
 RUN dotnet publish "TipMolde.API.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
 FROM base AS final
 WORKDIR /app
 COPY --from=build /app/publish .
+USER $APP_UID
 ENTRYPOINT ["dotnet", "TipMolde.API.dll"]

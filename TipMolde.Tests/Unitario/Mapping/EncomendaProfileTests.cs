@@ -1,6 +1,6 @@
 using AutoMapper;
 using FluentAssertions;
-using TipMolde.Application.DTOs.EncomendaDTO;
+using TipMolde.Application.Dtos.EncomendaDto;
 using TipMolde.Application.Mappings;
 using TipMolde.Domain.Entities.Comercio;
 using TipMolde.Domain.Enums;
@@ -40,11 +40,11 @@ public class EncomendaProfileTests
         act.Should().NotThrow();
     }
 
-    [Test(Description = "TENCMP2 - CreateEncomendaDTO deve mapear e normalizar campos de texto.")]
+    [Test(Description = "TENCMP2 - CreateEncomendaDto deve mapear e normalizar campos de texto.")]
     public void CreateEncomendaDTO_Should_MapToEncomendaWithTrim_When_FieldsContainOuterSpaces()
     {
         // ARRANGE
-        var dto = new CreateEncomendaDTO
+        var dto = new CreateEncomendaDto
         {
             Cliente_id = 12,
             NumeroEncomendaCliente = " ENC-001 ",
@@ -64,11 +64,11 @@ public class EncomendaProfileTests
         result.NomeResponsavelCliente.Should().Be("Ana");
     }
 
-    [Test(Description = "TENCMP3 - UpdateEncomendaDTO deve atualizar apenas campos informados e normalizados.")]
+    [Test(Description = "TENCMP3 - UpdateEncomendaDto deve atualizar apenas campos informados e normalizados.")]
     public void UpdateEncomendaDTO_Should_MapToExistingEncomendaWithoutOverwritingNulls()
     {
         // ARRANGE
-        var dto = new UpdateEncomendaDTO
+        var dto = new UpdateEncomendaDto
         {
             NumeroEncomendaCliente = " ENC-200 ",
             NumeroProjetoCliente = null,
@@ -98,7 +98,7 @@ public class EncomendaProfileTests
         destination.NomeResponsavelCliente.Should().Be("Maria");
     }
 
-    [Test(Description = "TENCMP4 - Encomenda para ResponseEncomendaDTO deve preservar tipos e mapear NomeCliente.")]
+    [Test(Description = "TENCMP4 - Encomenda para ResponseEncomendaDto deve preservar tipos e mapear NomeCliente.")]
     public void Encomenda_Should_MapToResponseEncomendaDTO_When_DataIsValid()
     {
         // ARRANGE
@@ -122,7 +122,7 @@ public class EncomendaProfileTests
         };
 
         // ACT
-        var result = _mapper.Map<ResponseEncomendaDTO>(source);
+        var result = _mapper.Map<ResponseEncomendaDto>(source);
 
         // ASSERT
         result.Encomenda_id.Should().Be(11);
@@ -136,11 +136,11 @@ public class EncomendaProfileTests
         result.NomeCliente.Should().Be("Cliente XPTO");
     }
 
-    [Test(Description = "TENCMP5 - UpdateEstadoEncomendaDTO deve atualizar apenas o estado na entidade de destino.")]
+    [Test(Description = "TENCMP5 - UpdateEstadoEncomendaDto deve atualizar apenas o estado na entidade de destino.")]
     public void UpdateEstadoEncomendaDTO_Should_MapOnlyEstado_When_MappingToExistingEncomenda()
     {
         // ARRANGE
-        var dto = new UpdateEstadoEncomendaDTO
+        var dto = new UpdateEstadoEncomendaDto
         {
             Estado = EstadoEncomenda.EM_PRODUCAO
         };

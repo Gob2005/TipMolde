@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Moq;
 using TipMolde.API.Controllers;
-using TipMolde.Application.DTOs.MoldeDTO;
+using TipMolde.Application.Dtos.MoldeDto;
 using TipMolde.Application.Interface;
 using TipMolde.Application.Interface.Producao.IMolde;
 using TipMolde.Application.Interface.Relatorios;
@@ -40,9 +40,9 @@ public class MoldeControllerTests
         };
     }
 
-    private static ResponseMoldeDTO BuildResponse(int id = 1, string numero = "MOL-001")
+    private static ResponseMoldeDto BuildResponse(int id = 1, string numero = "MOL-001")
     {
-        return new ResponseMoldeDTO
+        return new ResponseMoldeDto
         {
             MoldeId = id,
             Numero = numero,
@@ -84,7 +84,7 @@ public class MoldeControllerTests
     public async Task GetById_Should_ReturnNotFound_When_MoldeDoesNotExist()
     {
         // ARRANGE
-        _moldeService.Setup(s => s.GetByIdAsync(99)).ReturnsAsync((ResponseMoldeDTO?)null);
+        _moldeService.Setup(s => s.GetByIdAsync(99)).ReturnsAsync((ResponseMoldeDto?)null);
 
         // ACT
         var result = await _controller.GetById(99);
@@ -110,7 +110,7 @@ public class MoldeControllerTests
     {
         // ARRANGE
         _controller.ModelState.AddModelError("Numero", "Obrigatorio");
-        var dto = new CreateMoldeDTO
+        var dto = new CreateMoldeDto
         {
             Numero = "MOL-100",
             Numero_cavidades = 4,
@@ -128,14 +128,14 @@ public class MoldeControllerTests
         var objectResult = result as ObjectResult;
         objectResult.Should().NotBeNull();
         objectResult!.StatusCode.Should().Be(StatusCodes.Status400BadRequest);
-        _moldeService.Verify(s => s.CreateAsync(It.IsAny<CreateMoldeDTO>()), Times.Never);
+        _moldeService.Verify(s => s.CreateAsync(It.IsAny<CreateMoldeDto>()), Times.Never);
     }
 
     [Test(Description = "TMOLDCONT5 - Create deve devolver created at action quando pedido e valido.")]
     public async Task Create_Should_ReturnCreatedAtAction_When_RequestIsValid()
     {
         // ARRANGE
-        var dto = new CreateMoldeDTO
+        var dto = new CreateMoldeDto
         {
             Numero = "MOL-200",
             Numero_cavidades = 8,
@@ -165,7 +165,7 @@ public class MoldeControllerTests
     public async Task Update_Should_ReturnNoContent_When_RequestIsValid()
     {
         // ARRANGE
-        var dto = new UpdateMoldeDTO
+        var dto = new UpdateMoldeDto
         {
             Nome = "Molde Atualizado",
             MaterialInjecao = "PP"
@@ -176,7 +176,7 @@ public class MoldeControllerTests
 
         // ASSERT
         result.Should().BeOfType<NoContentResult>();
-        _moldeService.Verify(s => s.UpdateAsync(55, It.Is<UpdateMoldeDTO>(x =>
+        _moldeService.Verify(s => s.UpdateAsync(55, It.Is<UpdateMoldeDto>(x =>
             x.Nome == "Molde Atualizado" &&
             x.MaterialInjecao == "PP")), Times.Once);
     }
@@ -204,8 +204,8 @@ public class MoldeControllerTests
     public async Task GetByEncomendaId_Should_ReturnOkWithPagedPayload_When_RequestIsValid()
     {
         // ARRANGE
-        var items = new List<ResponseMoldeDTO> { BuildResponse(id: 1), BuildResponse(id: 2) };
-        var paged = new PagedResult<ResponseMoldeDTO>(items, 2, 1, 10);
+        var items = new List<ResponseMoldeDto> { BuildResponse(id: 1), BuildResponse(id: 2) };
+        var paged = new PagedResult<ResponseMoldeDto>(items, 2, 1, 10);
 
         _moldeService.Setup(s => s.GetByEncomendaIdAsync(7, 1, 10)).ReturnsAsync(paged);
 
@@ -222,7 +222,7 @@ public class MoldeControllerTests
     public async Task GetAll_Should_ReturnOk_When_RequestIsValid()
     {
         // ARRANGE
-        var paged = new PagedResult<ResponseMoldeDTO>(new[] { BuildResponse(id: 3) }, 1, 1, 10);
+        var paged = new PagedResult<ResponseMoldeDto>(new[] { BuildResponse(id: 3) }, 1, 1, 10);
         _moldeService.Setup(s => s.GetAllAsync(1, 10)).ReturnsAsync(paged);
 
         // ACT
@@ -254,7 +254,7 @@ public class MoldeControllerTests
     public async Task GetByNumero_Should_ReturnNotFound_When_MoldeDoesNotExist()
     {
         // ARRANGE
-        _moldeService.Setup(s => s.GetByNumeroAsync("MOL-404")).ReturnsAsync((ResponseMoldeDTO?)null);
+        _moldeService.Setup(s => s.GetByNumeroAsync("MOL-404")).ReturnsAsync((ResponseMoldeDto?)null);
 
         // ACT
         var result = await _controller.GetByNumero("MOL-404");
@@ -286,11 +286,11 @@ public class MoldeControllerTests
         _controller.ModelState.AddModelError("Nome", "Obrigatorio");
 
         // ACT
-        var result = await _controller.Update(1, new UpdateMoldeDTO { Nome = "Novo" });
+        var result = await _controller.Update(1, new UpdateMoldeDto { Nome = "Novo" });
 
         // ASSERT
         result.Should().BeOfType<BadRequestObjectResult>();
-        _moldeService.Verify(s => s.UpdateAsync(It.IsAny<int>(), It.IsAny<UpdateMoldeDTO>()), Times.Never);
+        _moldeService.Verify(s => s.UpdateAsync(It.IsAny<int>(), It.IsAny<UpdateMoldeDto>()), Times.Never);
     }
 
     [Test(Description = "TMOLDCONT14 - Delete deve devolver no content quando pedido e valido.")]

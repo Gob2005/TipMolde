@@ -1,4 +1,4 @@
-﻿namespace TipMolde.Application.DTOs.ClienteDTO
+﻿namespace TipMolde.Application.Dtos.ClienteDto
 {
     /// <summary>
     /// DTO de resposta com os dados resumidos de um cliente.
@@ -6,7 +6,7 @@
     /// <remarks>
     /// Usado em listagens e consultas simples onde nao e necessario devolver relacionamentos associados.
     /// </remarks>
-    public class ResponseClienteDTO
+    public class ResponseClienteDto
     {
         public int Cliente_id { get; set; }
         public string? Nome { get; set; }

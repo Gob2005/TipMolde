@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
 using FluentAssertions;
-using TipMolde.Application.DTOs.RegistoTempoProjetoDTO;
+using TipMolde.Application.Dtos.RegistoTempoProjetoDto;
 using TipMolde.Application.Mappings;
 using TipMolde.Domain.Entities.Desenho;
 using TipMolde.Domain.Enums;
@@ -33,11 +33,11 @@ public class RegistoTempoProjetoProfileTests
         act.Should().NotThrow();
     }
 
-    [Test(Description = "TRTPMAP2 - CreateRegistoTempoProjetoDTO deve mapear para entidade com Peca_id e estado informado.")]
+    [Test(Description = "TRTPMAP2 - CreateRegistoTempoProjetoDto deve mapear para entidade com Peca_id e estado informado.")]
     public void CreateDto_Should_MapTo_RegistoTempoProjeto()
     {
         // ARRANGE
-        var dto = new CreateRegistoTempoProjetoDTO
+        var dto = new CreateRegistoTempoProjetoDto
         {
             Estado_tempo = EstadoTempoProjeto.PAUSADO,
             Projeto_id = 10,
@@ -55,7 +55,7 @@ public class RegistoTempoProjetoProfileTests
         result.Peca_id.Should().Be(3);
     }
 
-    [Test(Description = "TRTPMAP3 - Entidade RegistoTempoProjeto deve mapear para ResponseRegistoTempoProjetoDTO.")]
+    [Test(Description = "TRTPMAP3 - Entidade RegistoTempoProjeto deve mapear para ResponseRegistoTempoProjetoDto.")]
     public void RegistoTempoProjeto_Should_MapTo_ResponseDto()
     {
         // ARRANGE
@@ -70,7 +70,7 @@ public class RegistoTempoProjetoProfileTests
         };
 
         // ACT
-        var result = _mapper.Map<ResponseRegistoTempoProjetoDTO>(source);
+        var result = _mapper.Map<ResponseRegistoTempoProjetoDto>(source);
 
         // ASSERT
         result.Registo_Tempo_Projeto_id.Should().Be(15);

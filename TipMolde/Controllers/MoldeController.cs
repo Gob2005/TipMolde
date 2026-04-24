@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using TipMolde.Application.DTOs.MoldeDTO;
+using TipMolde.Application.Dtos.MoldeDto;
 using TipMolde.Application.Interface.Producao.IMolde;
 using TipMolde.Application.Interface.Relatorios;
 
@@ -127,7 +127,7 @@ namespace TipMolde.API.Controllers
         /// <returns>HTTP 201 com o molde criado; HTTP 400 quando o body e invalido.</returns>
         [Authorize(Roles = "ADMIN,GESTOR_COMERCIAL")]
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] CreateMoldeDTO dto)
+        public async Task<IActionResult> Create([FromBody] CreateMoldeDto dto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(CreateProblem(StatusCodes.Status400BadRequest, "Pedido invalido", "Dados de criacao invalidos."));
@@ -150,7 +150,7 @@ namespace TipMolde.API.Controllers
         /// <returns>HTTP 204 quando a atualizacao e concluida; HTTP 400 quando o body e invalido.</returns>
         [Authorize(Roles = "ADMIN,GESTOR_DESENHO")]
         [HttpPut("{id:int}")]
-        public async Task<IActionResult> Update(int id, [FromBody] UpdateMoldeDTO dto)
+        public async Task<IActionResult> Update(int id, [FromBody] UpdateMoldeDto dto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(CreateProblem(StatusCodes.Status400BadRequest, "Pedido invalido", "Dados de criacao invalidos."));

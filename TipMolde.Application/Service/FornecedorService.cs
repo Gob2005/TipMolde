@@ -1,5 +1,5 @@
 ﻿using AutoMapper;
-using TipMolde.Application.DTOs.FornecedorDTO;
+using TipMolde.Application.Dtos.FornecedorDto;
 using TipMolde.Application.Interface;
 using TipMolde.Application.Interface.Comercio.IFornecedor;
 using TipMolde.Domain.Entities.Comercio;
@@ -21,7 +21,7 @@ namespace TipMolde.Application.Service
         /// Construtor de FornecedorService.
         /// </summary>
         /// <param name="fornecedorRepository">Repositorio responsavel pelo acesso aos dados de fornecedor.</param>
-        /// <param name="mapper">Mapeador de objetos para conversao entre DTOs e entidades.</param>
+        /// <param name="mapper">Mapeador de objetos para conversao entre Dtos e entidades.</param>
         public FornecedorService(IFornecedorRepository fornecedorRepository, IMapper mapper)
         {
             _fornecedorRepository = fornecedorRepository;
@@ -34,12 +34,12 @@ namespace TipMolde.Application.Service
         /// <param name="page">Numero da pagina a consultar.</param>
         /// <param name="pageSize">Quantidade de itens por pagina.</param>
         /// <returns>Resultado paginado com fornecedores e metadados de navegacao.</returns>
-        public async Task<PagedResult<ResponseFornecedorDTO>> GetAllAsync(int page = 1, int pageSize = 10)
+        public async Task<PagedResult<ResponseFornecedorDto>> GetAllAsync(int page = 1, int pageSize = 10)
         {
             var result = await _fornecedorRepository.GetAllAsync(page, pageSize);
-            var mappedItems = _mapper.Map<IEnumerable<ResponseFornecedorDTO>>(result.Items);
+            var mappedItems = _mapper.Map<IEnumerable<ResponseFornecedorDto>>(result.Items);
 
-            return new PagedResult<ResponseFornecedorDTO>(
+            return new PagedResult<ResponseFornecedorDto>(
                 mappedItems,
                 result.TotalCount,
                 result.CurrentPage,
@@ -51,10 +51,10 @@ namespace TipMolde.Application.Service
         /// </summary>
         /// <param name="id">Identificador unico do fornecedor.</param>
         /// <returns>Fornecedor encontrado ou nulo quando nao existe registo.</returns>
-        public async Task<ResponseFornecedorDTO?> GetByIdAsync(int id)
+        public async Task<ResponseFornecedorDto?> GetByIdAsync(int id)
         {
             var entity = await _fornecedorRepository.GetByIdAsync(id);
-            return entity == null ? null : _mapper.Map<ResponseFornecedorDTO>(entity);
+            return entity == null ? null : _mapper.Map<ResponseFornecedorDto>(entity);
         }
 
         /// <summary>
@@ -67,15 +67,15 @@ namespace TipMolde.Application.Service
         /// <param name="page">Numero da pagina a consultar.</param>
         /// <param name="pageSize">Quantidade de itens por pagina.</param>
         /// <returns>Colecao paginada de fornecedores que correspondem ao termo informado.</returns>
-        public async Task<PagedResult<ResponseFornecedorDTO>> SearchByNameAsync(string searchTerm, int page = 1, int pageSize = 10)
+        public async Task<PagedResult<ResponseFornecedorDto>> SearchByNameAsync(string searchTerm, int page = 1, int pageSize = 10)
         {
             if (string.IsNullOrWhiteSpace(searchTerm))
                 return CreateEmptyPage(page, pageSize);
 
             var result = await _fornecedorRepository.SearchByNameAsync(searchTerm.Trim(), page, pageSize);
-            var mappedItems = _mapper.Map<IEnumerable<ResponseFornecedorDTO>>(result.Items);
+            var mappedItems = _mapper.Map<IEnumerable<ResponseFornecedorDto>>(result.Items);
 
-            return new PagedResult<ResponseFornecedorDTO>(
+            return new PagedResult<ResponseFornecedorDto>(
                 mappedItems,
                 result.TotalCount,
                 result.CurrentPage,
@@ -94,7 +94,7 @@ namespace TipMolde.Application.Service
         /// </remarks>
         /// <param name="dto">DTO com dados do fornecedor a validar e persistir.</param>
         /// <returns>Fornecedor criado apos validacao e persistencia.</returns>
-        public async Task<ResponseFornecedorDTO> CreateAsync(CreateFornecedorDTO dto)
+        public async Task<ResponseFornecedorDto> CreateAsync(CreateFornecedorDto dto)
         {
             if (string.IsNullOrWhiteSpace(dto.Nome))
                 throw new ArgumentException("Nome e obrigatorio.");
@@ -109,7 +109,7 @@ namespace TipMolde.Application.Service
 
             await _fornecedorRepository.AddAsync(entity);
 
-            return _mapper.Map<ResponseFornecedorDTO>(entity);
+            return _mapper.Map<ResponseFornecedorDto>(entity);
         }
 
         /// <summary>
@@ -125,7 +125,7 @@ namespace TipMolde.Application.Service
         /// <param name="id">Identificador unico do fornecedor a atualizar.</param>
         /// <param name="dto">DTO com os dados a atualizar no fornecedor existente.</param>
         /// <returns>Task assincrona concluida apos atualizacao do fornecedor.</returns>
-        public async Task UpdateAsync(int id, UpdateFornecedorDTO dto)
+        public async Task UpdateAsync(int id, UpdateFornecedorDto dto)
         {
             var existing = await _fornecedorRepository.GetByIdAsync(id);
             if (existing == null)
@@ -168,13 +168,13 @@ namespace TipMolde.Application.Service
         /// <param name="page">Numero de pagina solicitado pelo consumidor.</param>
         /// <param name="pageSize">Quantidade de itens por pagina solicitada pelo consumidor.</param>
         /// <returns>Resultado paginado sem itens e com metadados consistentes.</returns>
-        private static PagedResult<ResponseFornecedorDTO> CreateEmptyPage(int page, int pageSize)
+        private static PagedResult<ResponseFornecedorDto> CreateEmptyPage(int page, int pageSize)
         {
             var normalizedPage = page < 1 ? 1 : page;
             var normalizedPageSize = pageSize < 1 ? 10 : pageSize > 200 ? 200 : pageSize;
 
-            return new PagedResult<ResponseFornecedorDTO>(
-                Enumerable.Empty<ResponseFornecedorDTO>(),
+            return new PagedResult<ResponseFornecedorDto>(
+                Enumerable.Empty<ResponseFornecedorDto>(),
                 0,
                 normalizedPage,
                 normalizedPageSize);

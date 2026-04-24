@@ -1,9 +1,9 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using TipMolde.Domain.Enums;
 
-namespace TipMolde.Application.DTOs.UserDTO
+namespace TipMolde.Application.Dtos.UserDto
 {
-    public class CreateUserDTO
+    public class CreateUserDto
     {
         [Required, MinLength(5), MaxLength(100)]
         public required string Nome { get; set; }

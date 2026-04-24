@@ -1,6 +1,6 @@
 using AutoMapper;
 using Microsoft.Extensions.Logging;
-using TipMolde.Application.DTOs.MoldeDTO;
+using TipMolde.Application.Dtos.MoldeDto;
 using TipMolde.Application.Interface;
 using TipMolde.Application.Interface.Comercio.IEncomenda;
 using TipMolde.Application.Interface.Producao.IMolde;
@@ -28,7 +28,7 @@ namespace TipMolde.Application.Service
         /// </summary>
         /// <param name="moldeRepository">Repositorio do agregado Molde.</param>
         /// <param name="encomendaRepository">Repositorio usado para validar a encomenda referenciada na criacao.</param>
-        /// <param name="mapper">Mapper para conversao entre DTOs e entidades.</param>
+        /// <param name="mapper">Mapper para conversao entre Dtos e entidades.</param>
         /// <param name="logger">Logger para rastreabilidade das operacoes criticas.</param>
         public MoldeService(
             IMoldeRepository moldeRepository,
@@ -47,12 +47,12 @@ namespace TipMolde.Application.Service
         /// </summary>
         /// <param name="page">Pagina atual.</param>
         /// <param name="pageSize">Tamanho da pagina.</param>
-        /// <returns>Resultado paginado com DTOs de molde.</returns>
-        public async Task<PagedResult<ResponseMoldeDTO>> GetAllAsync(int page = 1, int pageSize = 10)
+        /// <returns>Resultado paginado com Dtos de molde.</returns>
+        public async Task<PagedResult<ResponseMoldeDto>> GetAllAsync(int page = 1, int pageSize = 10)
         {
             var result = await _moldeRepository.GetAllAsync(page, pageSize);
-            var items = _mapper.Map<IEnumerable<ResponseMoldeDTO>>(result.Items);
-            return new PagedResult<ResponseMoldeDTO>(items, result.TotalCount, result.CurrentPage, result.PageSize);
+            var items = _mapper.Map<IEnumerable<ResponseMoldeDto>>(result.Items);
+            return new PagedResult<ResponseMoldeDto>(items, result.TotalCount, result.CurrentPage, result.PageSize);
         }
 
         /// <summary>
@@ -60,10 +60,10 @@ namespace TipMolde.Application.Service
         /// </summary>
         /// <param name="id">Identificador interno do molde.</param>
         /// <returns>DTO do molde quando encontrado; nulo caso contrario.</returns>
-        public async Task<ResponseMoldeDTO?> GetByIdAsync(int id)
+        public async Task<ResponseMoldeDto?> GetByIdAsync(int id)
         {
             var molde = await _moldeRepository.GetByIdAsync(id);
-            return molde == null ? null : _mapper.Map<ResponseMoldeDTO>(molde);
+            return molde == null ? null : _mapper.Map<ResponseMoldeDto>(molde);
         }
 
 
@@ -73,12 +73,12 @@ namespace TipMolde.Application.Service
         /// <param name="encomendaId">Identificador da encomenda.</param>
         /// <param name="page">Pagina atual.</param>
         /// <param name="pageSize">Tamanho da pagina.</param>
-        /// <returns>Colecao de DTOs de molde.</returns>
-        public async Task<PagedResult<ResponseMoldeDTO>> GetByEncomendaIdAsync(int encomendaId, int page = 1, int pageSize = 10)
+        /// <returns>Colecao de Dtos de molde.</returns>
+        public async Task<PagedResult<ResponseMoldeDto>> GetByEncomendaIdAsync(int encomendaId, int page = 1, int pageSize = 10)
         {
             var result = await _moldeRepository.GetByEncomendaIdAsync(encomendaId, page, pageSize);
-            var items = _mapper.Map<IEnumerable<ResponseMoldeDTO>>(result.Items);
-            return new PagedResult<ResponseMoldeDTO>(items, result.TotalCount, result.CurrentPage, result.PageSize);
+            var items = _mapper.Map<IEnumerable<ResponseMoldeDto>>(result.Items);
+            return new PagedResult<ResponseMoldeDto>(items, result.TotalCount, result.CurrentPage, result.PageSize);
         }
 
         /// <summary>
@@ -86,10 +86,10 @@ namespace TipMolde.Application.Service
         /// </summary>
         /// <param name="numero">Numero funcional do molde.</param>
         /// <returns>DTO do molde quando encontrado; nulo caso contrario.</returns>
-        public async Task<ResponseMoldeDTO?> GetByNumeroAsync(string numero)
+        public async Task<ResponseMoldeDto?> GetByNumeroAsync(string numero)
         {
             var molde = await _moldeRepository.GetByNumeroAsync(numero.Trim());
-            return molde == null ? null : _mapper.Map<ResponseMoldeDTO>(molde);
+            return molde == null ? null : _mapper.Map<ResponseMoldeDto>(molde);
         }
 
         /// <summary>
@@ -114,7 +114,7 @@ namespace TipMolde.Application.Service
         /// </remarks>
         /// <param name="dto">Dados de criacao do molde.</param>
         /// <returns>DTO do molde criado.</returns>
-        public async Task<ResponseMoldeDTO> CreateAsync(CreateMoldeDTO dto)
+        public async Task<ResponseMoldeDto> CreateAsync(CreateMoldeDto dto)
         {
             if (string.IsNullOrWhiteSpace(dto.Numero))
                 throw new ArgumentException("Numero do molde e obrigatorio.");
@@ -144,7 +144,7 @@ namespace TipMolde.Application.Service
                 molde.Molde_id,
                 dto.EncomendaId);
 
-            return _mapper.Map<ResponseMoldeDTO>(molde);
+            return _mapper.Map<ResponseMoldeDto>(molde);
         }
 
         /// <summary>
@@ -156,7 +156,7 @@ namespace TipMolde.Application.Service
         /// <param name="id">Identificador do molde a atualizar.</param>
         /// <param name="dto">Dados de atualizacao parcial.</param>
         /// <returns>Task de conclusao da atualizacao.</returns>
-        public async Task UpdateAsync(int id, UpdateMoldeDTO dto)
+        public async Task UpdateAsync(int id, UpdateMoldeDto dto)
         {
             var existente = await _moldeRepository.GetByIdAsync(id);
             if (existente == null)
@@ -211,7 +211,7 @@ namespace TipMolde.Application.Service
         /// </summary>
         /// <param name="dto">DTO de atualizacao parcial.</param>
         /// <returns>True quando existe pelo menos um campo preenchido; false caso contrario.</returns>
-        private static bool HasAnyChanges(UpdateMoldeDTO dto)
+        private static bool HasAnyChanges(UpdateMoldeDto dto)
         {
             return !string.IsNullOrWhiteSpace(dto.Numero)
                 || !string.IsNullOrWhiteSpace(dto.NumeroMoldeCliente)
@@ -228,7 +228,7 @@ namespace TipMolde.Application.Service
         /// </summary>
         /// <param name="dto">DTO de atualizacao parcial.</param>
         /// <returns>True quando existe pelo menos um campo tecnico preenchido; false caso contrario.</returns>
-        private static bool HasTechnicalSpecsChanges(UpdateMoldeDTO dto)
+        private static bool HasTechnicalSpecsChanges(UpdateMoldeDto dto)
         {
             return dto.Largura.HasValue
                 || dto.Comprimento.HasValue

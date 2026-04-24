@@ -2,7 +2,7 @@
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Moq;
-using TipMolde.Application.DTOs.RevisaoDTO;
+using TipMolde.Application.Dtos.RevisaoDto;
 using TipMolde.Application.Exceptions;
 using TipMolde.Application.Interface.Desenho.IProjeto;
 using TipMolde.Application.Interface.Desenho.IRevisao;
@@ -43,7 +43,7 @@ public class RevisaoServiceTests
     public async Task CreateAsync_Should_ThrowKeyNotFoundException_When_ProjetoDoesNotExist()
     {
         // ARRANGE
-        var dto = new CreateRevisaoDTO
+        var dto = new CreateRevisaoDto
         {
             Projeto_id = 50,
             DescricaoAlteracoes = "Nova alteracao"
@@ -63,7 +63,7 @@ public class RevisaoServiceTests
     public async Task CreateAsync_Should_PersistRevisaoAndReturnResponse_When_DataIsValid()
     {
         // ARRANGE
-        var dto = new CreateRevisaoDTO
+        var dto = new CreateRevisaoDto
         {
             Projeto_id = 5,
             DescricaoAlteracoes = " Ajuste ao desenho "
@@ -111,7 +111,7 @@ public class RevisaoServiceTests
                 DataResposta = DateTime.UtcNow.AddMinutes(-5)
             });
 
-        var dto = new UpdateRespostaRevisaoDTO
+        var dto = new UpdateRespostaRevisaoDto
         {
             Aprovado = false,
             FeedbackTexto = "Novo feedback"
@@ -137,7 +137,7 @@ public class RevisaoServiceTests
                 DescricaoAlteracoes = "Rev 3"
             });
 
-        var dto = new UpdateRespostaRevisaoDTO
+        var dto = new UpdateRespostaRevisaoDto
         {
             Aprovado = false,
             FeedbackTexto = "   ",
@@ -165,7 +165,7 @@ public class RevisaoServiceTests
                 DescricaoAlteracoes = "Rev 1"
             });
 
-        var dto = new UpdateRespostaRevisaoDTO
+        var dto = new UpdateRespostaRevisaoDto
         {
             Aprovado = false,
             FeedbackTexto = " Necessita corrigir tolerancias ",

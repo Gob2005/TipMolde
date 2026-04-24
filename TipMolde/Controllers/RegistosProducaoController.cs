@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MySqlX.XDevAPI.Common;
-using TipMolde.Application.DTOs.RegistoProducaoDTO;
+using TipMolde.Application.Dtos.RegistoProducaoDto;
 using TipMolde.Application.Interface.Producao.IRegistosProducao;
 using TipMolde.Domain.Entities.Producao;
 
@@ -53,7 +53,7 @@ namespace TipMolde.API.Controllers
 
         [Authorize(Roles = "ADMIN, GESTOR_PRODUCAO")]
         [HttpPost("add-registos_producao")]
-        public async Task<IActionResult> AddRegistos_producao([FromBody] CreateRegistosProducaoDTO dto)
+        public async Task<IActionResult> AddRegistos_producao([FromBody] CreateRegistosProducaoDto dto)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 

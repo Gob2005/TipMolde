@@ -1,6 +1,6 @@
 using AutoMapper;
 using FluentAssertions;
-using TipMolde.Application.DTOs.UserDTO;
+using TipMolde.Application.Dtos.UserDto;
 using TipMolde.Application.Mappings;
 using TipMolde.Domain.Entities;
 using TipMolde.Domain.Enums;
@@ -38,7 +38,7 @@ namespace TipMolde.Tests.Unitario.Mapping
         [Test]
         public void shouldMapCreateUserDtoToUserWithTrimmedFields()
         {
-            var source = new CreateUserDTO
+            var source = new CreateUserDto
             {
                 Nome = "  Ana  ",
                 Email = " ana@tipmolde.pt ",
@@ -57,7 +57,7 @@ namespace TipMolde.Tests.Unitario.Mapping
         [Test]
         public void shouldMapUpdateUserDtoToExistingUserWithoutOverwritingNulls()
         {
-            var source = new UpdateUserDTO { Nome = "  Novo Nome  ", Email = null };
+            var source = new UpdateUserDto { Nome = "  Novo Nome  ", Email = null };
             var destination = new User
             {
                 User_id = 11,
@@ -87,7 +87,7 @@ namespace TipMolde.Tests.Unitario.Mapping
                 CreatedAt = DateTime.UtcNow
             };
 
-            var result = _mapper.Map<ResponseUserDTO>(source);
+            var result = _mapper.Map<ResponseUserDto>(source);
 
             result.User_id.Should().Be(7);
             result.Nome.Should().Be("Bruno");
@@ -98,7 +98,7 @@ namespace TipMolde.Tests.Unitario.Mapping
         [Test]
         public void shouldMapChangeUserRoleDtoToExistingUserChangingOnlyRole()
         {
-            var source = new ChangeUserRoleDTO
+            var source = new ChangeUserRoleDto
             {
                 Role = UserRole.ADMIN
             };

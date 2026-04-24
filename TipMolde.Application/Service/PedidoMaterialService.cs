@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.Extensions.Logging;
-using TipMolde.Application.DTOs.PedidoMaterialDTO;
+using TipMolde.Application.Dtos.PedidoMaterialDto;
 using TipMolde.Application.Exceptions;
 using TipMolde.Application.Interface;
 using TipMolde.Application.Interface.Comercio.IFornecedor;
@@ -35,7 +35,7 @@ namespace TipMolde.Application.Service
         /// <param name="fornecedorRepository">Repositorio usado para validar a existencia do fornecedor.</param>
         /// <param name="pecaRepository">Repositorio usado para validar e obter pecas associadas ao pedido.</param>
         /// <param name="userRepository">Repositorio usado para validar o utilizador autenticado que confere a rececao.</param>
-        /// <param name="mapper">Mapeador de objetos para conversao entre DTOs e entidades.</param>
+        /// <param name="mapper">Mapeador de objetos para conversao entre Dtos e entidades.</param>
         /// <param name="logger">Logger para rastreabilidade das operacoes do servico.</param>
         public PedidoMaterialService(
             IPedidoMaterialRepository pedidoRepository,
@@ -59,12 +59,12 @@ namespace TipMolde.Application.Service
         /// <param name="page">Numero da pagina a consultar.</param>
         /// <param name="pageSize">Quantidade de itens por pagina.</param>
         /// <returns>Resultado paginado com pedidos de material mapeados para DTO.</returns>
-        public async Task<PagedResult<ResponsePedidoMaterialDTO>> GetAllAsync(int page = 1, int pageSize = 10)
+        public async Task<PagedResult<ResponsePedidoMaterialDto>> GetAllAsync(int page = 1, int pageSize = 10)
         {
             var result = await _pedidoRepository.GetPagedWithItensAsync(page, pageSize);
-            var mappedItems = _mapper.Map<IEnumerable<ResponsePedidoMaterialDTO>>(result.Items);
+            var mappedItems = _mapper.Map<IEnumerable<ResponsePedidoMaterialDto>>(result.Items);
 
-            return new PagedResult<ResponsePedidoMaterialDTO>(
+            return new PagedResult<ResponsePedidoMaterialDto>(
                 mappedItems,
                 result.TotalCount,
                 result.CurrentPage,
@@ -76,10 +76,10 @@ namespace TipMolde.Application.Service
         /// </summary>
         /// <param name="id">Identificador unico do pedido.</param>
         /// <returns>DTO do pedido encontrado ou nulo quando nao existe registo.</returns>
-        public async Task<ResponsePedidoMaterialDTO?> GetByIdAsync(int id)
+        public async Task<ResponsePedidoMaterialDto?> GetByIdAsync(int id)
         {
             var pedido = await _pedidoRepository.GetByIdWithItensAsync(id);
-            return pedido == null ? null : _mapper.Map<ResponsePedidoMaterialDTO>(pedido);
+            return pedido == null ? null : _mapper.Map<ResponsePedidoMaterialDto>(pedido);
         }
 
         /// <summary>
@@ -89,12 +89,12 @@ namespace TipMolde.Application.Service
         /// <param name="page">Numero da pagina solicitada.</param>
         /// <param name="pageSize">Quantidade de itens por pagina.</param>
         /// <returns>Resultado paginado com pedidos associados ao fornecedor informado.</returns>
-        public async Task<PagedResult<ResponsePedidoMaterialDTO>> GetByFornecedorIdAsync(int fornecedorId, int page = 1, int pageSize = 10)
+        public async Task<PagedResult<ResponsePedidoMaterialDto>> GetByFornecedorIdAsync(int fornecedorId, int page = 1, int pageSize = 10)
         {
             var result = await _pedidoRepository.GetByFornecedorIdWithItensAsync(fornecedorId, page, pageSize);
-            var mappedItems = _mapper.Map<IEnumerable<ResponsePedidoMaterialDTO>>(result.Items);
+            var mappedItems = _mapper.Map<IEnumerable<ResponsePedidoMaterialDto>>(result.Items);
 
-            return new PagedResult<ResponsePedidoMaterialDTO>(
+            return new PagedResult<ResponsePedidoMaterialDto>(
                 mappedItems,
                 result.TotalCount,
                 result.CurrentPage,
@@ -114,7 +114,7 @@ namespace TipMolde.Application.Service
         /// </remarks>
         /// <param name="dto">DTO com dados do pedido e das respetivas linhas.</param>
         /// <returns>DTO do pedido criado apos persistencia.</returns>
-        public async Task<ResponsePedidoMaterialDTO> CreateAsync(CreatePedidoMaterialDTO dto)
+        public async Task<ResponsePedidoMaterialDto> CreateAsync(CreatePedidoMaterialDto dto)
         {
             _logger.LogInformation(
                 "Criacao de pedido de material iniciada para fornecedor {FornecedorId}",
@@ -170,7 +170,7 @@ namespace TipMolde.Application.Service
 
             _logger.LogInformation("Pedido de material {PedidoId} criado com sucesso", created.PedidoMaterial_id);
 
-            return _mapper.Map<ResponsePedidoMaterialDTO>(created);
+            return _mapper.Map<ResponsePedidoMaterialDto>(created);
         }
 
         /// <summary>

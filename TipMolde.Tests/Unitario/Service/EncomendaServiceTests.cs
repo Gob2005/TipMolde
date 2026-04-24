@@ -2,7 +2,7 @@ using AutoMapper;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Moq;
-using TipMolde.Application.DTOs.EncomendaDTO;
+using TipMolde.Application.Dtos.EncomendaDto;
 using TipMolde.Application.Exceptions;
 using TipMolde.Application.Interface;
 using TipMolde.Application.Interface.Comercio.ICliente;
@@ -31,8 +31,8 @@ public class EncomendaServiceTests
         _mapper = new Mock<IMapper>();
         _logger = new Mock<ILogger<EncomendaService>>();
 
-        _mapper.Setup(m => m.Map<ResponseEncomendaDTO>(It.IsAny<Encomenda>()))
-            .Returns((Encomenda e) => new ResponseEncomendaDTO
+        _mapper.Setup(m => m.Map<ResponseEncomendaDto>(It.IsAny<Encomenda>()))
+            .Returns((Encomenda e) => new ResponseEncomendaDto
             {
                 Encomenda_id = e.Encomenda_id,
                 NumeroEncomendaCliente = e.NumeroEncomendaCliente,
@@ -44,8 +44,8 @@ public class EncomendaServiceTests
                 Cliente_id = e.Cliente_id
             });
 
-        _mapper.Setup(m => m.Map<IEnumerable<ResponseEncomendaDTO>>(It.IsAny<IEnumerable<Encomenda>>()))
-            .Returns((IEnumerable<Encomenda> list) => list.Select(e => new ResponseEncomendaDTO
+        _mapper.Setup(m => m.Map<IEnumerable<ResponseEncomendaDto>>(It.IsAny<IEnumerable<Encomenda>>()))
+            .Returns((IEnumerable<Encomenda> list) => list.Select(e => new ResponseEncomendaDto
             {
                 Encomenda_id = e.Encomenda_id,
                 NumeroEncomendaCliente = e.NumeroEncomendaCliente,
@@ -57,8 +57,8 @@ public class EncomendaServiceTests
                 Cliente_id = e.Cliente_id
             }).ToList());
 
-        _mapper.Setup(m => m.Map<Encomenda>(It.IsAny<CreateEncomendaDTO>()))
-            .Returns((CreateEncomendaDTO dto) => new Encomenda
+        _mapper.Setup(m => m.Map<Encomenda>(It.IsAny<CreateEncomendaDto>()))
+            .Returns((CreateEncomendaDto dto) => new Encomenda
             {
                 Cliente_id = dto.Cliente_id,
                 NumeroEncomendaCliente = dto.NumeroEncomendaCliente,
@@ -67,8 +67,8 @@ public class EncomendaServiceTests
                 NomeResponsavelCliente = dto.NomeResponsavelCliente
             });
 
-        _mapper.Setup(m => m.Map(It.IsAny<UpdateEncomendaDTO>(), It.IsAny<Encomenda>()))
-            .Callback((UpdateEncomendaDTO dto, Encomenda entity) =>
+        _mapper.Setup(m => m.Map(It.IsAny<UpdateEncomendaDto>(), It.IsAny<Encomenda>()))
+            .Callback((UpdateEncomendaDto dto, Encomenda entity) =>
             {
                 if (!string.IsNullOrWhiteSpace(dto.NumeroEncomendaCliente))
                     entity.NumeroEncomendaCliente = dto.NumeroEncomendaCliente.Trim();
@@ -83,8 +83,8 @@ public class EncomendaServiceTests
                     entity.NomeResponsavelCliente = dto.NomeResponsavelCliente.Trim();
             });
 
-        _mapper.Setup(m => m.Map(It.IsAny<UpdateEstadoEncomendaDTO>(), It.IsAny<Encomenda>()))
-            .Callback((UpdateEstadoEncomendaDTO dto, Encomenda entity) =>
+        _mapper.Setup(m => m.Map(It.IsAny<UpdateEstadoEncomendaDto>(), It.IsAny<Encomenda>()))
+            .Callback((UpdateEstadoEncomendaDto dto, Encomenda entity) =>
             {
                 entity.Estado = dto.Estado;
             });
@@ -115,7 +115,7 @@ public class EncomendaServiceTests
     public async Task CreateAsync_Should_ThrowArgumentException_When_NumeroIsBlank()
     {
         // ARRANGE
-        var dto = new CreateEncomendaDTO
+        var dto = new CreateEncomendaDto
         {
             Cliente_id = 10,
             NumeroEncomendaCliente = "   "
@@ -133,7 +133,7 @@ public class EncomendaServiceTests
     public async Task CreateAsync_Should_ThrowKeyNotFoundException_When_ClienteDoesNotExist()
     {
         // ARRANGE
-        var dto = new CreateEncomendaDTO
+        var dto = new CreateEncomendaDto
         {
             Cliente_id = 10,
             NumeroEncomendaCliente = "ENC-001"
@@ -152,7 +152,7 @@ public class EncomendaServiceTests
     public async Task CreateAsync_Should_ThrowBusinessConflictException_When_NumeroAlreadyExists()
     {
         // ARRANGE
-        var dto = new CreateEncomendaDTO
+        var dto = new CreateEncomendaDto
         {
             Cliente_id = 10,
             NumeroEncomendaCliente = " ENC-100 "
@@ -179,7 +179,7 @@ public class EncomendaServiceTests
     public async Task CreateAsync_Should_SetDefaultsAndPersist_When_DataIsValid()
     {
         // ARRANGE
-        var dto = new CreateEncomendaDTO
+        var dto = new CreateEncomendaDto
         {
             Cliente_id = 10,
             NumeroEncomendaCliente = " ENC-200 ",
@@ -219,7 +219,7 @@ public class EncomendaServiceTests
     public async Task UpdateAsync_Should_ThrowKeyNotFoundException_When_EncomendaDoesNotExist()
     {
         // ARRANGE
-        var dto = new UpdateEncomendaDTO { NumeroEncomendaCliente = "ENC-500" };
+        var dto = new UpdateEncomendaDto { NumeroEncomendaCliente = "ENC-500" };
         _encomendaRepository.Setup(r => r.GetByIdAsync(99)).ReturnsAsync((Encomenda?)null);
 
         // ACT
@@ -234,7 +234,7 @@ public class EncomendaServiceTests
     {
         // ARRANGE
         var existing = BuildEncomenda(id: 10, numero: "ENC-010");
-        var dto = new UpdateEncomendaDTO { NumeroEncomendaCliente = " ENC-999 " };
+        var dto = new UpdateEncomendaDto { NumeroEncomendaCliente = " ENC-999 " };
 
         _encomendaRepository.Setup(r => r.GetByIdAsync(10)).ReturnsAsync(existing);
         _encomendaRepository.Setup(r => r.ExistsNumeroEncomendaClienteAsync("ENC-999", 10)).ReturnsAsync(true);
@@ -255,7 +255,7 @@ public class EncomendaServiceTests
         existing.NomeServicoCliente = "Servico Antigo";
         existing.NomeResponsavelCliente = "Ana";
 
-        var dto = new UpdateEncomendaDTO
+        var dto = new UpdateEncomendaDto
         {
             NumeroEncomendaCliente = " ENC-021 ",
             NomeServicoCliente = "Servico Novo"
@@ -283,7 +283,7 @@ public class EncomendaServiceTests
         _encomendaRepository.Setup(r => r.GetByIdAsync(45)).ReturnsAsync((Encomenda?)null);
 
         // ACT
-        Func<Task> act = () => _sut.UpdateEstadoAsync(45, new UpdateEstadoEncomendaDTO { Estado = EstadoEncomenda.EM_PRODUCAO });
+        Func<Task> act = () => _sut.UpdateEstadoAsync(45, new UpdateEstadoEncomendaDto { Estado = EstadoEncomenda.EM_PRODUCAO });
 
         // ASSERT
         await act.Should().ThrowAsync<KeyNotFoundException>();
@@ -297,7 +297,7 @@ public class EncomendaServiceTests
         _encomendaRepository.Setup(r => r.GetByIdAsync(30)).ReturnsAsync(encomenda);
 
         // ACT
-        Func<Task> act = () => _sut.UpdateEstadoAsync(30, new UpdateEstadoEncomendaDTO { Estado = EstadoEncomenda.EM_PRODUCAO });
+        Func<Task> act = () => _sut.UpdateEstadoAsync(30, new UpdateEstadoEncomendaDto { Estado = EstadoEncomenda.EM_PRODUCAO });
 
         // ASSERT
         await act.Should().ThrowAsync<ArgumentException>()
@@ -432,7 +432,7 @@ public class EncomendaServiceTests
         _encomendaRepository.Setup(r => r.GetByIdAsync(10)).ReturnsAsync(BuildEncomenda(id: 10));
 
         // ACT
-        Func<Task> act = () => _sut.UpdateAsync(10, new UpdateEncomendaDTO());
+        Func<Task> act = () => _sut.UpdateAsync(10, new UpdateEncomendaDto());
 
         // ASSERT
         await act.Should().ThrowAsync<ArgumentException>();
@@ -446,7 +446,7 @@ public class EncomendaServiceTests
         _encomendaRepository.Setup(r => r.GetByIdAsync(60)).ReturnsAsync(encomenda);
 
         // ACT
-        await _sut.UpdateEstadoAsync(60, new UpdateEstadoEncomendaDTO { Estado = EstadoEncomenda.EM_PRODUCAO });
+        await _sut.UpdateEstadoAsync(60, new UpdateEstadoEncomendaDto { Estado = EstadoEncomenda.EM_PRODUCAO });
 
         // ASSERT
         _encomendaRepository.Verify(r => r.UpdateAsync(It.Is<Encomenda>(e =>

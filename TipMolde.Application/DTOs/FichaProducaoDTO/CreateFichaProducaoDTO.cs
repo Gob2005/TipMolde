@@ -1,9 +1,9 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using TipMolde.Domain.Enums;
 
-namespace TipMolde.Application.DTOs.FichaProducaoDTO
+namespace TipMolde.Application.Dtos.FichaProducaoDto
 {
-    public class CreateFichaProducaoDTO
+    public class CreateFichaProducaoDto
     {
         [Required]
         public TipoFicha Tipo { get; set; }

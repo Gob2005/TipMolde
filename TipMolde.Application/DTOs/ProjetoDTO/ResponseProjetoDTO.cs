@@ -1,11 +1,11 @@
 ﻿using TipMolde.Domain.Enums;
 
-namespace TipMolde.Application.DTOs.ProjetoDTO
+namespace TipMolde.Application.Dtos.ProjetoDto
 {
     /// <summary>
     /// Representa a resposta publica da feature Projeto.
     /// </summary>
-    public class ResponseProjetoDTO
+    public class ResponseProjetoDto
     {
         public int Projeto_id { get; set; }
         public string NomeProjeto { get; set; } = string.Empty;

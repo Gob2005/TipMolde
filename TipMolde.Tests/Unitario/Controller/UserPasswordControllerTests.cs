@@ -6,7 +6,7 @@ using Moq;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using TipMolde.API.Controllers;
-using TipMolde.Application.DTOs.UserDTO;
+using TipMolde.Application.Dtos.UserDto;
 using TipMolde.Application.Interface.Utilizador.IUser;
 
 namespace TipMolde.Tests.Unitario.Controller;
@@ -42,7 +42,7 @@ public class UserPasswordControllerTests
     public async Task shouldReturnNoContentWhenChangingPasswordWithValidRequest()
     {
         SetAuthenticatedUser(_controller, new Claim(JwtRegisteredClaimNames.Sub, "10"));
-        var dto = new ChangeUserPasswordDTO { CurrentPassword = "Atual123!", NewPassword = "Nova123!" };
+        var dto = new ChangeUserPasswordDto { CurrentPassword = "Atual123!", NewPassword = "Nova123!" };
 
         var result = await _controller.ChangePassword(dto);
 
@@ -54,7 +54,7 @@ public class UserPasswordControllerTests
     public async Task shouldReturnUnauthorizedWhenUserClaimIsMissing()
     {
         SetAuthenticatedUser(_controller);
-        var dto = new ChangeUserPasswordDTO { CurrentPassword = "Atual123!", NewPassword = "Nova123!" };
+        var dto = new ChangeUserPasswordDto { CurrentPassword = "Atual123!", NewPassword = "Nova123!" };
 
         var result = await _controller.ChangePassword(dto);
 
@@ -70,7 +70,7 @@ public class UserPasswordControllerTests
             .Setup(s => s.ChangePasswordAsync(5, It.IsAny<string>(), It.IsAny<string>()))
             .ThrowsAsync(new ArgumentException("Password fraca"));
 
-        var dto = new ChangeUserPasswordDTO { CurrentPassword = "Atual123!", NewPassword = "fraca" };
+        var dto = new ChangeUserPasswordDto { CurrentPassword = "Atual123!", NewPassword = "fraca" };
         var result = await _controller.ChangePassword(dto);
 
         result.Should().BeOfType<BadRequestObjectResult>();
@@ -84,7 +84,7 @@ public class UserPasswordControllerTests
             .Setup(s => s.ChangePasswordAsync(500, It.IsAny<string>(), It.IsAny<string>()))
             .ThrowsAsync(new KeyNotFoundException("Utilizador nao encontrado"));
 
-        var dto = new ChangeUserPasswordDTO { CurrentPassword = "Atual123!", NewPassword = "Nova123!" };
+        var dto = new ChangeUserPasswordDto { CurrentPassword = "Atual123!", NewPassword = "Nova123!" };
         var result = await _controller.ChangePassword(dto);
 
         result.Should().BeOfType<NotFoundObjectResult>();
@@ -93,7 +93,7 @@ public class UserPasswordControllerTests
     [Test]
     public async Task shouldReturnNoContentWhenResettingPassword()
     {
-        var dto = new ResetUserPasswordDTO { NewPassword = "Admin123!" };
+        var dto = new ResetUserPasswordDto { NewPassword = "Admin123!" };
 
         var result = await _controller.ResetPassword(7, dto);
 
@@ -106,7 +106,7 @@ public class UserPasswordControllerTests
     {
         _controller.ModelState.AddModelError("NewPassword", "Obrigatorio");
 
-        var result = await _controller.ChangePassword(new ChangeUserPasswordDTO { CurrentPassword = null, NewPassword = null});
+        var result = await _controller.ChangePassword(new ChangeUserPasswordDto { CurrentPassword = null, NewPassword = null});
 
         result.Should().BeOfType<BadRequestObjectResult>();
         _passwordService.Verify(s => s.ChangePasswordAsync(It.IsAny<int>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
@@ -120,7 +120,7 @@ public class UserPasswordControllerTests
             .Setup(s => s.ChangePasswordAsync(5, It.IsAny<string>(), It.IsAny<string>()))
             .ThrowsAsync(new UnauthorizedAccessException("Password atual invalida"));
 
-        var result = await _controller.ChangePassword(new ChangeUserPasswordDTO
+        var result = await _controller.ChangePassword(new ChangeUserPasswordDto
         {
             CurrentPassword = "Atual123!",
             NewPassword = "Nova123!"
@@ -134,7 +134,7 @@ public class UserPasswordControllerTests
     {
         _controller.ModelState.AddModelError("NewPassword", "Obrigatorio");
 
-        var result = await _controller.ResetPassword(8, new ResetUserPasswordDTO { NewPassword = null });
+        var result = await _controller.ResetPassword(8, new ResetUserPasswordDto { NewPassword = null });
 
         result.Should().BeOfType<BadRequestObjectResult>();
         _passwordService.Verify(s => s.ResetPasswordAsync(It.IsAny<int>(), It.IsAny<string>()), Times.Never);

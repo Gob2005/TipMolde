@@ -1,5 +1,5 @@
 ﻿using AutoMapper;
-using TipMolde.Application.DTOs.RevisaoDTO;
+using TipMolde.Application.Dtos.RevisaoDto;
 using TipMolde.Domain.Entities.Desenho;
 
 namespace TipMolde.Application.Mappings
@@ -8,7 +8,7 @@ namespace TipMolde.Application.Mappings
     /// Profile AutoMapper dedicado ao agregado Revisao.
     /// </summary>
     /// <remarks>
-    /// Centraliza o mapping entre DTOs da feature Revisao e a entidade de dominio,
+    /// Centraliza o mapping entre Dtos da feature Revisao e a entidade de dominio,
     /// evitando construcao manual da entidade no controller.
     /// </remarks>
     public class RevisaoProfile : Profile
@@ -18,7 +18,7 @@ namespace TipMolde.Application.Mappings
         /// </summary>
         public RevisaoProfile()
         {
-            CreateMap<CreateRevisaoDTO, Revisao>()
+            CreateMap<CreateRevisaoDto, Revisao>()
                 .ForMember(dest => dest.Revisao_id, opt => opt.Ignore())
                 .ForMember(dest => dest.NumRevisao, opt => opt.Ignore())
                 .ForMember(dest => dest.DataEnvioCliente, opt => opt.Ignore())
@@ -29,7 +29,7 @@ namespace TipMolde.Application.Mappings
                 .ForMember(dest => dest.Projeto, opt => opt.Ignore())
                 .ForMember(dest => dest.DescricaoAlteracoes, opt => opt.MapFrom(src => src.DescricaoAlteracoes.Trim()));
 
-            CreateMap<Revisao, ResponseRevisaoDTO>();
+            CreateMap<Revisao, ResponseRevisaoDto>();
         }
     }
 }

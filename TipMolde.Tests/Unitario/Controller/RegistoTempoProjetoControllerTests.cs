@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Moq;
 using TipMolde.API.Controllers;
-using TipMolde.Application.DTOs.RegistoTempoProjetoDTO;
+using TipMolde.Application.Dtos.RegistoTempoProjetoDto;
 using TipMolde.Application.Interface.Desenho.IRegistoTempoProjeto;
 using TipMolde.Domain.Enums;
 
@@ -33,9 +33,9 @@ public class RegistoTempoProjetoControllerTests
         };
     }
 
-    private static ResponseRegistoTempoProjetoDTO BuildResponse(int id = 1)
+    private static ResponseRegistoTempoProjetoDto BuildResponse(int id = 1)
     {
-        return new ResponseRegistoTempoProjetoDTO
+        return new ResponseRegistoTempoProjetoDto
         {
             Registo_Tempo_Projeto_id = id,
             Estado_tempo = EstadoTempoProjeto.INICIADO,
@@ -60,7 +60,7 @@ public class RegistoTempoProjetoControllerTests
     public async Task GetById_Should_ReturnNotFound_When_RegistoDoesNotExist()
     {
         // ARRANGE
-        _service.Setup(s => s.GetByIdAsync(99)).ReturnsAsync((ResponseRegistoTempoProjetoDTO?)null);
+        _service.Setup(s => s.GetByIdAsync(99)).ReturnsAsync((ResponseRegistoTempoProjetoDto?)null);
 
         // ACT
         var result = await _controller.GetById(99);
@@ -75,7 +75,7 @@ public class RegistoTempoProjetoControllerTests
         // ARRANGE
         _controller.ModelState.AddModelError("Estado_tempo", "Obrigatorio");
 
-        var dto = new CreateRegistoTempoProjetoDTO
+        var dto = new CreateRegistoTempoProjetoDto
         {
             Estado_tempo = EstadoTempoProjeto.INICIADO,
             Projeto_id = 10,
@@ -88,14 +88,14 @@ public class RegistoTempoProjetoControllerTests
 
         // ASSERT
         result.Should().BeOfType<BadRequestObjectResult>();
-        _service.Verify(s => s.CreateRegistoAsync(It.IsAny<CreateRegistoTempoProjetoDTO>()), Times.Never);
+        _service.Verify(s => s.CreateRegistoAsync(It.IsAny<CreateRegistoTempoProjetoDto>()), Times.Never);
     }
 
     [Test(Description = "TRTPCONT4 - Create deve devolver created at action quando o pedido e valido.")]
     public async Task Create_Should_ReturnCreatedAtAction_When_RequestIsValid()
     {
         // ARRANGE
-        var dto = new CreateRegistoTempoProjetoDTO
+        var dto = new CreateRegistoTempoProjetoDto
         {
             Estado_tempo = EstadoTempoProjeto.INICIADO,
             Projeto_id = 10,

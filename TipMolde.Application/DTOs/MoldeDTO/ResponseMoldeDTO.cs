@@ -1,11 +1,11 @@
 using TipMolde.Domain.Enums;
 
-namespace TipMolde.Application.DTOs.MoldeDTO
+namespace TipMolde.Application.Dtos.MoldeDto
 {
     /// <summary>
     /// Representa a resposta publica da feature Molde.
     /// </summary>
-    public class ResponseMoldeDTO
+    public class ResponseMoldeDto
     {
         public int MoldeId { get; set; }
         public string? Numero { get; set; }

@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using TipMolde.Domain.Enums;
 
-namespace TipMolde.Application.DTOs.ProjetoDTO
+namespace TipMolde.Application.Dtos.ProjetoDto
 {
     /// <summary>
     /// Representa o pedido de atualizacao parcial de um projeto.
@@ -9,7 +9,7 @@ namespace TipMolde.Application.DTOs.ProjetoDTO
     /// <remarks>
     /// Campos nao enviados devem preservar o valor atual do agregado.
     /// </remarks>
-    public class UpdateProjetoDTO
+    public class UpdateProjetoDto
     {
         [MaxLength(100)]
         public string? NomeProjeto { get; set; }

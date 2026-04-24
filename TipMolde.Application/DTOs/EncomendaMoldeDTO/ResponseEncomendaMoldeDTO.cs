@@ -1,6 +1,6 @@
-﻿namespace TipMolde.Application.DTOs.EncomendaMoldeDTO
+﻿namespace TipMolde.Application.Dtos.EncomendaMoldeDto
 {
-    public class ResponseEncomendaMoldeDTO
+    public class ResponseEncomendaMoldeDto
     {
         public int EncomendaMolde_id { get; set; }
         public int Encomenda_id { get; set; }

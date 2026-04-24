@@ -1,5 +1,5 @@
 ﻿using AutoMapper;
-using TipMolde.Application.DTOs.FornecedorDTO;
+using TipMolde.Application.Dtos.FornecedorDto;
 using TipMolde.Domain.Entities.Comercio;
 
 namespace TipMolde.Application.Mappings
@@ -8,7 +8,7 @@ namespace TipMolde.Application.Mappings
     /// Define os mapeamentos AutoMapper do agregado Fornecedor.
     /// </summary>
     /// <remarks>
-    /// Centraliza conversoes entre DTOs de fornecedor e a entidade de dominio, incluindo normalizacao de campos textuais.
+    /// Centraliza conversoes entre Dtos de fornecedor e a entidade de dominio, incluindo normalizacao de campos textuais.
     /// </remarks>
     public class FornecedorProfile : Profile
     {
@@ -17,7 +17,7 @@ namespace TipMolde.Application.Mappings
         /// </summary>
         public FornecedorProfile()
         {
-            CreateMap<CreateFornecedorDTO, Fornecedor>()
+            CreateMap<CreateFornecedorDto, Fornecedor>()
                 .ForMember(dest => dest.Nome, opt => opt.MapFrom(src => src.Nome.Trim()))
                 .ForMember(dest => dest.NIF, opt => opt.MapFrom(src => src.NIF.Trim()))
                 .ForMember(dest => dest.Morada, opt => opt.MapFrom(src => string.IsNullOrWhiteSpace(src.Morada) ? null : src.Morada.Trim()))
@@ -25,7 +25,7 @@ namespace TipMolde.Application.Mappings
                 .ForMember(dest => dest.Telefone, opt => opt.MapFrom(src => string.IsNullOrWhiteSpace(src.Telefone) ? null : src.Telefone.Trim()))
                 .ForMember(dest => dest.Fornecedor_id, opt => opt.Ignore());
 
-            CreateMap<UpdateFornecedorDTO, Fornecedor>()
+            CreateMap<UpdateFornecedorDto, Fornecedor>()
                 .ForMember(dest => dest.Nome, opt =>
                 {
                     opt.Condition(src => !string.IsNullOrWhiteSpace(src.Nome));
@@ -53,7 +53,7 @@ namespace TipMolde.Application.Mappings
                 })
                 .ForMember(dest => dest.Fornecedor_id, opt => opt.Ignore());
 
-            CreateMap<Fornecedor, ResponseFornecedorDTO>()
+            CreateMap<Fornecedor, ResponseFornecedorDto>()
                 .ForMember(dest => dest.FornecedorId, opt => opt.MapFrom(src => src.Fornecedor_id))
                 .ForMember(dest => dest.Nome, opt => opt.MapFrom(src => src.Nome.Trim()))
                 .ForMember(dest => dest.NIF, opt => opt.MapFrom(src => src.NIF.Trim()))

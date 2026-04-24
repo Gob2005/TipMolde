@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Logging;
 using System.IdentityModel.Tokens.Jwt;
-using TipMolde.Application.DTOs.AuthDTO;
+using TipMolde.Application.Dtos.AuthDto;
 using TipMolde.Application.Interface.Utilizador.IAuth;
 using TipMolde.Application.Interface.Utilizador.ISecurity;
 
@@ -55,7 +55,7 @@ namespace TipMolde.Application.Service
         /// <param name="email">Email usado para identificar o utilizador.</param>
         /// <param name="password">Password recebida no pedido de login.</param>
         /// <returns>DTO com token de autenticacao e data de expiracao da sessao.</returns>
-        public async Task<AuthResponseDTO> LoginAsync(string email, string password)
+        public async Task<AuthResponseDto> LoginAsync(string email, string password)
         {
             var user = await _authRepository.GetByEmailAsync(email);
             _logger.LogInformation("Tentativa de login para email {Email}", email);
@@ -93,7 +93,7 @@ namespace TipMolde.Application.Service
 
             _logger.LogInformation("Login bem-sucedido para utilizador {UserId}", user.User_id);
 
-            return new AuthResponseDTO
+            return new AuthResponseDto
             {
                 Token = token,
                 ExpiresAt = new DateTimeOffset(DateTime.SpecifyKind(jwt.ValidTo, DateTimeKind.Utc))
@@ -111,12 +111,12 @@ namespace TipMolde.Application.Service
         /// </remarks>
         /// <param name="token">Token JWT bruto ou cabecalho Authorization no formato Bearer.</param>
         /// <returns>Resultado funcional com sucesso ou motivo de falha do logout.</returns>
-        public async Task<LogoutResultDTO> LogoutAsync(string token)
+        public async Task<LogoutResultDto> LogoutAsync(string token)
         {
             if (string.IsNullOrWhiteSpace(token))
             {
                 _logger.LogWarning("Logout falhou: token vazio");
-                return new LogoutResultDTO { Success = false, Message = "Token ausente." };
+                return new LogoutResultDto { Success = false, Message = "Token ausente." };
             }
 
             var raw = token.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase)
@@ -127,7 +127,7 @@ namespace TipMolde.Application.Service
             if (!handler.CanReadToken(raw))
             {
                 _logger.LogWarning("Logout falhou: token ilegivel");
-                return new LogoutResultDTO { Success = false, Message = "Token invalido." };
+                return new LogoutResultDto { Success = false, Message = "Token invalido." };
             }
 
             var jwt = handler.ReadJwtToken(raw);
@@ -137,20 +137,20 @@ namespace TipMolde.Application.Service
             if (string.IsNullOrWhiteSpace(jti) || string.IsNullOrWhiteSpace(exp))
             {
                 _logger.LogWarning("Logout falhou: token sem claims obrigatorias");
-                return new LogoutResultDTO { Success = false, Message = "Token sem claims obrigatorias." };
+                return new LogoutResultDto { Success = false, Message = "Token sem claims obrigatorias." };
             }
 
             if (!long.TryParse(exp, out var expUnix))
             {
                 _logger.LogWarning("Logout falhou: claim exp invalida para jti {Jti}", jti);
-                return new LogoutResultDTO { Success = false, Message = "Claim exp invalida." };
+                return new LogoutResultDto { Success = false, Message = "Claim exp invalida." };
             }
 
             var expiresAt = DateTimeOffset.FromUnixTimeSeconds(expUnix).UtcDateTime;
             await _revokedTokenRepository.RevokeAsync(jti, expiresAt);
 
             _logger.LogInformation("Logout efetuado. Token revogado com jti {Jti} ate {ExpiresAtUtc}", jti, expiresAt);
-            return new LogoutResultDTO { Success = true, Message = "Sessao terminada com sucesso." };
+            return new LogoutResultDto { Success = true, Message = "Sessao terminada com sucesso." };
         }
     }
 }

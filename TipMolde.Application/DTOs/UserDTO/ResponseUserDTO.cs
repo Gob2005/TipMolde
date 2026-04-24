@@ -1,8 +1,8 @@
 ﻿using TipMolde.Domain.Enums;
 
-namespace TipMolde.Application.DTOs.UserDTO
+namespace TipMolde.Application.Dtos.UserDto
 {
-    public class ResponseUserDTO
+    public class ResponseUserDto
     {
         public int User_id { get; set; }
         public string? Nome { get; set; }

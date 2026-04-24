@@ -1,8 +1,8 @@
 ﻿using TipMolde.Domain.Enums;
 
-namespace TipMolde.Application.DTOs.MaquinaDTO
+namespace TipMolde.Application.Dtos.MaquinaDto
 {
-    public class ResponseMaquinaDTO
+    public class ResponseMaquinaDto
     {
         public int Maquina_id { get; set; }
         public string? NomeModelo { get; set; }

@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using TipMolde.Application.DTOs.UserDTO;
+using TipMolde.Application.Dtos.UserDto;
 using TipMolde.Application.Interface.Utilizador.IUser;
 
 namespace TipMolde.API.Controllers
@@ -36,7 +36,7 @@ namespace TipMolde.API.Controllers
         /// <returns>Resultado HTTP da operacao de alteracao de password.</returns>
         [Authorize]
         [HttpPut("me/password")]
-        public async Task<IActionResult> ChangePassword([FromBody] ChangeUserPasswordDTO dto)
+        public async Task<IActionResult> ChangePassword([FromBody] ChangeUserPasswordDto dto)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
@@ -69,7 +69,7 @@ namespace TipMolde.API.Controllers
         /// <returns>Resultado HTTP sem conteudo quando a reposicao e concluida.</returns>
         [Authorize(Roles = "ADMIN")]
         [HttpPut("{id:int}/password/reset")]
-        public async Task<IActionResult> ResetPassword(int id, [FromBody] ResetUserPasswordDTO dto)
+        public async Task<IActionResult> ResetPassword(int id, [FromBody] ResetUserPasswordDto dto)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 

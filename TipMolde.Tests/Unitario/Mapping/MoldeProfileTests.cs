@@ -1,6 +1,6 @@
 using AutoMapper;
 using FluentAssertions;
-using TipMolde.Application.DTOs.MoldeDTO;
+using TipMolde.Application.Dtos.MoldeDto;
 using TipMolde.Application.Mappings;
 using TipMolde.Domain.Entities.Producao;
 using TipMolde.Domain.Enums;
@@ -33,7 +33,7 @@ public class MoldeProfileTests
         act.Should().NotThrow();
     }
 
-    [Test(Description = "TMOLDMAP2 - Entidade Molde deve mapear para ResponseMoldeDTO com especificacoes tecnicas.")]
+    [Test(Description = "TMOLDMAP2 - Entidade Molde deve mapear para ResponseMoldeDto com especificacoes tecnicas.")]
     public void Molde_Should_MapTo_ResponseMoldeDTO_WithTechnicalSpecs()
     {
         // ARRANGE
@@ -67,7 +67,7 @@ public class MoldeProfileTests
         };
 
         // ACT
-        var result = _mapper.Map<ResponseMoldeDTO>(source);
+        var result = _mapper.Map<ResponseMoldeDto>(source);
 
         // ASSERT
         result.MoldeId.Should().Be(5);
@@ -78,11 +78,11 @@ public class MoldeProfileTests
         result.Cor.Should().Be(CorMolde.BICOLOR);
     }
 
-    [Test(Description = "TMOLDMAP3 - CreateMoldeDTO deve mapear para EncomendaMolde com dados da associacao inicial.")]
+    [Test(Description = "TMOLDMAP3 - CreateMoldeDto deve mapear para EncomendaMolde com dados da associacao inicial.")]
     public void CreateMoldeDTO_Should_MapTo_EncomendaMolde()
     {
         // ARRANGE
-        var source = new CreateMoldeDTO
+        var source = new CreateMoldeDto
         {
             Numero = "MOL-010",
             Numero_cavidades = 2,
@@ -103,11 +103,11 @@ public class MoldeProfileTests
         result.DataEntregaPrevista.Should().Be(new DateTime(2026, 6, 1));
     }
 
-    [Test(Description = "TMOLDMAP4 - UpdateMoldeDTO deve atualizar apenas campos preenchidos e preservar os restantes.")]
+    [Test(Description = "TMOLDMAP4 - UpdateMoldeDto deve atualizar apenas campos preenchidos e preservar os restantes.")]
     public void UpdateMoldeDTO_Should_MapOnlyProvidedFields_When_MappingToExistingMolde()
     {
         // ARRANGE
-        var source = new UpdateMoldeDTO
+        var source = new UpdateMoldeDto
         {
             Nome = "Novo Nome",
             MaterialInjecao = "PP"

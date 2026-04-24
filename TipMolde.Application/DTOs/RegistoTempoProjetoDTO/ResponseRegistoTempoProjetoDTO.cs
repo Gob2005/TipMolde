@@ -1,11 +1,11 @@
 ﻿using TipMolde.Domain.Enums;
 
-namespace TipMolde.Application.DTOs.RegistoTempoProjetoDTO
+namespace TipMolde.Application.Dtos.RegistoTempoProjetoDto
 {
     /// <summary>
     /// Representa a resposta publica da feature RegistoTempoProjeto.
     /// </summary>
-    public class ResponseRegistoTempoProjetoDTO
+    public class ResponseRegistoTempoProjetoDto
     {
         /// <summary>
         /// Identificador interno do registo de tempo.

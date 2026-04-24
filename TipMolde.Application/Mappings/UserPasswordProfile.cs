@@ -1,5 +1,5 @@
 ﻿using AutoMapper;
-using TipMolde.Application.DTOs.UserDTO;
+using TipMolde.Application.Dtos.UserDto;
 using TipMolde.Domain.Entities;
 
 namespace TipMolde.Application.Mappings
@@ -8,7 +8,7 @@ namespace TipMolde.Application.Mappings
     {
         public UserPasswordProfile()
         {
-            CreateMap<ChangeUserPasswordDTO, User>()
+            CreateMap<ChangeUserPasswordDto, User>()
                 .ForMember(dest => dest.Password, opt => opt.MapFrom(src => src.NewPassword))
                 .ForMember(dest => dest.User_id, opt => opt.Ignore())
                 .ForMember(dest => dest.Nome, opt => opt.Ignore())
@@ -16,7 +16,7 @@ namespace TipMolde.Application.Mappings
                 .ForMember(dest => dest.Role, opt => opt.Ignore())
                 .ForMember(dest => dest.CreatedAt, opt => opt.Ignore());
 
-            CreateMap<ResetUserPasswordDTO, User>()
+            CreateMap<ResetUserPasswordDto, User>()
                 .ForMember(dest => dest.Password, opt => opt.MapFrom(src => src.NewPassword))
                 .ForMember(dest => dest.User_id, opt => opt.Ignore())
                 .ForMember(dest => dest.Nome, opt => opt.Ignore())

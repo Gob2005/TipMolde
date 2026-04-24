@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using TipMolde.Domain.Enums;
 
-namespace TipMolde.Application.DTOs.MoldeDTO
+namespace TipMolde.Application.Dtos.MoldeDto
 {
     /// <summary>
     /// Representa os dados de criacao do agregado Molde.
@@ -10,7 +10,7 @@ namespace TipMolde.Application.DTOs.MoldeDTO
     /// O contrato de criacao inclui os dados do molde, as especificacoes tecnicas
     /// e a associacao inicial a uma encomenda.
     /// </remarks>
-    public class CreateMoldeDTO
+    public class CreateMoldeDto
     {
         [Required]
         [MinLength(1)]

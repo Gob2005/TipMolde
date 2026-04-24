@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Moq;
 using TipMolde.API.Controllers;
-using TipMolde.Application.DTOs.RevisaoDTO;
+using TipMolde.Application.Dtos.RevisaoDto;
 using TipMolde.Application.Interface.Desenho.IRevisao;
 
 namespace TipMolde.Tests.Unitario.Controller;
@@ -34,9 +34,9 @@ public class RevisaoControllerTests
         };
     }
 
-    private static ResponseRevisaoDTO BuildResponse(int id = 1)
+    private static ResponseRevisaoDto BuildResponse(int id = 1)
     {
-        return new ResponseRevisaoDTO
+        return new ResponseRevisaoDto
         {
             Revisao_id = id,
             NumRevisao = 2,
@@ -60,7 +60,7 @@ public class RevisaoControllerTests
     public async Task GetById_Should_ReturnNotFound_When_RevisaoDoesNotExist()
     {
         // ARRANGE
-        _revisaoService.Setup(s => s.GetByIdAsync(50)).ReturnsAsync((ResponseRevisaoDTO?)null);
+        _revisaoService.Setup(s => s.GetByIdAsync(50)).ReturnsAsync((ResponseRevisaoDto?)null);
 
         // ACT
         var result = await _controller.GetById(50);
@@ -75,7 +75,7 @@ public class RevisaoControllerTests
         // ARRANGE
         _controller.ModelState.AddModelError("DescricaoAlteracoes", "Obrigatorio");
 
-        var dto = new CreateRevisaoDTO
+        var dto = new CreateRevisaoDto
         {
             Projeto_id = 3,
             DescricaoAlteracoes = "Nova revisao"
@@ -86,14 +86,14 @@ public class RevisaoControllerTests
 
         // ASSERT
         result.Should().BeOfType<BadRequestObjectResult>();
-        _revisaoService.Verify(s => s.CreateAsync(It.IsAny<CreateRevisaoDTO>()), Times.Never);
+        _revisaoService.Verify(s => s.CreateAsync(It.IsAny<CreateRevisaoDto>()), Times.Never);
     }
 
     [Test(Description = "TREVCONT4 - Create deve devolver created at action quando pedido e valido.")]
     public async Task Create_Should_ReturnCreatedAtAction_When_RequestIsValid()
     {
         // ARRANGE
-        var dto = new CreateRevisaoDTO
+        var dto = new CreateRevisaoDto
         {
             Projeto_id = 3,
             DescricaoAlteracoes = "Nova revisao"
@@ -121,18 +121,18 @@ public class RevisaoControllerTests
         _controller.ModelState.AddModelError("Aprovado", "Obrigatorio");
 
         // ACT
-        var result = await _controller.UpdateRespostaCliente(9, new UpdateRespostaRevisaoDTO());
+        var result = await _controller.UpdateRespostaCliente(9, new UpdateRespostaRevisaoDto());
 
         // ASSERT
         result.Should().BeOfType<BadRequestObjectResult>();
-        _revisaoService.Verify(s => s.UpdateRespostaClienteAsync(It.IsAny<int>(), It.IsAny<UpdateRespostaRevisaoDTO>()), Times.Never);
+        _revisaoService.Verify(s => s.UpdateRespostaClienteAsync(It.IsAny<int>(), It.IsAny<UpdateRespostaRevisaoDto>()), Times.Never);
     }
 
     [Test(Description = "TREVCONT6 - UpdateRespostaCliente deve devolver no content quando pedido e valido.")]
     public async Task UpdateRespostaCliente_Should_ReturnNoContent_When_RequestIsValid()
     {
         // ARRANGE
-        var dto = new UpdateRespostaRevisaoDTO
+        var dto = new UpdateRespostaRevisaoDto
         {
             Aprovado = true
         };

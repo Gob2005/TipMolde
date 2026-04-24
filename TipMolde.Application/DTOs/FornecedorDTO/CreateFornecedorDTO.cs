@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace TipMolde.Application.DTOs.FornecedorDTO
+namespace TipMolde.Application.Dtos.FornecedorDto
 {
     /// <summary>
     /// DTO de entrada para criacao de um fornecedor no modulo comercial.
@@ -8,7 +8,7 @@ namespace TipMolde.Application.DTOs.FornecedorDTO
     /// <remarks>
     /// Agrega os dados base de identificacao e contacto necessarios para registo inicial do fornecedor.
     /// </remarks>
-    public class CreateFornecedorDTO
+    public class CreateFornecedorDto
     {
         [Required]
         [MinLength(3)]

@@ -2,7 +2,7 @@ using AutoMapper;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Moq;
-using TipMolde.Application.DTOs.ProjetoDTO;
+using TipMolde.Application.Dtos.ProjetoDto;
 using TipMolde.Application.Interface;
 using TipMolde.Application.Interface.Desenho.IProjeto;
 using TipMolde.Application.Interface.Producao.IMolde;
@@ -45,9 +45,9 @@ public class ProjetoServiceTests
             _logger.Object);
     }
 
-    private static CreateProjetoDTO BuildCreateDto(string caminho = @" \\srv\projetos\molde-01 ")
+    private static CreateProjetoDto BuildCreateDto(string caminho = @" \\srv\projetos\molde-01 ")
     {
-        return new CreateProjetoDTO
+        return new CreateProjetoDto
         {
             NomeProjeto = " Projeto Base ",
             SoftwareUtilizado = " SolidWorks ",
@@ -141,7 +141,7 @@ public class ProjetoServiceTests
     {
         // ARRANGE
         var existente = BuildProjeto(id: 11);
-        var dto = new UpdateProjetoDTO();
+        var dto = new UpdateProjetoDto();
 
         _projetoRepository.Setup(r => r.GetByIdAsync(11)).ReturnsAsync(existente);
 
@@ -158,7 +158,7 @@ public class ProjetoServiceTests
     {
         // ARRANGE
         var existente = BuildProjeto(id: 12, tipoProjeto: TipoProjeto.PROJETO_3D);
-        var dto = new UpdateProjetoDTO
+        var dto = new UpdateProjetoDto
         {
             NomeProjeto = "Projeto Atualizado"
         };
@@ -302,7 +302,7 @@ public class ProjetoServiceTests
         _projetoRepository.Setup(r => r.GetByIdAsync(404)).ReturnsAsync((Projeto?)null);
 
         // ACT
-        Func<Task> act = () => _sut.UpdateAsync(404, new UpdateProjetoDTO { NomeProjeto = "Novo Projeto" });
+        Func<Task> act = () => _sut.UpdateAsync(404, new UpdateProjetoDto { NomeProjeto = "Novo Projeto" });
 
         // ASSERT
         await act.Should().ThrowAsync<KeyNotFoundException>();

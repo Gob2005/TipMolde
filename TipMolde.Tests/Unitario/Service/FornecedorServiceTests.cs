@@ -1,7 +1,7 @@
 using AutoMapper;
 using FluentAssertions;
 using Moq;
-using TipMolde.Application.DTOs.FornecedorDTO;
+using TipMolde.Application.Dtos.FornecedorDto;
 using TipMolde.Application.Interface;
 using TipMolde.Application.Interface.Comercio.IFornecedor;
 using TipMolde.Application.Mappings;
@@ -45,7 +45,7 @@ public class FornecedorServiceTests
             Telefone = "910000000"
         };
 
-    private static CreateFornecedorDTO BuildCreateDto(
+    private static CreateFornecedorDto BuildCreateDto(
         string nome = "Fornecedor A",
         string nif = "123456789") => new()
         {
@@ -56,7 +56,7 @@ public class FornecedorServiceTests
             Telefone = "910000000"
         };
 
-    private static UpdateFornecedorDTO BuildUpdateDto(
+    private static UpdateFornecedorDto BuildUpdateDto(
         string? nome = "Fornecedor A",
         string? nif = "123456789") => new()
         {
@@ -179,7 +179,7 @@ public class FornecedorServiceTests
 
         _fornecedorRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(existing);
 
-        var dto = new UpdateFornecedorDTO
+        var dto = new UpdateFornecedorDto
         {
             Nome = "   ",
             NIF = null,

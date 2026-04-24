@@ -1,6 +1,6 @@
 using AutoMapper;
 using FluentAssertions;
-using TipMolde.Application.DTOs.ProjetoDTO;
+using TipMolde.Application.Dtos.ProjetoDto;
 using TipMolde.Application.Mappings;
 using TipMolde.Domain.Entities.Desenho;
 using TipMolde.Domain.Enums;
@@ -42,8 +42,8 @@ public class ProjetoProfileTests
         act.Should().NotThrow();
     }
 
-    [Test(Description = "TPROJMAP2 - Entidade Projeto deve mapear para ResponseProjetoDTO com caminho persistido.")]
-    public void Projeto_Should_MapTo_ResponseProjetoDTO()
+    [Test(Description = "TPROJMAP2 - Entidade Projeto deve mapear para ResponseProjetoDto com caminho persistido.")]
+    public void Projeto_Should_MapTo_ResponseProjetoDto()
     {
         // ARRANGE
         var source = new Projeto
@@ -57,7 +57,7 @@ public class ProjetoProfileTests
         };
 
         // ACT
-        var result = _mapper.Map<ResponseProjetoDTO>(source);
+        var result = _mapper.Map<ResponseProjetoDto>(source);
 
         // ASSERT
         result.Projeto_id.Should().Be(5);
@@ -67,7 +67,7 @@ public class ProjetoProfileTests
     }
 
     [Test(Description = "TPROJMAP3 - Entidade Projeto deve mapear para detalhe com revisoes ordenadas por numero decrescente.")]
-    public void Projeto_Should_MapTo_ResponseProjetoWithRevisoesDTO()
+    public void Projeto_Should_MapTo_ResponseProjetoWithRevisoesDto()
     {
         // ARRANGE
         var source = new Projeto
@@ -87,17 +87,17 @@ public class ProjetoProfileTests
         };
 
         // ACT
-        var result = _mapper.Map<ResponseProjetoWithRevisoesDTO>(source);
+        var result = _mapper.Map<ResponseProjetoWithRevisoesDto>(source);
 
         // ASSERT
         result.Revisoes.Select(r => r.NumRevisao).Should().Equal(3, 2, 1);
     }
 
-    [Test(Description = "TPROJMAP4 - UpdateProjetoDTO deve atualizar apenas campos preenchidos e preservar os restantes.")]
+    [Test(Description = "TPROJMAP4 - UpdateProjetoDto deve atualizar apenas campos preenchidos e preservar os restantes.")]
     public void UpdateProjetoDTO_Should_MapOnlyProvidedFields_When_MappingToExistingProjeto()
     {
         // ARRANGE
-        var source = new UpdateProjetoDTO
+        var source = new UpdateProjetoDto
         {
             NomeProjeto = "Projeto Atualizado"
         };

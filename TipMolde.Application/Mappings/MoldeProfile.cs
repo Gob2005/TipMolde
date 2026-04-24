@@ -1,5 +1,5 @@
 ﻿using AutoMapper;
-using TipMolde.Application.DTOs.MoldeDTO;
+using TipMolde.Application.Dtos.MoldeDto;
 using TipMolde.Domain.Entities.Comercio;
 using TipMolde.Domain.Entities.Producao;
 
@@ -9,7 +9,7 @@ namespace TipMolde.Application.Mappings
     /// Profile AutoMapper dedicado ao agregado Molde.
     /// </summary>
     /// <remarks>
-    /// Centraliza o mapping entre DTOs e entidades para evitar logica dispersa no controller.
+    /// Centraliza o mapping entre Dtos e entidades para evitar logica dispersa no controller.
     /// </remarks>
     public class MoldeProfile : Profile
     {
@@ -18,7 +18,7 @@ namespace TipMolde.Application.Mappings
         /// </summary>
         public MoldeProfile()
         {
-            CreateMap<CreateMoldeDTO, Molde>()
+            CreateMap<CreateMoldeDto, Molde>()
                 .ForMember(dest => dest.Molde_id, opt => opt.Ignore())
                 .ForMember(dest => dest.Numero, opt => opt.MapFrom(src => src.Numero.Trim()))
                 .ForMember(dest => dest.NumeroMoldeCliente, opt => opt.MapFrom(src => NormalizeOptionalString(src.NumeroMoldeCliente)))
@@ -29,7 +29,7 @@ namespace TipMolde.Application.Mappings
                 .ForMember(dest => dest.Pecas, opt => opt.Ignore())
                 .ForMember(dest => dest.EncomendasMoldes, opt => opt.Ignore());
 
-            CreateMap<CreateMoldeDTO, EspecificacoesTecnicas>()
+            CreateMap<CreateMoldeDto, EspecificacoesTecnicas>()
                 .ForMember(dest => dest.Molde_id, opt => opt.Ignore())
                 .ForMember(dest => dest.Molde, opt => opt.Ignore())
                 .ForMember(dest => dest.TipoInjecao, opt => opt.MapFrom(src => NormalizeOptionalString(src.TipoInjecao)))
@@ -42,7 +42,7 @@ namespace TipMolde.Application.Mappings
                 .ForMember(dest => dest.LadoFixo, opt => opt.Ignore())
                 .ForMember(dest => dest.LadoMovel, opt => opt.Ignore());
 
-            CreateMap<CreateMoldeDTO, EncomendaMolde>()
+            CreateMap<CreateMoldeDto, EncomendaMolde>()
                 .ForMember(dest => dest.EncomendaMolde_id, opt => opt.Ignore())
                 .ForMember(dest => dest.Encomenda_id, opt => opt.MapFrom(src => src.EncomendaId))
                 .ForMember(dest => dest.Molde_id, opt => opt.Ignore())
@@ -50,7 +50,7 @@ namespace TipMolde.Application.Mappings
                 .ForMember(dest => dest.Molde, opt => opt.Ignore())
                 .ForMember(dest => dest.Fichas, opt => opt.Ignore());
 
-            CreateMap<UpdateMoldeDTO, Molde>()
+            CreateMap<UpdateMoldeDto, Molde>()
                 .ForMember(dest => dest.Numero, opt =>
                 {
                     opt.Condition(src => !string.IsNullOrWhiteSpace(src.Numero));
@@ -91,7 +91,7 @@ namespace TipMolde.Application.Mappings
                 .ForMember(dest => dest.Pecas, opt => opt.Ignore())
                 .ForMember(dest => dest.EncomendasMoldes, opt => opt.Ignore());
 
-            CreateMap<UpdateMoldeDTO, EspecificacoesTecnicas>()
+            CreateMap<UpdateMoldeDto, EspecificacoesTecnicas>()
                 .ForMember(dest => dest.Largura, opt =>
                 {
                     opt.Condition(src => src.Largura.HasValue);
@@ -162,7 +162,7 @@ namespace TipMolde.Application.Mappings
                 .ForMember(dest => dest.LadoFixo, opt => opt.Ignore())
                 .ForMember(dest => dest.LadoMovel, opt => opt.Ignore());
 
-            CreateMap<Molde, ResponseMoldeDTO>()
+            CreateMap<Molde, ResponseMoldeDto>()
                 .ForMember(dest => dest.MoldeId, opt => opt.MapFrom(src => src.Molde_id))
                 .ForMember(dest => dest.NumeroMoldeCliente, opt => opt.MapFrom(src => src.NumeroMoldeCliente))
                 .ForMember(dest => dest.Largura, opt => opt.MapFrom(src => src.Especificacoes == null ? null : src.Especificacoes.Largura))

@@ -1,5 +1,5 @@
 ﻿using AutoMapper;
-using TipMolde.Application.DTOs.ClienteDTO;
+using TipMolde.Application.Dtos.ClienteDto;
 using TipMolde.Application.Interface;
 using TipMolde.Application.Interface.Comercio.ICliente;
 using TipMolde.Domain.Entities.Comercio;
@@ -21,7 +21,7 @@ namespace TipMolde.Application.Service
         /// Construtor de ClienteService.
         /// </summary>
         /// <param name="clienteRepository">Repositorio responsavel pelo acesso aos dados de cliente.</param>
-        /// <param name="mapper">Mapeador de objetos para conversao entre DTOs e entidades.</param>
+        /// <param name="mapper">Mapeador de objetos para conversao entre Dtos e entidades.</param>
         public ClienteService(IClienteRepository clienteRepository, IMapper mapper)
         {
             _clienteRepository = clienteRepository;
@@ -34,12 +34,12 @@ namespace TipMolde.Application.Service
         /// <param name="page">Numero da pagina a consultar.</param>
         /// <param name="pageSize">Quantidade de itens por pagina.</param>
         /// <returns>Resultado paginado com clientes e metadados de navegacao.</returns>
-        public async Task<PagedResult<ResponseClienteDTO>> GetAllAsync(int page = 1, int pageSize = 10)
+        public async Task<PagedResult<ResponseClienteDto>> GetAllAsync(int page = 1, int pageSize = 10)
         {
             var result = await _clienteRepository.GetAllAsync(page, pageSize);
-            var mappedItems = _mapper.Map<IEnumerable<ResponseClienteDTO>>(result.Items);
+            var mappedItems = _mapper.Map<IEnumerable<ResponseClienteDto>>(result.Items);
 
-            return new PagedResult<ResponseClienteDTO>(
+            return new PagedResult<ResponseClienteDto>(
                 mappedItems,
                 result.TotalCount,
                 result.CurrentPage,
@@ -51,10 +51,10 @@ namespace TipMolde.Application.Service
         /// </summary>
         /// <param name="id">Identificador unico do cliente.</param>
         /// <returns>Cliente encontrado ou nulo quando nao existe registo.</returns>
-        public async Task<ResponseClienteDTO?> GetByIdAsync(int id)
+        public async Task<ResponseClienteDto?> GetByIdAsync(int id)
         {
             var entity = await _clienteRepository.GetByIdAsync(id);
-            return entity == null ? null : _mapper.Map<ResponseClienteDTO>(entity);
+            return entity == null ? null : _mapper.Map<ResponseClienteDto>(entity);
         }
 
         /// <summary>
@@ -65,15 +65,15 @@ namespace TipMolde.Application.Service
         /// </remarks>
         /// <param name="searchTerm">Termo parcial para pesquisa no nome.</param>
         /// <returns>Colecao de clientes que correspondem ao termo informado.</returns>
-        public async Task<PagedResult<ResponseClienteDTO>> SearchByNameAsync(string searchTerm, int page = 1, int pageSize = 10)
+        public async Task<PagedResult<ResponseClienteDto>> SearchByNameAsync(string searchTerm, int page = 1, int pageSize = 10)
         {
             if (string.IsNullOrWhiteSpace(searchTerm))
                 return CreateEmptyPage(page, pageSize);
 
             var result = await _clienteRepository.SearchByNameAsync(searchTerm.Trim(), page, pageSize);
-            var mappedItems = _mapper.Map<IEnumerable<ResponseClienteDTO>>(result.Items);
+            var mappedItems = _mapper.Map<IEnumerable<ResponseClienteDto>>(result.Items);
 
-            return new PagedResult<ResponseClienteDTO>(
+            return new PagedResult<ResponseClienteDto>(
                 mappedItems,
                 result.TotalCount,
                 result.CurrentPage,
@@ -88,15 +88,15 @@ namespace TipMolde.Application.Service
         /// </remarks>
         /// <param name="searchTerm">Termo parcial para pesquisa na sigla.</param>
         /// <returns>Colecao de clientes que correspondem ao termo informado.</returns>
-        public async Task<PagedResult<ResponseClienteDTO>> SearchBySiglaAsync(string searchTerm, int page = 1, int pageSize = 10)
+        public async Task<PagedResult<ResponseClienteDto>> SearchBySiglaAsync(string searchTerm, int page = 1, int pageSize = 10)
         {
             if (string.IsNullOrWhiteSpace(searchTerm))
                 return CreateEmptyPage(page, pageSize);
 
             var result = await _clienteRepository.SearchBySiglaAsync(searchTerm.Trim(), page, pageSize);
-            var mappedItems = _mapper.Map<IEnumerable<ResponseClienteDTO>>(result.Items);
+            var mappedItems = _mapper.Map<IEnumerable<ResponseClienteDto>>(result.Items);
 
-            return new PagedResult<ResponseClienteDTO>(
+            return new PagedResult<ResponseClienteDto>(
                 mappedItems,
                 result.TotalCount,
                 result.CurrentPage,
@@ -108,10 +108,10 @@ namespace TipMolde.Application.Service
         /// </summary>
         /// <param name="clienteId">Identificador unico do cliente.</param>
         /// <returns>Cliente com encomendas ou nulo quando nao existe registo.</returns>
-        public async Task<ResponseClienteWithEncomendasDTO?> GetClienteWithEncomendasAsync(int clienteId)
+        public async Task<ResponseClienteWithEncomendasDto?> GetClienteWithEncomendasAsync(int clienteId)
         {
             var entity = await _clienteRepository.GetClienteWithEncomendasAsync(clienteId);
-            return entity == null ? null : _mapper.Map<ResponseClienteWithEncomendasDTO>(entity);
+            return entity == null ? null : _mapper.Map<ResponseClienteWithEncomendasDto>(entity);
         }
 
         /// <summary>
@@ -126,7 +126,7 @@ namespace TipMolde.Application.Service
         /// </remarks>
         /// <param name="dto">DTO com dados do cliente a validar e persistir.</param>
         /// <returns>Cliente criado apos validacao e persistencia.</returns>
-        public async Task<ResponseClienteDTO> CreateAsync(CreateClienteDTO dto)
+        public async Task<ResponseClienteDto> CreateAsync(CreateClienteDto dto)
         {
             if (string.IsNullOrWhiteSpace(dto.Nome))
                 throw new ArgumentException("Nome e obrigatorio.");
@@ -152,7 +152,7 @@ namespace TipMolde.Application.Service
 
             var entity = _mapper.Map<Cliente>(dto);
             await _clienteRepository.AddAsync(entity);
-            return _mapper.Map<ResponseClienteDTO>(entity);
+            return _mapper.Map<ResponseClienteDto>(entity);
         }
 
         /// <summary>
@@ -168,7 +168,7 @@ namespace TipMolde.Application.Service
         /// <param name="id">Identificador unico do cliente a atualizar.</param>
         /// <param name="dto">DTO com os dados a atualizar no cliente existente.</param>
         /// <returns>Task assincrona concluida apos atualizacao do cliente.</returns>
-        public async Task UpdateAsync(int id, UpdateClienteDTO dto)
+        public async Task UpdateAsync(int id, UpdateClienteDto dto)
         {
             var existing = await _clienteRepository.GetByIdAsync(id);
             if (existing == null)
@@ -215,13 +215,13 @@ namespace TipMolde.Application.Service
         /// <param name="page">Numero de pagina solicitado pelo consumidor.</param>
         /// <param name="pageSize">Quantidade de itens por pagina solicitada pelo consumidor.</param>
         /// <returns>Resultado paginado sem itens e com metadados consistentes.</returns>
-        private static PagedResult<ResponseClienteDTO> CreateEmptyPage(int page, int pageSize)
+        private static PagedResult<ResponseClienteDto> CreateEmptyPage(int page, int pageSize)
         {
             var normalizedPage = page < 1 ? 1 : page;
             var normalizedPageSize = pageSize < 1 ? 10 : pageSize > 200 ? 200 : pageSize;
 
-            return new PagedResult<ResponseClienteDTO>(
-                Enumerable.Empty<ResponseClienteDTO>(),
+            return new PagedResult<ResponseClienteDto>(
+                Enumerable.Empty<ResponseClienteDto>(),
                 0,
                 normalizedPage,
                 normalizedPageSize);

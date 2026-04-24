@@ -1,4 +1,4 @@
-﻿using TipMolde.Application.DTOs.FornecedorDTO;
+﻿using TipMolde.Application.Dtos.FornecedorDto;
 
 namespace TipMolde.Application.Interface.Comercio.IFornecedor
 {
@@ -16,14 +16,14 @@ namespace TipMolde.Application.Interface.Comercio.IFornecedor
         /// <param name="page">Numero da pagina solicitada.</param>
         /// <param name="pageSize">Quantidade de itens por pagina.</param>
         /// <returns>Resultado paginado com fornecedores e metadados de navegacao.</returns>
-        Task<PagedResult<ResponseFornecedorDTO>> GetAllAsync(int page = 1, int pageSize = 10);
+        Task<PagedResult<ResponseFornecedorDto>> GetAllAsync(int page = 1, int pageSize = 10);
 
         /// <summary>
         /// Obtem um fornecedor pelo identificador.
         /// </summary>
         /// <param name="id">Identificador unico do fornecedor.</param>
         /// <returns>Fornecedor encontrado ou nulo quando nao existe registo.</returns>
-        Task<ResponseFornecedorDTO?> GetByIdAsync(int id);
+        Task<ResponseFornecedorDto?> GetByIdAsync(int id);
 
         /// <summary>
         /// Pesquisa fornecedores por nome.
@@ -32,14 +32,14 @@ namespace TipMolde.Application.Interface.Comercio.IFornecedor
         /// <param name="page">Numero da pagina solicitada.</param>
         /// <param name="pageSize">Quantidade de itens por pagina.</param>
         /// <returns>Colecao paginada de fornecedores que correspondem ao termo informado.</returns>
-        Task<PagedResult<ResponseFornecedorDTO>> SearchByNameAsync(string searchTerm, int page = 1, int pageSize = 10);
+        Task<PagedResult<ResponseFornecedorDto>> SearchByNameAsync(string searchTerm, int page = 1, int pageSize = 10);
 
         /// <summary>
         /// Cria um novo fornecedor.
         /// </summary>
         /// <param name="dto">DTO com dados do fornecedor a persistir.</param>
         /// <returns>DTO de resposta do fornecedor apos validacao e persistencia.</returns>
-        Task<ResponseFornecedorDTO> CreateAsync(CreateFornecedorDTO dto);
+        Task<ResponseFornecedorDto> CreateAsync(CreateFornecedorDto dto);
 
         /// <summary>
         /// Atualiza os dados de um fornecedor existente.
@@ -47,7 +47,7 @@ namespace TipMolde.Application.Interface.Comercio.IFornecedor
         /// <param name="id">Identificador unico do fornecedor a atualizar.</param>
         /// <param name="dto">DTO com os dados a atualizar no fornecedor.</param>
         /// <returns>Task assincrona concluida apos atualizacao do fornecedor.</returns>
-        Task UpdateAsync(int id, UpdateFornecedorDTO dto);
+        Task UpdateAsync(int id, UpdateFornecedorDto dto);
 
         /// <summary>
         /// Remove um fornecedor pelo identificador.

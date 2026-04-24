@@ -2,7 +2,7 @@
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Moq;
-using TipMolde.Application.DTOs.RegistoTempoProjetoDTO;
+using TipMolde.Application.Dtos.RegistoTempoProjetoDto;
 using TipMolde.Application.Exceptions;
 using TipMolde.Application.Interface.Desenho.IProjeto;
 using TipMolde.Application.Interface.Desenho.IRegistoTempoProjeto;
@@ -50,9 +50,9 @@ public class RegistoTempoProjetoServiceTests
             _logger.Object);
     }
 
-    private static CreateRegistoTempoProjetoDTO BuildDto(EstadoTempoProjeto? estado = EstadoTempoProjeto.INICIADO)
+    private static CreateRegistoTempoProjetoDto BuildDto(EstadoTempoProjeto? estado = EstadoTempoProjeto.INICIADO)
     {
-        return new CreateRegistoTempoProjetoDTO
+        return new CreateRegistoTempoProjetoDto
         {
             Estado_tempo = estado,
             Projeto_id = 10,

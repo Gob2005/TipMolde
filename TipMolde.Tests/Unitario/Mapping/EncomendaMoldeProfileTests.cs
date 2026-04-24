@@ -1,6 +1,6 @@
 using AutoMapper;
 using FluentAssertions;
-using TipMolde.Application.DTOs.EncomendaMoldeDTO;
+using TipMolde.Application.Dtos.EncomendaMoldeDto;
 using TipMolde.Application.Mappings;
 using TipMolde.Domain.Entities.Comercio;
 using TipMolde.Domain.Entities.Producao;
@@ -34,7 +34,7 @@ public class EncomendaMoldeProfileTests
     }
 
     [Test(Description = "TENCMMAP2 - Entidade EncomendaMolde deve mapear para DTO de resposta com campos de navegacao.")]
-    public void EncomendaMolde_Should_MapTo_ResponseEncomendaMoldeDTO()
+    public void EncomendaMolde_Should_MapTo_ResponseEncomendaMoldeDto()
     {
         // ARRANGE
         var source = new EncomendaMolde
@@ -50,7 +50,7 @@ public class EncomendaMoldeProfileTests
         };
 
         // ACT
-        var result = _mapper.Map<ResponseEncomendaMoldeDTO>(source);
+        var result = _mapper.Map<ResponseEncomendaMoldeDto>(source);
 
         // ASSERT
         result.EncomendaMolde_id.Should().Be(5);

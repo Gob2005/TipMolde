@@ -1,6 +1,6 @@
 using AutoMapper;
 using FluentAssertions;
-using TipMolde.Application.DTOs.FornecedorDTO;
+using TipMolde.Application.Dtos.FornecedorDto;
 using TipMolde.Application.Mappings;
 using TipMolde.Domain.Entities.Comercio;
 
@@ -39,11 +39,11 @@ namespace TipMolde.Tests.Unitario.Mapping
             act.Should().NotThrow();
         }
 
-        [Test(Description = "T2MAPFOR - CreateFornecedorDTO aplica trim nos campos de texto.")]
+        [Test(Description = "T2MAPFOR - CreateFornecedorDto aplica trim nos campos de texto.")]
         public void CreateFornecedorDTO_Should_MapWithTrim_When_FieldsContainOuterSpaces()
         {
             // ARRANGE
-            var source = new CreateFornecedorDTO
+            var source = new CreateFornecedorDto
             {
                 Nome = "  Fornecedor Teste  ",
                 NIF = " 123456789 ",
@@ -63,11 +63,11 @@ namespace TipMolde.Tests.Unitario.Mapping
             result.Telefone.Should().Be("912345678");
         }
 
-        [Test(Description = "T3MAPFOR - UpdateFornecedorDTO aplica trim e preserva valores quando campos sao nulos.")]
+        [Test(Description = "T3MAPFOR - UpdateFornecedorDto aplica trim e preserva valores quando campos sao nulos.")]
         public void UpdateFornecedorDTO_Should_TrimAndPreserveValues_When_NullAndWhitespaceFieldsAreProvided()
         {
             // ARRANGE
-            var source = new UpdateFornecedorDTO
+            var source = new UpdateFornecedorDto
             {
                 Nome = "  Novo Nome  ",
                 NIF = null,
@@ -98,11 +98,11 @@ namespace TipMolde.Tests.Unitario.Mapping
             destination.Telefone.Should().Be("910000000");
         }
 
-        [Test(Description = "T4MAPFOR - UpdateFornecedorDTO ignora campos apenas com espacos para nao sobrescrever dados existentes.")]
+        [Test(Description = "T4MAPFOR - UpdateFornecedorDto ignora campos apenas com espacos para nao sobrescrever dados existentes.")]
         public void UpdateFornecedorDTO_Should_IgnoreWhitespaceOnlyValues_When_MappingToExistingEntity()
         {
             // ARRANGE
-            var source = new UpdateFornecedorDTO
+            var source = new UpdateFornecedorDto
             {
                 Nome = "   ",
                 NIF = "   ",
@@ -133,7 +133,7 @@ namespace TipMolde.Tests.Unitario.Mapping
             destination.Telefone.Should().Be("919999999");
         }
 
-        [Test(Description = "T5MAPFOR - Fornecedor para ResponseFornecedorDTO devolve campos normalizados com trim.")]
+        [Test(Description = "T5MAPFOR - Fornecedor para ResponseFornecedorDto devolve campos normalizados com trim.")]
         public void Fornecedor_Should_MapToResponseFornecedorDTOWithTrim_When_SourceContainsOuterSpaces()
         {
             // ARRANGE
@@ -148,7 +148,7 @@ namespace TipMolde.Tests.Unitario.Mapping
             };
 
             // ACT
-            var result = _mapper.Map<ResponseFornecedorDTO>(source);
+            var result = _mapper.Map<ResponseFornecedorDto>(source);
 
             // ASSERT
             result.FornecedorId.Should().Be(42);

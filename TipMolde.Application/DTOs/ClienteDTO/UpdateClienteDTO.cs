@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace TipMolde.Application.DTOs.ClienteDTO
+namespace TipMolde.Application.Dtos.ClienteDto
 {
     /// <summary>
     /// DTO de entrada para atualizacao parcial de um cliente existente.
@@ -8,7 +8,7 @@ namespace TipMolde.Application.DTOs.ClienteDTO
     /// <remarks>
     /// Todos os campos sao opcionais para permitir alteracao apenas da informacao que foi enviada no pedido.
     /// </remarks>
-    public class UpdateClienteDTO
+    public class UpdateClienteDto
     {
         [MinLength(3)]
         [MaxLength(100)]

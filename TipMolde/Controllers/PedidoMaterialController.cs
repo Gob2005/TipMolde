@@ -3,7 +3,7 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using TipMolde.Application.DTOs.PedidoMaterialDTO;
+using TipMolde.Application.Dtos.PedidoMaterialDto;
 using TipMolde.Application.Interface.Comercio.IPedidoMaterial;
 
 namespace TipMolde.API.Controllers
@@ -101,7 +101,7 @@ namespace TipMolde.API.Controllers
         /// <returns>Resultado HTTP de criacao com o pedido persistido.</returns>
         [Authorize(Roles = "ADMIN,GESTOR_COMERCIAL")]
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] CreatePedidoMaterialDTO dto)
+        public async Task<IActionResult> Create([FromBody] CreatePedidoMaterialDto dto)
         {
             if (!ModelState.IsValid)
             {

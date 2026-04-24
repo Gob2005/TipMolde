@@ -1,4 +1,4 @@
-﻿using TipMolde.Application.DTOs.AuthDTO;
+﻿using TipMolde.Application.Dtos.AuthDto;
 
 namespace TipMolde.Application.Interface.Utilizador.IAuth
 {
@@ -16,12 +16,12 @@ namespace TipMolde.Application.Interface.Utilizador.IAuth
         /// <param name="email">Email fornecido para identificacao do utilizador.</param>
         /// <param name="password">Password recebida para validacao de credenciais.</param>
         /// <returns>DTO com token emitido e instante de expiracao.</returns>
-        Task<AuthResponseDTO> LoginAsync(string email, string password);
+        Task<AuthResponseDto> LoginAsync(string email, string password);
         /// <summary>
         /// Termina a sessao associada a um token e regista a revogacao.
         /// </summary>
         /// <param name="token">Token JWT em formato bruto ou cabecalho Bearer.</param>
         /// <returns>Resultado funcional da operacao de logout.</returns>
-        Task<LogoutResultDTO> LogoutAsync(string token);
+        Task<LogoutResultDto> LogoutAsync(string token);
     }
 }

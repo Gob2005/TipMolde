@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using TipMolde.Domain.Enums;
 
-namespace TipMolde.Application.DTOs.MoldeDTO
+namespace TipMolde.Application.Dtos.MoldeDto
 {
     /// <summary>
     /// Representa os dados de atualizacao parcial de um molde.
@@ -9,7 +9,7 @@ namespace TipMolde.Application.DTOs.MoldeDTO
     /// <remarks>
     /// Campos nao enviados devem ser preservados no registo atual.
     /// </remarks>
-    public class UpdateMoldeDTO
+    public class UpdateMoldeDto
     {
         [MinLength(1)]
         [MaxLength(20)]

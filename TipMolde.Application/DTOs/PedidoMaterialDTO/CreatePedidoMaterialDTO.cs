@@ -1,11 +1,11 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace TipMolde.Application.DTOs.PedidoMaterialDTO
+namespace TipMolde.Application.Dtos.PedidoMaterialDto
 {
     /// <summary>
     /// DTO de criacao de pedido de material.
     /// </summary>
-    public class CreatePedidoMaterialDTO
+    public class CreatePedidoMaterialDto
     {
         /// <summary>
         /// Identificador do fornecedor ao qual o pedido sera associado.
@@ -19,6 +19,6 @@ namespace TipMolde.Application.DTOs.PedidoMaterialDTO
         /// </summary>
         [Required]
         [MinLength(1)]
-        public List<CreateItemPedidoMaterialDTO> Itens { get; set; } = new();
+        public List<CreateItemPedidoMaterialDto> Itens { get; set; } = new();
     }
 }

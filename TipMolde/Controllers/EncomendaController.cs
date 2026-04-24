@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using TipMolde.Application.DTOs.EncomendaDTO;
+using TipMolde.Application.Dtos.EncomendaDto;
 using TipMolde.Application.Interface.Comercio.IEncomenda;
 using TipMolde.Domain.Enums;
 
@@ -166,7 +166,7 @@ namespace TipMolde.API.Controllers
         /// <returns>Resultado HTTP de criacao com recurso persistido.</returns>
         [Authorize(Roles = "ADMIN,GESTOR_COMERCIAL")]
         [HttpPost]
-        public async Task<IActionResult> CreateEncomenda([FromBody] CreateEncomendaDTO dto)
+        public async Task<IActionResult> CreateEncomenda([FromBody] CreateEncomendaDto dto)
         {
             if (!ModelState.IsValid) return BadRequest(CreateProblem(
                 StatusCodes.Status400BadRequest,
@@ -193,7 +193,7 @@ namespace TipMolde.API.Controllers
         /// <returns>Resultado HTTP sem conteudo quando a operacao e concluida.</returns>
         [Authorize(Roles = "ADMIN,GESTOR_COMERCIAL")]
         [HttpPut("{id:int}")]
-        public async Task<IActionResult> UpdateEncomenda(int id, [FromBody] UpdateEncomendaDTO dto)
+        public async Task<IActionResult> UpdateEncomenda(int id, [FromBody] UpdateEncomendaDto dto)
         {
             if (!ModelState.IsValid) return BadRequest(CreateProblem(
                 StatusCodes.Status400BadRequest,
@@ -215,7 +215,7 @@ namespace TipMolde.API.Controllers
         /// <returns>Resultado HTTP sem conteudo quando a transicao e valida e aplicada.</returns>
         [Authorize(Roles = "ADMIN,GESTOR_COMERCIAL")]
         [HttpPatch("{id:int}/estado")]
-        public async Task<IActionResult> UpdateEstado(int id, [FromBody] UpdateEstadoEncomendaDTO dto)
+        public async Task<IActionResult> UpdateEstado(int id, [FromBody] UpdateEstadoEncomendaDto dto)
         {
             if (!ModelState.IsValid) return BadRequest(CreateProblem(
                 StatusCodes.Status400BadRequest,

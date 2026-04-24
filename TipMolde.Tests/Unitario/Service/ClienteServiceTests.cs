@@ -1,7 +1,7 @@
 using AutoMapper;
 using FluentAssertions;
 using Moq;
-using TipMolde.Application.DTOs.ClienteDTO;
+using TipMolde.Application.Dtos.ClienteDto;
 using TipMolde.Application.Interface;
 using TipMolde.Application.Interface.Comercio.ICliente;
 using TipMolde.Application.Mappings;
@@ -48,7 +48,7 @@ public class ClienteServiceTests
             Telefone = "910000000"
         };
 
-    private static CreateClienteDTO BuildCreateDto(
+    private static CreateClienteDto BuildCreateDto(
         string nome = "Cliente A",
         string nif = "123456789",
         string sigla = "CLA") => new()
@@ -61,7 +61,7 @@ public class ClienteServiceTests
             Telefone = "910000000"
         };
 
-    private static UpdateClienteDTO BuildUpdateDto(
+    private static UpdateClienteDto BuildUpdateDto(
         string? nome = "Cliente A",
         string? nif = "123456789",
         string? sigla = "CLA") => new()

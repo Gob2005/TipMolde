@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.Extensions.Logging;
-using TipMolde.Application.DTOs.RevisaoDTO;
+using TipMolde.Application.Dtos.RevisaoDto;
 using TipMolde.Application.Exceptions;
 using TipMolde.Application.Interface;
 using TipMolde.Application.Interface.Desenho.IProjeto;
@@ -13,7 +13,7 @@ namespace TipMolde.Application.Service
     /// Implementa os casos de uso da feature Revisao.
     /// </summary>
     /// <remarks>
-    /// Centraliza validacoes de negocio, mapping entre DTOs e dominio
+    /// Centraliza validacoes de negocio, mapping entre Dtos e dominio
     /// e regras de rastreabilidade da resposta do cliente.
     /// </remarks>
     public class RevisaoService : IRevisaoService
@@ -28,7 +28,7 @@ namespace TipMolde.Application.Service
         /// </summary>
         /// <param name="revisaoRepository">Repositorio do agregado Revisao.</param>
         /// <param name="projetoRepository">Repositorio usado para validar o projeto referenciado.</param>
-        /// <param name="mapper">Mapper para conversao entre DTOs e entidade de dominio.</param>
+        /// <param name="mapper">Mapper para conversao entre Dtos e entidade de dominio.</param>
         /// <param name="logger">Logger para rastreabilidade das operacoes criticas.</param>
         public RevisaoService(
             IRevisaoRepository revisaoRepository,
@@ -48,12 +48,12 @@ namespace TipMolde.Application.Service
         /// <param name="projetoId">Identificador do projeto.</param>
         /// <param name="page">Numero da pagina a ser retornada.</param>
         /// <param name="pageSize">Quantidade de itens por pagina.</param>
-        /// <returns>Colecao de DTOs de revisao ordenados por numero decrescente.</returns>
-        public async Task<PagedResult<ResponseRevisaoDTO>> GetByProjetoIdAsync(int projetoId, int page = 1, int pageSize = 10)
+        /// <returns>Colecao de Dtos de revisao ordenados por numero decrescente.</returns>
+        public async Task<PagedResult<ResponseRevisaoDto>> GetByProjetoIdAsync(int projetoId, int page = 1, int pageSize = 10)
         {
             var result = await _revisaoRepository.GetByProjetoIdAsync(projetoId, page, pageSize);
-            var itens = _mapper.Map<IEnumerable<ResponseRevisaoDTO>>(result.Items);
-            return new PagedResult<ResponseRevisaoDTO>(itens, result.TotalCount, result.CurrentPage, result.PageSize);
+            var itens = _mapper.Map<IEnumerable<ResponseRevisaoDto>>(result.Items);
+            return new PagedResult<ResponseRevisaoDto>(itens, result.TotalCount, result.CurrentPage, result.PageSize);
         }
 
         /// <summary>
@@ -61,10 +61,10 @@ namespace TipMolde.Application.Service
         /// </summary>
         /// <param name="id">Identificador interno da revisao.</param>
         /// <returns>DTO da revisao quando encontrada; nulo caso contrario.</returns>
-        public async Task<ResponseRevisaoDTO?> GetByIdAsync(int id)
+        public async Task<ResponseRevisaoDto?> GetByIdAsync(int id)
         {
             var revisao = await _revisaoRepository.GetByIdAsync(id);
-            return revisao == null ? null : _mapper.Map<ResponseRevisaoDTO>(revisao);
+            return revisao == null ? null : _mapper.Map<ResponseRevisaoDto>(revisao);
         }
 
         /// <summary>
@@ -78,7 +78,7 @@ namespace TipMolde.Application.Service
         /// </remarks>
         /// <param name="dto">Dados de criacao da revisao.</param>
         /// <returns>DTO da revisao criada.</returns>
-        public async Task<ResponseRevisaoDTO> CreateAsync(CreateRevisaoDTO dto)
+        public async Task<ResponseRevisaoDto> CreateAsync(CreateRevisaoDto dto)
         {
             if (string.IsNullOrWhiteSpace(dto.DescricaoAlteracoes))
                 throw new ArgumentException("Descricao das alteracoes e obrigatoria.");
@@ -100,7 +100,7 @@ namespace TipMolde.Application.Service
                 created.Projeto_id,
                 created.NumRevisao);
 
-            return _mapper.Map<ResponseRevisaoDTO>(created);
+            return _mapper.Map<ResponseRevisaoDto>(created);
         }
 
         /// <summary>
@@ -115,7 +115,7 @@ namespace TipMolde.Application.Service
         /// <param name="revisaoId">Identificador da revisao.</param>
         /// <param name="dto">Payload de resposta do cliente.</param>
         /// <returns>Task de conclusao da operacao.</returns>
-        public async Task UpdateRespostaClienteAsync(int revisaoId, UpdateRespostaRevisaoDTO dto)
+        public async Task UpdateRespostaClienteAsync(int revisaoId, UpdateRespostaRevisaoDto dto)
         {
             var existing = await _revisaoRepository.GetByIdAsync(revisaoId);
             if (existing == null)

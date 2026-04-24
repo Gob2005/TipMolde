@@ -1,9 +1,9 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using TipMolde.Domain.Enums;
 
-namespace TipMolde.Application.DTOs.Fases_producaoDTO
+namespace TipMolde.Application.Dtos.Fases_producaoDto
 {
-    public class UpdateFasesProducaoDTO
+    public class UpdateFasesProducaoDto
     {
         public Nome_fases? Nome { get; set; }
 

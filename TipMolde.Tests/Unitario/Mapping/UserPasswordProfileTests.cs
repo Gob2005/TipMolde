@@ -1,6 +1,6 @@
 using AutoMapper;
 using FluentAssertions;
-using TipMolde.Application.DTOs.UserDTO;
+using TipMolde.Application.Dtos.UserDto;
 using TipMolde.Application.Mappings;
 using TipMolde.Domain.Entities;
 using TipMolde.Domain.Enums;
@@ -38,7 +38,7 @@ namespace TipMolde.Tests.Unitario.Mapping
         [Test]
         public void shouldMapChangeUserPasswordDtoToUser()
         {
-            var source = new ChangeUserPasswordDTO
+            var source = new ChangeUserPasswordDto
             {
                 CurrentPassword = "Atual123!",
                 NewPassword = "Nova123!"
@@ -52,7 +52,7 @@ namespace TipMolde.Tests.Unitario.Mapping
         [Test]
         public void shouldMapResetUserPasswordDtoToUser()
         {
-            var source = new ResetUserPasswordDTO
+            var source = new ResetUserPasswordDto
             {
                 NewPassword = "Nova123!"
             };

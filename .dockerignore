@@ -1,0 +1,17 @@
+.git
+.github
+.vs
+actions-runner
+TipMolde.Tests
+
+**/bin
+**/obj
+**/*.user
+**/*.suo
+**/Properties/launchSettings.json
+**/appsettings.Development.json
+
+.gitattributes
+.gitignore
+docker-compose.yml
+main.yml

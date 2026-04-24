@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using TipMolde.Application.DTOs.UserDTO;
+using TipMolde.Application.Dtos.UserDto;
 using TipMolde.Application.Interface.Utilizador.IUser;
 using TipMolde.Domain.Enums;
 
@@ -146,9 +146,9 @@ namespace TipMolde.API.Controllers
         /// <returns>Resultado HTTP de criacao com o recurso criado.</returns>
         [Authorize(Roles = "ADMIN")]
         [HttpPost]
-        [ProducesResponseType(typeof(ResponseUserDTO), StatusCodes.Status201Created)]
+        [ProducesResponseType(typeof(ResponseUserDto), StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> CreateUser([FromBody] CreateUserDTO dto)
+        public async Task<IActionResult> CreateUser([FromBody] CreateUserDto dto)
         {
             if (!ModelState.IsValid)
             {
@@ -178,7 +178,7 @@ namespace TipMolde.API.Controllers
         /// <returns>Resultado HTTP sem conteudo quando a atualizacao e concluida.</returns>
         [Authorize]
         [HttpPut("{id:int}")]
-        public async Task<IActionResult> UpdateUser(int id, [FromBody] UpdateUserDTO dto)
+        public async Task<IActionResult> UpdateUser(int id, [FromBody] UpdateUserDto dto)
         {
             if (!ModelState.IsValid)
             {
@@ -240,7 +240,7 @@ namespace TipMolde.API.Controllers
         /// <returns>Resultado HTTP sem conteudo quando a alteracao e concluida.</returns>
         [Authorize(Roles = "ADMIN")]
         [HttpPut("{id:int}/role")]
-        public async Task<IActionResult> ChangeRole(int id, [FromBody] ChangeUserRoleDTO dto)
+        public async Task<IActionResult> ChangeRole(int id, [FromBody] ChangeUserRoleDto dto)
         {
             if (!ModelState.IsValid)
             {

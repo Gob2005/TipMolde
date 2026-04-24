@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using TipMolde.Application.DTOs.FornecedorDTO;
+using TipMolde.Application.Dtos.FornecedorDto;
 using TipMolde.Application.Interface.Comercio.IFornecedor;
 
 namespace TipMolde.API.Controllers
@@ -121,7 +121,7 @@ namespace TipMolde.API.Controllers
         /// <returns>Resultado HTTP de criacao com o fornecedor persistido.</returns>
         [Authorize(Roles = "ADMIN,GESTOR_COMERCIAL")]
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] CreateFornecedorDTO dto)
+        public async Task<IActionResult> Create([FromBody] CreateFornecedorDto dto)
         {
             if (!ModelState.IsValid)
             {
@@ -146,7 +146,7 @@ namespace TipMolde.API.Controllers
         /// <returns>Resultado HTTP sem conteudo quando a atualizacao e concluida.</returns>
         [Authorize(Roles = "ADMIN,GESTOR_COMERCIAL")]
         [HttpPut("{id:int}")]
-        public async Task<IActionResult> Update(int id, [FromBody] UpdateFornecedorDTO dto)
+        public async Task<IActionResult> Update(int id, [FromBody] UpdateFornecedorDto dto)
         {
             if (!ModelState.IsValid)
             {

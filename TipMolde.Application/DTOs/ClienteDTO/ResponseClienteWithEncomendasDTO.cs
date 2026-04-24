@@ -1,6 +1,6 @@
-﻿using TipMolde.Application.DTOs.EncomendaDTO;
+﻿using TipMolde.Application.Dtos.EncomendaDto;
 
-namespace TipMolde.Application.DTOs.ClienteDTO
+namespace TipMolde.Application.Dtos.ClienteDto
 {
     /// <summary>
     /// DTO de resposta com os dados do cliente e a colecao de encomendas associadas.
@@ -8,7 +8,7 @@ namespace TipMolde.Application.DTOs.ClienteDTO
     /// <remarks>
     /// Adequado para cenarios de detalhe em que o consumidor precisa da relacao cliente-encomendas no mesmo payload.
     /// </remarks>
-    public class ResponseClienteWithEncomendasDTO
+    public class ResponseClienteWithEncomendasDto
     {
         public int ClienteId { get; set; }
         public string? Nome { get; set; }
@@ -17,6 +17,6 @@ namespace TipMolde.Application.DTOs.ClienteDTO
         public string? Email { get; set; }
         public string? Telefone { get; set; }
         public string? NIF { get; set; }
-        public IEnumerable<ResponseEncomendaDTO>? Encomendas { get; set; }
+        public IEnumerable<ResponseEncomendaDto>? Encomendas { get; set; }
     }
 }

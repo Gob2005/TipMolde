@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace TipMolde.Application.DTOs.FornecedorDTO
+namespace TipMolde.Application.Dtos.FornecedorDto
 {
     /// <summary>
     /// DTO de entrada para atualizacao parcial de um fornecedor.
@@ -8,7 +8,7 @@ namespace TipMolde.Application.DTOs.FornecedorDTO
     /// <remarks>
     /// Todos os campos sao opcionais para permitir updates parciais sem obrigar o cliente a reenviar o registo completo.
     /// </remarks>
-    public class UpdateFornecedorDTO
+    public class UpdateFornecedorDto
     {
         [MinLength(3)]
         [MaxLength(100)]

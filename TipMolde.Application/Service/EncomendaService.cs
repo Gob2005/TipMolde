@@ -1,6 +1,6 @@
 using AutoMapper;
 using Microsoft.Extensions.Logging;
-using TipMolde.Application.DTOs.EncomendaDTO;
+using TipMolde.Application.Dtos.EncomendaDto;
 using TipMolde.Application.Exceptions;
 using TipMolde.Application.Interface;
 using TipMolde.Application.Interface.Comercio.ICliente;
@@ -28,7 +28,7 @@ namespace TipMolde.Application.Service
         /// </summary>
         /// <param name="encomendaRepository">Repositorio de encomendas.</param>
         /// <param name="clienteRepository">Repositorio de clientes para validacao de FK.</param>
-        /// <param name="mapper">Mapper para conversao entre entidades e DTOs.</param>
+        /// <param name="mapper">Mapper para conversao entre entidades e Dtos.</param>
         /// <param name="logger">Logger para rastreabilidade das operacoes.</param>
         public EncomendaService(
             IEncomendaRepository encomendaRepository,
@@ -47,12 +47,12 @@ namespace TipMolde.Application.Service
         /// </summary>
         /// <param name="page">Pagina atual (>= 1).</param>
         /// <param name="pageSize">Tamanho da pagina (>= 1).</param>
-        /// <returns>Resultado paginado com DTOs de resposta.</returns>
-        public async Task<PagedResult<ResponseEncomendaDTO>> GetAllAsync(int page = 1, int pageSize = 10)
+        /// <returns>Resultado paginado com Dtos de resposta.</returns>
+        public async Task<PagedResult<ResponseEncomendaDto>> GetAllAsync(int page = 1, int pageSize = 10)
         {
             var result = await _encomendaRepository.GetAllAsync(page, pageSize);
-            var mappedItems = _mapper.Map<IEnumerable<ResponseEncomendaDTO>>(result.Items);
-            return new PagedResult<ResponseEncomendaDTO>(mappedItems, result.TotalCount, result.CurrentPage, result.PageSize);
+            var mappedItems = _mapper.Map<IEnumerable<ResponseEncomendaDto>>(result.Items);
+            return new PagedResult<ResponseEncomendaDto>(mappedItems, result.TotalCount, result.CurrentPage, result.PageSize);
         }
 
         /// <summary>
@@ -60,10 +60,10 @@ namespace TipMolde.Application.Service
         /// </summary>
         /// <param name="id">Identificador da encomenda.</param>
         /// <returns>DTO da encomenda encontrada ou nulo.</returns>
-        public async Task<ResponseEncomendaDTO?> GetByIdAsync(int id)
+        public async Task<ResponseEncomendaDto?> GetByIdAsync(int id)
         {
             var encomenda = await _encomendaRepository.GetByIdAsync(id);
-            return encomenda == null ? null : _mapper.Map<ResponseEncomendaDTO>(encomenda);
+            return encomenda == null ? null : _mapper.Map<ResponseEncomendaDto>(encomenda);
         }
 
         /// <summary>
@@ -71,33 +71,33 @@ namespace TipMolde.Application.Service
         /// </summary>
         /// <param name="id">Identificador da encomenda.</param>
         /// <returns>DTO da encomenda encontrada com relacoes carregadas ou nulo.</returns>
-        public async Task<ResponseEncomendaDTO?> GetEncomendaWithMoldesAsync(int id)
+        public async Task<ResponseEncomendaDto?> GetEncomendaWithMoldesAsync(int id)
         {
             var encomenda = await _encomendaRepository.GetWithMoldesAsync(id);
-            return encomenda == null ? null : _mapper.Map<ResponseEncomendaDTO>(encomenda);
+            return encomenda == null ? null : _mapper.Map<ResponseEncomendaDto>(encomenda);
         }
 
         /// <summary>
         /// Lista encomendas por estado.
         /// </summary>
         /// <param name="estado">Estado textual para filtro.</param>
-        /// <returns>Colecao de DTOs de encomenda no estado informado.</returns>
-        public async Task<PagedResult<ResponseEncomendaDTO>> GetByEstadoAsync(EstadoEncomenda estado, int page = 1, int pageSize = 10)
+        /// <returns>Colecao de Dtos de encomenda no estado informado.</returns>
+        public async Task<PagedResult<ResponseEncomendaDto>> GetByEstadoAsync(EstadoEncomenda estado, int page = 1, int pageSize = 10)
         {
             var result = await _encomendaRepository.GetByEstadoAsync(estado, page, pageSize);
-            var mappedItems = _mapper.Map<IEnumerable<ResponseEncomendaDTO>>(result.Items);
-            return new PagedResult<ResponseEncomendaDTO>(mappedItems, result.TotalCount, result.CurrentPage, result.PageSize);
+            var mappedItems = _mapper.Map<IEnumerable<ResponseEncomendaDto>>(result.Items);
+            return new PagedResult<ResponseEncomendaDto>(mappedItems, result.TotalCount, result.CurrentPage, result.PageSize);
         }
 
         /// <summary>
         /// Lista encomendas com estado nao terminal.
         /// </summary>
-        /// <returns>Colecao de DTOs de encomendas por concluir.</returns>
-        public async Task<PagedResult<ResponseEncomendaDTO>> GetEncomendasPorConcluirAsync(int page = 1, int pageSize = 10)
+        /// <returns>Colecao de Dtos de encomendas por concluir.</returns>
+        public async Task<PagedResult<ResponseEncomendaDto>> GetEncomendasPorConcluirAsync(int page = 1, int pageSize = 10)
         {
             var result = await _encomendaRepository.GetEncomendasPorConcluirAsync(page, pageSize);
-            var mappedItems = _mapper.Map<IEnumerable<ResponseEncomendaDTO>>(result.Items);
-            return new PagedResult<ResponseEncomendaDTO>(mappedItems, result.TotalCount, result.CurrentPage, result.PageSize);
+            var mappedItems = _mapper.Map<IEnumerable<ResponseEncomendaDto>>(result.Items);
+            return new PagedResult<ResponseEncomendaDto>(mappedItems, result.TotalCount, result.CurrentPage, result.PageSize);
         }
 
         /// <summary>
@@ -105,13 +105,13 @@ namespace TipMolde.Application.Service
         /// </summary>
         /// <param name="numero">Numero de encomenda do cliente.</param>
         /// <returns>DTO da encomenda encontrada ou nulo.</returns>
-        public async Task<ResponseEncomendaDTO?> GetByNumeroEncomendaClienteAsync(string numero)
+        public async Task<ResponseEncomendaDto?> GetByNumeroEncomendaClienteAsync(string numero)
         {
             if (string.IsNullOrWhiteSpace(numero))
                 throw new ArgumentException("O numero de encomenda do cliente e obrigatorio.");
 
             var encomenda = await _encomendaRepository.GetByNumeroEncomendaClienteAsync(numero);
-            return encomenda == null ? null : _mapper.Map<ResponseEncomendaDTO>(encomenda);
+            return encomenda == null ? null : _mapper.Map<ResponseEncomendaDto>(encomenda);
         }
 
         /// <summary>
@@ -127,7 +127,7 @@ namespace TipMolde.Application.Service
         /// </remarks>
         /// <param name="dto">Dados de criacao.</param>
         /// <returns>DTO da encomenda criada e persistida.</returns>
-        public async Task<ResponseEncomendaDTO> CreateAsync(CreateEncomendaDTO dto)
+        public async Task<ResponseEncomendaDto> CreateAsync(CreateEncomendaDto dto)
         {
             if (string.IsNullOrWhiteSpace(dto.NumeroEncomendaCliente))
                 throw new ArgumentException("O numero de encomenda do cliente e obrigatorio.");
@@ -149,7 +149,7 @@ namespace TipMolde.Application.Service
             await _encomendaRepository.AddAsync(novaEncomenda);
             _logger.LogInformation("Encomenda criada com sucesso {EncomendaId}", novaEncomenda.Encomenda_id);
 
-            return _mapper.Map<ResponseEncomendaDTO>(novaEncomenda);
+            return _mapper.Map<ResponseEncomendaDto>(novaEncomenda);
         }
 
         /// <summary>
@@ -162,7 +162,7 @@ namespace TipMolde.Application.Service
         /// <param name="dto">DTO alvo e campos opcionais de patch.</param>
         /// <param name="id">Identificador da encomenda a ser atualizada.</param>
         /// <returns>Task de conclusao da operacao.</returns>
-        public async Task UpdateAsync(int id, UpdateEncomendaDTO dto)
+        public async Task UpdateAsync(int id, UpdateEncomendaDto dto)
         {
             var existente = await _encomendaRepository.GetByIdAsync(id);
             if (existente == null)
@@ -202,7 +202,7 @@ namespace TipMolde.Application.Service
         /// <param name="id">Identificador da encomenda.</param>
         /// <param name="dto">DTO contendo o novo estado da encomenda.</param>
         /// <returns>Task de conclusao da operacao.</returns>
-        public async Task UpdateEstadoAsync(int id, UpdateEstadoEncomendaDTO dto)
+        public async Task UpdateEstadoAsync(int id, UpdateEstadoEncomendaDto dto)
         {
             var encomenda = await _encomendaRepository.GetByIdAsync(id);
             if (encomenda == null)

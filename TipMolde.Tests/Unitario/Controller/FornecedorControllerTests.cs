@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Moq;
 using TipMolde.API.Controllers;
-using TipMolde.Application.DTOs.FornecedorDTO;
+using TipMolde.Application.Dtos.FornecedorDto;
 using TipMolde.Application.Interface;
 using TipMolde.Application.Interface.Comercio.IFornecedor;
 
@@ -34,9 +34,9 @@ public class FornecedorControllerTests
         };
     }
 
-    private static ResponseFornecedorDTO BuildResponse(int id = 1, string nome = "Fornecedor A")
+    private static ResponseFornecedorDto BuildResponse(int id = 1, string nome = "Fornecedor A")
     {
-        return new ResponseFornecedorDTO
+        return new ResponseFornecedorDto
         {
             FornecedorId = id,
             Nome = nome,
@@ -64,7 +64,7 @@ public class FornecedorControllerTests
     public async Task GetById_Should_ReturnNotFound_When_FornecedorDoesNotExist()
     {
         // ARRANGE
-        _fornecedorService.Setup(s => s.GetByIdAsync(88)).ReturnsAsync((ResponseFornecedorDTO?)null);
+        _fornecedorService.Setup(s => s.GetByIdAsync(88)).ReturnsAsync((ResponseFornecedorDto?)null);
 
         // ACT
         var result = await _controller.GetById(88);
@@ -119,7 +119,7 @@ public class FornecedorControllerTests
     public async Task SearchByName_Should_ReturnPagedPayload_When_RequestIsValid()
     {
         // ARRANGE
-        var items = new List<ResponseFornecedorDTO>
+        var items = new List<ResponseFornecedorDto>
         {
             BuildResponse(id: 1),
             BuildResponse(id: 2, nome: "Fornecedor B")
@@ -127,7 +127,7 @@ public class FornecedorControllerTests
 
         _fornecedorService
             .Setup(s => s.SearchByNameAsync("Fornecedor", 1, 10))
-            .ReturnsAsync(new PagedResult<ResponseFornecedorDTO>(items, 2, 1, 10));
+            .ReturnsAsync(new PagedResult<ResponseFornecedorDto>(items, 2, 1, 10));
 
         // ACT
         var result = await _controller.SearchByName("Fornecedor", 1, 10);
@@ -135,7 +135,7 @@ public class FornecedorControllerTests
         // ASSERT
         var ok = result as OkObjectResult;
         ok.Should().NotBeNull();
-        ok!.Value.Should().BeEquivalentTo(new PagedResult<ResponseFornecedorDTO>(items, 2, 1, 10));
+        ok!.Value.Should().BeEquivalentTo(new PagedResult<ResponseFornecedorDto>(items, 2, 1, 10));
     }
 
     [Test(Description = "T7FORCONT - Create deve devolver bad request quando model state e invalido.")]
@@ -143,7 +143,7 @@ public class FornecedorControllerTests
     {
         // ARRANGE
         _controller.ModelState.AddModelError("Nome", "Obrigatorio");
-        var dto = new CreateFornecedorDTO
+        var dto = new CreateFornecedorDto
         {
             Nome = "Fornecedor A",
             NIF = "123456789"
@@ -154,14 +154,14 @@ public class FornecedorControllerTests
 
         // ASSERT
         result.Should().BeOfType<BadRequestObjectResult>();
-        _fornecedorService.Verify(s => s.CreateAsync(It.IsAny<CreateFornecedorDTO>()), Times.Never);
+        _fornecedorService.Verify(s => s.CreateAsync(It.IsAny<CreateFornecedorDto>()), Times.Never);
     }
 
     [Test(Description = "T8FORCONT - Create deve devolver created at action quando dados sao validos.")]
     public async Task Create_Should_ReturnCreatedAtAction_When_RequestIsValid()
     {
         // ARRANGE
-        var dto = new CreateFornecedorDTO
+        var dto = new CreateFornecedorDto
         {
             Nome = "Fornecedor A",
             NIF = "123456789",
@@ -191,7 +191,7 @@ public class FornecedorControllerTests
     {
         // ARRANGE
         _controller.ModelState.AddModelError("Nome", "Invalido");
-        var dto = new UpdateFornecedorDTO
+        var dto = new UpdateFornecedorDto
         {
             Nome = "Fornecedor B"
         };
@@ -201,14 +201,14 @@ public class FornecedorControllerTests
 
         // ASSERT
         result.Should().BeOfType<BadRequestObjectResult>();
-        _fornecedorService.Verify(s => s.UpdateAsync(It.IsAny<int>(), It.IsAny<UpdateFornecedorDTO>()), Times.Never);
+        _fornecedorService.Verify(s => s.UpdateAsync(It.IsAny<int>(), It.IsAny<UpdateFornecedorDto>()), Times.Never);
     }
 
     [Test(Description = "T10FORCONT - Update deve devolver no content quando pedido e valido.")]
     public async Task Update_Should_ReturnNoContent_When_RequestIsValid()
     {
         // ARRANGE
-        var dto = new UpdateFornecedorDTO
+        var dto = new UpdateFornecedorDto
         {
             Nome = "Fornecedor Novo",
             Email = "novo@tipmolde.pt"
@@ -219,7 +219,7 @@ public class FornecedorControllerTests
 
         // ASSERT
         result.Should().BeOfType<NoContentResult>();
-        _fornecedorService.Verify(s => s.UpdateAsync(5, It.Is<UpdateFornecedorDTO>(f =>
+        _fornecedorService.Verify(s => s.UpdateAsync(5, It.Is<UpdateFornecedorDto>(f =>
             f.Nome == "Fornecedor Novo" &&
             f.Email == "novo@tipmolde.pt")), Times.Once);
     }

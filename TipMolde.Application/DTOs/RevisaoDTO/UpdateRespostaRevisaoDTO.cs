@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace TipMolde.Application.DTOs.RevisaoDTO
+namespace TipMolde.Application.Dtos.RevisaoDto
 {
     /// <summary>
     /// Representa o pedido de resposta do cliente a uma revisao enviada.
@@ -9,7 +9,7 @@ namespace TipMolde.Application.DTOs.RevisaoDTO
     /// Quando a revisao e rejeitada, o pedido deve incluir justificacao textual
     /// ou referencia para evidencia anexa, para preservar contexto funcional.
     /// </remarks>
-    public class UpdateRespostaRevisaoDTO : IValidatableObject
+    public class UpdateRespostaRevisaoDto : IValidatableObject
     {
         [Required]
         public bool? Aprovado { get; set; }

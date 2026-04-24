@@ -1,8 +1,8 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace TipMolde.Application.DTOs.EncomendaMoldeDTO
+namespace TipMolde.Application.Dtos.EncomendaMoldeDto
 {
-    public class UpdateEncomendaMoldeDTO
+    public class UpdateEncomendaMoldeDto
     {
         [Range(1, 999999)]
         public int? Quantidade { get; set; }

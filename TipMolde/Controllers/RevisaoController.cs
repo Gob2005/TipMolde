@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using TipMolde.Application.DTOs.RevisaoDTO;
+using TipMolde.Application.Dtos.RevisaoDto;
 using TipMolde.Application.Interface.Desenho.IRevisao;
 
 namespace TipMolde.API.Controllers
@@ -81,7 +81,7 @@ namespace TipMolde.API.Controllers
         /// <returns>HTTP 201 com a revisao criada; HTTP 400 quando o body e invalido.</returns>
         [Authorize(Roles = "ADMIN")]
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] CreateRevisaoDTO dto)
+        public async Task<IActionResult> Create([FromBody] CreateRevisaoDto dto)
         {
             if (!ModelState.IsValid)
             {
@@ -106,7 +106,7 @@ namespace TipMolde.API.Controllers
         /// <returns>HTTP 204 quando a operacao e concluida; HTTP 400 quando o body e invalido.</returns>
         [Authorize(Roles = "ADMIN")]
         [HttpPut("{id:int}/resposta-cliente")]
-        public async Task<IActionResult> UpdateRespostaCliente(int id, [FromBody] UpdateRespostaRevisaoDTO dto)
+        public async Task<IActionResult> UpdateRespostaCliente(int id, [FromBody] UpdateRespostaRevisaoDto dto)
         {
             if (!ModelState.IsValid)
             {

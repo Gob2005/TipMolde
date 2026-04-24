@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using TipMolde.Application.DTOs.Fases_producaoDTO;
+using TipMolde.Application.Dtos.Fases_producaoDto;
 using TipMolde.Application.Interface.Producao.IFasesProducao;
 using TipMolde.Domain.Entities.Producao;
 
@@ -36,7 +36,7 @@ namespace TipMolde.API.Controllers
 
         [Authorize(Roles = "ADMIN")]
         [HttpPost("create-fases_producao")]
-        public async Task<IActionResult> CreateFases_producao([FromBody] CreateFasesProducaoDTO dto)
+        public async Task<IActionResult> CreateFases_producao([FromBody] CreateFasesProducaoDto dto)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
@@ -52,7 +52,7 @@ namespace TipMolde.API.Controllers
 
         [Authorize(Roles = "ADMIN")]
         [HttpPut("update-fases_producao/{id:int}")]
-        public async Task<IActionResult> UpdateFases_producao(int id, [FromBody] UpdateFasesProducaoDTO dto)
+        public async Task<IActionResult> UpdateFases_producao(int id, [FromBody] UpdateFasesProducaoDto dto)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 

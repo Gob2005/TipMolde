@@ -2,7 +2,7 @@ using AutoMapper;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Moq;
-using TipMolde.Application.DTOs.MoldeDTO;
+using TipMolde.Application.Dtos.MoldeDto;
 using TipMolde.Application.Interface;
 using TipMolde.Application.Interface.Comercio.IEncomenda;
 using TipMolde.Application.Interface.Producao.IMolde;
@@ -41,9 +41,9 @@ public class MoldeServiceTests
             _logger.Object);
     }
 
-    private static CreateMoldeDTO BuildCreateDto(string numero = " MOL-001 ")
+    private static CreateMoldeDto BuildCreateDto(string numero = " MOL-001 ")
     {
-        return new CreateMoldeDTO
+        return new CreateMoldeDto
         {
             Numero = numero,
             NumeroMoldeCliente = "CLI-001",
@@ -201,7 +201,7 @@ public class MoldeServiceTests
     {
         // ARRANGE
         var existente = BuildMolde(id: 11);
-        var dto = new UpdateMoldeDTO();
+        var dto = new UpdateMoldeDto();
 
         _moldeRepository.Setup(r => r.GetByIdAsync(11)).ReturnsAsync(existente);
 
@@ -218,7 +218,7 @@ public class MoldeServiceTests
     {
         // ARRANGE
         var existente = BuildMolde(id: 12, numero: "MOL-012", tipoPedido: TipoPedido.ALTERACAO);
-        var dto = new UpdateMoldeDTO
+        var dto = new UpdateMoldeDto
         {
             Nome = "Novo Nome",
             MaterialInjecao = "PP"
@@ -330,7 +330,7 @@ public class MoldeServiceTests
         _moldeRepository.Setup(r => r.GetByIdAsync(404)).ReturnsAsync((Molde?)null);
 
         // ACT
-        Func<Task> act = () => _sut.UpdateAsync(404, new UpdateMoldeDTO { Nome = "Novo Nome" });
+        Func<Task> act = () => _sut.UpdateAsync(404, new UpdateMoldeDto { Nome = "Novo Nome" });
 
         // ASSERT
         await act.Should().ThrowAsync<KeyNotFoundException>();
@@ -345,7 +345,7 @@ public class MoldeServiceTests
         _moldeRepository.Setup(r => r.GetByNumeroAsync("MOL-051")).ReturnsAsync(BuildMolde(id: 51, numero: "MOL-051"));
 
         // ACT
-        Func<Task> act = () => _sut.UpdateAsync(50, new UpdateMoldeDTO { Numero = " MOL-051 " });
+        Func<Task> act = () => _sut.UpdateAsync(50, new UpdateMoldeDto { Numero = " MOL-051 " });
 
         // ASSERT
         await act.Should().ThrowAsync<ArgumentException>();

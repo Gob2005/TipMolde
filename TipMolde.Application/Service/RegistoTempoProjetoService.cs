@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.Extensions.Logging;
-using TipMolde.Application.DTOs.RegistoTempoProjetoDTO;
+using TipMolde.Application.Dtos.RegistoTempoProjetoDto;
 using TipMolde.Application.Interface;
 using TipMolde.Application.Interface.Desenho.IProjeto;
 using TipMolde.Application.Interface.Desenho.IRegistoTempoProjeto;
@@ -16,7 +16,7 @@ namespace TipMolde.Application.Service
     /// </summary>
     /// <remarks>
     /// O service centraliza validacoes de negocio, integridade entre projeto e peca,
-    /// machine state do historico temporal, mapping para DTOs e rastreabilidade por logging.
+    /// machine state do historico temporal, mapping para Dtos e rastreabilidade por logging.
     /// </remarks>
     public class RegistoTempoProjetoService : IRegistoTempoProjetoService
     {
@@ -34,7 +34,7 @@ namespace TipMolde.Application.Service
         /// <param name="projetoRepository">Repositorio usado para validar a existencia do projeto.</param>
         /// <param name="userRepository">Repositorio usado para validar o autor do registo.</param>
         /// <param name="pecaRepository">Repositorio usado para validar a peca associada ao registo.</param>
-        /// <param name="mapper">Mapper para conversao entre DTOs e entidade.</param>
+        /// <param name="mapper">Mapper para conversao entre Dtos e entidade.</param>
         /// <param name="logger">Logger para rastreabilidade das operacoes criticas.</param>
         public RegistoTempoProjetoService(
             IRegistoTempoProjetoRepository registoRepository,
@@ -60,11 +60,11 @@ namespace TipMolde.Application.Service
         /// <param name="page">Numero da pagina a ser retornada.</param>
         /// <param name="pageSize">Tamanho da pagina.</param>
         /// <returns>Colecao ordenada de registos convertidos para DTO.</returns>
-        public async Task<PagedResult<ResponseRegistoTempoProjetoDTO>> GetHistoricoAsync(int projetoId, int autorId, int page = 1, int pageSize = 10)
+        public async Task<PagedResult<ResponseRegistoTempoProjetoDto>> GetHistoricoAsync(int projetoId, int autorId, int page = 1, int pageSize = 10)
         {
             var result = await _registoRepository.GetHistoricoAsync(projetoId, autorId, page, pageSize);
-            var itens = _mapper.Map<IEnumerable<ResponseRegistoTempoProjetoDTO>>(result.Items);
-            return new PagedResult<ResponseRegistoTempoProjetoDTO>(itens, result.TotalCount, result.CurrentPage, result.PageSize);
+            var itens = _mapper.Map<IEnumerable<ResponseRegistoTempoProjetoDto>>(result.Items);
+            return new PagedResult<ResponseRegistoTempoProjetoDto>(itens, result.TotalCount, result.CurrentPage, result.PageSize);
         }
 
         /// <summary>
@@ -72,10 +72,10 @@ namespace TipMolde.Application.Service
         /// </summary>
         /// <param name="id">Identificador interno do registo.</param>
         /// <returns>DTO do registo quando encontrado; nulo caso contrario.</returns>
-        public async Task<ResponseRegistoTempoProjetoDTO?> GetByIdAsync(int id)
+        public async Task<ResponseRegistoTempoProjetoDto?> GetByIdAsync(int id)
         {
             var registo = await _registoRepository.GetByIdAsync(id);
-            return registo == null ? null : _mapper.Map<ResponseRegistoTempoProjetoDTO>(registo);
+            return registo == null ? null : _mapper.Map<ResponseRegistoTempoProjetoDto>(registo);
         }
 
         /// <summary>
@@ -91,7 +91,7 @@ namespace TipMolde.Application.Service
         /// </remarks>
         /// <param name="dto">Dados de criacao do registo.</param>
         /// <returns>DTO do registo criado.</returns>
-        public async Task<ResponseRegistoTempoProjetoDTO> CreateRegistoAsync(CreateRegistoTempoProjetoDTO dto)
+        public async Task<ResponseRegistoTempoProjetoDto> CreateRegistoAsync(CreateRegistoTempoProjetoDto dto)
         {
             if (!dto.Estado_tempo.HasValue)
                 throw new ArgumentException("Estado_tempo e obrigatorio.");
@@ -130,7 +130,7 @@ namespace TipMolde.Application.Service
                 registo.Peca_id,
                 registo.Estado_tempo);
 
-            return _mapper.Map<ResponseRegistoTempoProjetoDTO>(registo);
+            return _mapper.Map<ResponseRegistoTempoProjetoDto>(registo);
         }
 
         /// <summary>

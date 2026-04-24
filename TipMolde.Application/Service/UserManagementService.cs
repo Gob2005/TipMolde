@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using AutoMapper;
-using TipMolde.Application.DTOs.UserDTO;
+using TipMolde.Application.Dtos.UserDto;
 using TipMolde.Application.Interface;
 using TipMolde.Application.Interface.Utilizador.ISecurity;
 using TipMolde.Application.Interface.Utilizador.IUser;
@@ -28,23 +28,23 @@ namespace TipMolde.Application.Service
             _logger = logger;
         }
 
-        public async Task<PagedResult<ResponseUserDTO>> GetAllAsync(int page = 1, int pageSize = 10)
+        public async Task<PagedResult<ResponseUserDto>> GetAllAsync(int page = 1, int pageSize = 10)
         {
             var result = await _userRepository.GetAllAsync(page, pageSize);
-            var mappedItems = _mapper.Map<IEnumerable<ResponseUserDTO>>(result.Items);
-            return new PagedResult<ResponseUserDTO>(mappedItems, result.TotalCount, result.CurrentPage, result.PageSize);
+            var mappedItems = _mapper.Map<IEnumerable<ResponseUserDto>>(result.Items);
+            return new PagedResult<ResponseUserDto>(mappedItems, result.TotalCount, result.CurrentPage, result.PageSize);
         }
 
-        public async Task<ResponseUserDTO?> GetByIdAsync(int id)
+        public async Task<ResponseUserDto?> GetByIdAsync(int id)
         {
             var user = await _userRepository.GetByIdAsync(id);
-            return user == null ? null : _mapper.Map<ResponseUserDTO>(user);
+            return user == null ? null : _mapper.Map<ResponseUserDto>(user);
         }
 
-        public async Task<PagedResult<ResponseUserDTO>> SearchByNameAsync(string searchTerm, int page = 1, int pageSize = 10)
+        public async Task<PagedResult<ResponseUserDto>> SearchByNameAsync(string searchTerm, int page = 1, int pageSize = 10)
         {
             if (string.IsNullOrWhiteSpace(searchTerm))
-                return new PagedResult<ResponseUserDTO>(Enumerable.Empty<ResponseUserDTO>(), 0, page, pageSize);
+                return new PagedResult<ResponseUserDto>(Enumerable.Empty<ResponseUserDto>(), 0, page, pageSize);
 
             var users = await _userRepository.SearchByNameAsync(searchTerm);
             var normalizedPage = page < 1 ? 1 : page;
@@ -53,18 +53,18 @@ namespace TipMolde.Application.Service
             var pagedItems = users
                 .Skip((normalizedPage - 1) * normalizedPageSize)
                 .Take(normalizedPageSize);
-            var mappedItems = _mapper.Map<IEnumerable<ResponseUserDTO>>(pagedItems);
+            var mappedItems = _mapper.Map<IEnumerable<ResponseUserDto>>(pagedItems);
 
-            return new PagedResult<ResponseUserDTO>(mappedItems, totalCount, normalizedPage, normalizedPageSize);
+            return new PagedResult<ResponseUserDto>(mappedItems, totalCount, normalizedPage, normalizedPageSize);
         }
 
-        public async Task<ResponseUserDTO?> GetByEmailAsync(string email)
+        public async Task<ResponseUserDto?> GetByEmailAsync(string email)
         {
             var user = await _userRepository.GetByEmailAsync(email);
-            return user == null ? null : _mapper.Map<ResponseUserDTO>(user);
+            return user == null ? null : _mapper.Map<ResponseUserDto>(user);
         }
 
-        public async Task<ResponseUserDTO> CreateAsync(CreateUserDTO dto)
+        public async Task<ResponseUserDto> CreateAsync(CreateUserDto dto)
         {
             var user = _mapper.Map<User>(dto);
             _logger.LogInformation("Criacao de utilizador iniciada para email {Email}", user.Email);
@@ -87,10 +87,10 @@ namespace TipMolde.Application.Service
 
             await _userRepository.AddAsync(user);
             _logger.LogInformation("Utilizador criado com sucesso {UserId}", user.User_id);
-            return _mapper.Map<ResponseUserDTO>(user);
+            return _mapper.Map<ResponseUserDto>(user);
         }
 
-        public async Task UpdateAsync(int id, UpdateUserDTO dto)
+        public async Task UpdateAsync(int id, UpdateUserDto dto)
         {
             _logger.LogInformation("Atualizacao de utilizador iniciada {UserId}", id);
             var existing = await _userRepository.GetByIdAsync(id);

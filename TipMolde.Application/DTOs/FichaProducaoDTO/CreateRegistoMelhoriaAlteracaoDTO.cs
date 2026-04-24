@@ -1,8 +1,8 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace TipMolde.Application.DTOs.FichaProducaoDTO
+namespace TipMolde.Application.Dtos.FichaProducaoDto
 {
-    public class CreateRegistoMelhoriaAlteracaoDTO
+    public class CreateRegistoMelhoriaAlteracaoDto
     {
         [Required, MaxLength(2000)]
         public required string ItemDescricao { get; set; }

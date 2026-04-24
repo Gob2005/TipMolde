@@ -1,11 +1,11 @@
 ﻿using TipMolde.Domain.Enums;
 
-namespace TipMolde.Application.DTOs.PedidoMaterialDTO
+namespace TipMolde.Application.Dtos.PedidoMaterialDto
 {
     /// <summary>
     /// DTO de resposta do agregado pedido de material.
     /// </summary>
-    public class ResponsePedidoMaterialDTO
+    public class ResponsePedidoMaterialDto
     {
         /// <summary>
         /// Identificador unico do pedido.
@@ -40,6 +40,6 @@ namespace TipMolde.Application.DTOs.PedidoMaterialDTO
         /// <summary>
         /// Linhas do pedido.
         /// </summary>
-        public List<ResponseItemPedidoMaterialDTO> Itens { get; set; } = new();
+        public List<ResponseItemPedidoMaterialDto> Itens { get; set; } = new();
     }
 }

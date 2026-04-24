@@ -1,4 +1,4 @@
-﻿using TipMolde.Application.DTOs.RevisaoDTO;
+﻿using TipMolde.Application.Dtos.RevisaoDto;
 
 namespace TipMolde.Application.Interface.Desenho.IRevisao
 {
@@ -13,22 +13,22 @@ namespace TipMolde.Application.Interface.Desenho.IRevisao
         /// <param name="projetoId">Identificador do projeto.</param>
         /// <param name="page">Numero da pagina a ser retornada.</param>
         /// <param name="pageSize">Quantidade de itens por pagina.</param>
-        /// <returns>Colecao de DTOs de revisao ordenados por numero decrescente.</returns>
-        Task<PagedResult<ResponseRevisaoDTO>> GetByProjetoIdAsync(int projetoId, int page = 1, int pageSize = 10);
+        /// <returns>Colecao de Dtos de revisao ordenados por numero decrescente.</returns>
+        Task<PagedResult<ResponseRevisaoDto>> GetByProjetoIdAsync(int projetoId, int page = 1, int pageSize = 10);
 
         /// <summary>
         /// Obtem uma revisao por identificador.
         /// </summary>
         /// <param name="id">Identificador interno da revisao.</param>
         /// <returns>DTO da revisao quando encontrada; nulo caso contrario.</returns>
-        Task<ResponseRevisaoDTO?> GetByIdAsync(int id);
+        Task<ResponseRevisaoDto?> GetByIdAsync(int id);
 
         /// <summary>
         /// Cria uma nova revisao para um projeto.
         /// </summary>
         /// <param name="dto">Dados de criacao da revisao.</param>
         /// <returns>DTO da revisao criada.</returns>
-        Task<ResponseRevisaoDTO> CreateAsync(CreateRevisaoDTO dto);
+        Task<ResponseRevisaoDto> CreateAsync(CreateRevisaoDto dto);
 
         /// <summary>
         /// Regista a primeira resposta do cliente a uma revisao enviada.
@@ -36,7 +36,7 @@ namespace TipMolde.Application.Interface.Desenho.IRevisao
         /// <param name="revisaoId">Identificador da revisao.</param>
         /// <param name="dto">Payload de resposta do cliente.</param>
         /// <returns>Task de conclusao da operacao.</returns>
-        Task UpdateRespostaClienteAsync(int revisaoId, UpdateRespostaRevisaoDTO dto);
+        Task UpdateRespostaClienteAsync(int revisaoId, UpdateRespostaRevisaoDto dto);
 
         /// <summary>
         /// Remove uma revisao existente.

@@ -1,9 +1,9 @@
-﻿namespace TipMolde.Application.DTOs.PedidoMaterialDTO
+﻿namespace TipMolde.Application.Dtos.PedidoMaterialDto
 {
     /// <summary>
     /// DTO de resposta para uma linha de pedido de material.
     /// </summary>
-    public class ResponseItemPedidoMaterialDTO
+    public class ResponseItemPedidoMaterialDto
     {
         /// <summary>
         /// Identificador tecnico da linha.

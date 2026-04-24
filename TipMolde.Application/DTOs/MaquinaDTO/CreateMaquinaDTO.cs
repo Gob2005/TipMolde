@@ -1,9 +1,9 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using TipMolde.Domain.Enums;
 
-namespace TipMolde.Application.DTOs.MaquinaDTO
+namespace TipMolde.Application.Dtos.MaquinaDto
 {
-    public class CreateMaquinaDTO
+    public class CreateMaquinaDto
     {
         [Required]
         [Range(1, int.MaxValue)]

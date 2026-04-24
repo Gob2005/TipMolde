@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
 using FluentAssertions;
-using TipMolde.Application.DTOs.PecaDTO;
+using TipMolde.Application.Dtos.PecaDto;
 using TipMolde.Application.Mappings;
 using TipMolde.Domain.Entities.Producao;
 
@@ -32,8 +32,8 @@ public class PecaProfileTests
         act.Should().NotThrow();
     }
 
-    [Test(Description = "TPECAMAP2 - Entidade Peca deve mapear para ResponsePecaDTO com PecaId preenchido.")]
-    public void Peca_Should_MapTo_ResponsePecaDTO()
+    [Test(Description = "TPECAMAP2 - Entidade Peca deve mapear para ResponsePecaDto com PecaId preenchido.")]
+    public void Peca_Should_MapTo_ResponsePecaDto()
     {
         // ARRANGE
         var source = new Peca
@@ -47,7 +47,7 @@ public class PecaProfileTests
         };
 
         // ACT
-        var result = _mapper.Map<ResponsePecaDTO>(source);
+        var result = _mapper.Map<ResponsePecaDto>(source);
 
         // ASSERT
         result.PecaId.Should().Be(5);
@@ -56,11 +56,11 @@ public class PecaProfileTests
         result.Molde_id.Should().Be(7);
     }
 
-    [Test(Description = "TPECAMAP3 - CreatePecaDTO deve mapear para Peca com normalizacao simples de strings.")]
+    [Test(Description = "TPECAMAP3 - CreatePecaDto deve mapear para Peca com normalizacao simples de strings.")]
     public void CreatePecaDTO_Should_MapTo_Peca()
     {
         // ARRANGE
-        var source = new CreatePecaDTO
+        var source = new CreatePecaDto
         {
             Designacao = "  Extrator  ",
             Prioridade = 3,
@@ -78,11 +78,11 @@ public class PecaProfileTests
         result.Molde_id.Should().Be(11);
     }
 
-    [Test(Description = "TPECAMAP4 - UpdatePecaDTO deve atualizar apenas campos enviados e preservar os restantes.")]
+    [Test(Description = "TPECAMAP4 - UpdatePecaDto deve atualizar apenas campos enviados e preservar os restantes.")]
     public void UpdatePecaDTO_Should_MapOnlyProvidedFields_When_MappingToExistingPeca()
     {
         // ARRANGE
-        var source = new UpdatePecaDTO
+        var source = new UpdatePecaDto
         {
             Designacao = "  Nova Peca  ",
             Prioridade = 4

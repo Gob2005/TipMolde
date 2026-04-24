@@ -1,8 +1,8 @@
 ﻿using TipMolde.Domain.Enums;
 
-namespace TipMolde.Application.DTOs.EncomendaDTO
+namespace TipMolde.Application.Dtos.EncomendaDto
 {
-    public class ResponseEncomendaDTO
+    public class ResponseEncomendaDto
     {
         public int Encomenda_id { get; set; }
         public string? NumeroEncomendaCliente { get; set; }

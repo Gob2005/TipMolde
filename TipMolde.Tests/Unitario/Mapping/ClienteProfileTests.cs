@@ -1,6 +1,6 @@
 using AutoMapper;
 using FluentAssertions;
-using TipMolde.Application.DTOs.ClienteDTO;
+using TipMolde.Application.Dtos.ClienteDto;
 using TipMolde.Application.Mappings;
 using TipMolde.Domain.Entities.Comercio;
 using TipMolde.Domain.Enums;
@@ -42,11 +42,11 @@ namespace TipMolde.Tests.Unitario.Mapping
             act.Should().NotThrow();
         }
 
-        [Test(Description = "T2MAPCLI - CreateClienteDTO aplica trim nos campos de texto.")]
+        [Test(Description = "T2MAPCLI - CreateClienteDto aplica trim nos campos de texto.")]
         public void CreateClienteDTO_Should_MapWithTrim_When_FieldsContainOuterSpaces()
         {
             // ARRANGE
-            var source = new CreateClienteDTO
+            var source = new CreateClienteDto
             {
                 Nome = "  Cliente Teste  ",
                 NIF = " 123456789 ",
@@ -68,11 +68,11 @@ namespace TipMolde.Tests.Unitario.Mapping
             result.Telefone.Should().Be("912345678");
         }
 
-        [Test(Description = "T3MAPCLI - UpdateClienteDTO aplica trim e preserva valores quando campos sao nulos.")]
+        [Test(Description = "T3MAPCLI - UpdateClienteDto aplica trim e preserva valores quando campos sao nulos.")]
         public void UpdateClienteDTO_Should_TrimAndPreserveValues_When_NullAndWhitespaceFieldsAreProvided()
         {
             // ARRANGE
-            var source = new UpdateClienteDTO
+            var source = new UpdateClienteDto
             {
                 Nome = "  Novo Nome  ",
                 NIF = null,
@@ -106,11 +106,11 @@ namespace TipMolde.Tests.Unitario.Mapping
             destination.Telefone.Should().Be("910000000");
         }
 
-        [Test(Description = "T4MAPCLI - UpdateClienteDTO ignora campos apenas com espacos para nao sobrescrever dados existentes.")]
+        [Test(Description = "T4MAPCLI - UpdateClienteDto ignora campos apenas com espacos para nao sobrescrever dados existentes.")]
         public void UpdateClienteDTO_Should_IgnoreWhitespaceOnlyValues_When_MappingToExistingEntity()
         {
             // ARRANGE
-            var source = new UpdateClienteDTO
+            var source = new UpdateClienteDto
             {
                 Nome = "   ",
                 NIF = "   ",
@@ -144,7 +144,7 @@ namespace TipMolde.Tests.Unitario.Mapping
             destination.Telefone.Should().Be("919999999");
         }
 
-        [Test(Description = "T5MAPCLI - Cliente para ResponseClienteDTO devolve campos normalizados com trim.")]
+        [Test(Description = "T5MAPCLI - Cliente para ResponseClienteDto devolve campos normalizados com trim.")]
         public void Cliente_Should_MapToResponseClienteDTOWithTrim_When_SourceContainsOuterSpaces()
         {
             // ARRANGE
@@ -160,7 +160,7 @@ namespace TipMolde.Tests.Unitario.Mapping
             };
 
             // ACT
-            var result = _mapper.Map<ResponseClienteDTO>(source);
+            var result = _mapper.Map<ResponseClienteDto>(source);
 
             // ASSERT
             result.Cliente_id.Should().Be(42);
@@ -172,7 +172,7 @@ namespace TipMolde.Tests.Unitario.Mapping
             result.Telefone.Should().Be("911111111");
         }
 
-        [Test(Description = "T6MAPCLI - Cliente para ResponseClienteWithEncomendasDTO normaliza campos e mapeia encomendas.")]
+        [Test(Description = "T6MAPCLI - Cliente para ResponseClienteWithEncomendasDto normaliza campos e mapeia encomendas.")]
         public void Cliente_Should_MapToResponseClienteWithEncomendasDTO_When_HasRelatedEncomendas()
         {
             // ARRANGE
@@ -209,7 +209,7 @@ namespace TipMolde.Tests.Unitario.Mapping
             };
 
             // ACT
-            var result = _mapper.Map<ResponseClienteWithEncomendasDTO>(cliente);
+            var result = _mapper.Map<ResponseClienteWithEncomendasDto>(cliente);
 
             // ASSERT
             result.ClienteId.Should().Be(42);

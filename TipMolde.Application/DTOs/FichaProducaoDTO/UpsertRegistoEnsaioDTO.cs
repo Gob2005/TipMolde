@@ -1,8 +1,8 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace TipMolde.Application.DTOs.FichaProducaoDTO
+namespace TipMolde.Application.Dtos.FichaProducaoDto
 {
-    public class UpsertRegistoEnsaioDTO
+    public class UpsertRegistoEnsaioDto
     {
         [Required, MaxLength(100)]
         public required string LocalEnsaio { get; set; }

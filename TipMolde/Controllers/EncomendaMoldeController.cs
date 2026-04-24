@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using TipMolde.Application.DTOs.EncomendaMoldeDTO;
+using TipMolde.Application.Dtos.EncomendaMoldeDto;
 using TipMolde.Application.Interface.Comercio.IEncomendaMolde;
 
 namespace TipMolde.API.Controllers
@@ -96,7 +96,7 @@ namespace TipMolde.API.Controllers
         /// <returns>HTTP 201 com recurso criado; HTTP 400 quando o body e invalido.</returns>
         [Authorize(Roles = "ADMIN,GESTOR_COMERCIAL")]
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] CreateEncomendaMoldeDTO dto)
+        public async Task<IActionResult> Create([FromBody] CreateEncomendaMoldeDto dto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(CreateProblem(StatusCodes.Status400BadRequest, "Pedido invalido", "Dados de criacao invalidos."));
@@ -118,7 +118,7 @@ namespace TipMolde.API.Controllers
         /// <returns>HTTP 204 quando a atualizacao e concluida; HTTP 400 quando o body e invalido.</returns>
         [Authorize(Roles = "ADMIN,GESTOR_COMERCIAL")]
         [HttpPut("{id:int}")]
-        public async Task<IActionResult> Update(int id, [FromBody] UpdateEncomendaMoldeDTO dto)
+        public async Task<IActionResult> Update(int id, [FromBody] UpdateEncomendaMoldeDto dto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(CreateProblem(StatusCodes.Status400BadRequest, "Pedido invalido", "Dados de atualizacao invalidos."));

@@ -1,4 +1,4 @@
-﻿using TipMolde.Application.DTOs.MoldeDTO;
+﻿using TipMolde.Application.Dtos.MoldeDto;
 using TipMolde.Application.Interface;
 
 namespace TipMolde.Application.Interface.Producao.IMolde
@@ -7,7 +7,7 @@ namespace TipMolde.Application.Interface.Producao.IMolde
     /// Define os casos de uso publicos da feature Molde.
     /// </summary>
     /// <remarks>
-    /// O contrato expoe DTOs para evitar acoplamento direto entre API e entidades de dominio.
+    /// O contrato expoe Dtos para evitar acoplamento direto entre API e entidades de dominio.
     /// </remarks>
     public interface IMoldeService
     {
@@ -17,14 +17,14 @@ namespace TipMolde.Application.Interface.Producao.IMolde
         /// <param name="page">Pagina atual.</param>
         /// <param name="pageSize">Tamanho da pagina.</param>
         /// <returns>Resultado paginado com moldes.</returns>
-        Task<PagedResult<ResponseMoldeDTO>> GetAllAsync(int page = 1, int pageSize = 10);
+        Task<PagedResult<ResponseMoldeDto>> GetAllAsync(int page = 1, int pageSize = 10);
 
         /// <summary>
         /// Obtem um molde por identificador.
         /// </summary>
         /// <param name="id">Identificador interno do molde.</param>
         /// <returns>DTO do molde quando encontrado; nulo caso contrario.</returns>
-        Task<ResponseMoldeDTO?> GetByIdAsync(int id);
+        Task<ResponseMoldeDto?> GetByIdAsync(int id);
 
 
         /// <summary>
@@ -32,7 +32,7 @@ namespace TipMolde.Application.Interface.Producao.IMolde
         /// </summary>
         /// <param name="numero">Numero funcional do molde.</param>
         /// <returns>DTO do molde quando encontrado; nulo caso contrario.</returns>
-        Task<ResponseMoldeDTO?> GetByNumeroAsync(string numero);
+        Task<ResponseMoldeDto?> GetByNumeroAsync(string numero);
 
         /// <summary>
         /// Lista moldes associados a uma encomenda.
@@ -41,7 +41,7 @@ namespace TipMolde.Application.Interface.Producao.IMolde
         /// <param name="page">Pagina atual.</param>
         /// <param name="pageSize">Tamanho da pagina.</param>
         /// <returns>Colecao de moldes associados.</returns>
-        Task<PagedResult<ResponseMoldeDTO>> GetByEncomendaIdAsync(int encomendaId, int page = 1, int pageSize = 10);
+        Task<PagedResult<ResponseMoldeDto>> GetByEncomendaIdAsync(int encomendaId, int page = 1, int pageSize = 10);
 
         /// <summary>
         /// Verifica se ja existe um molde com o numero indicado.
@@ -61,7 +61,7 @@ namespace TipMolde.Application.Interface.Producao.IMolde
         /// </remarks>
         /// <param name="dto">Dados de criacao do molde.</param>
         /// <returns>DTO do molde criado.</returns>
-        Task<ResponseMoldeDTO> CreateAsync(CreateMoldeDTO dto);
+        Task<ResponseMoldeDto> CreateAsync(CreateMoldeDto dto);
 
         /// <summary>
         /// Atualiza parcialmente um molde existente.
@@ -72,7 +72,7 @@ namespace TipMolde.Application.Interface.Producao.IMolde
         /// <param name="id">Identificador do molde a atualizar.</param>
         /// <param name="dto">Dados de atualizacao parcial.</param>
         /// <returns>Task de conclusao da atualizacao.</returns>
-        Task UpdateAsync(int id, UpdateMoldeDTO dto);
+        Task UpdateAsync(int id, UpdateMoldeDto dto);
 
         /// <summary>
         /// Remove um molde existente.
