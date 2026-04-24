@@ -55,7 +55,6 @@ namespace TipMolde.Application.Mappings
                 .ForMember(dest => dest.RegistosTempo, opt => opt.Ignore());
 
             CreateMap<Projeto, ResponseProjetoDTO>();
-            CreateMap<Revisao, ResponseRevisaoDTO>();
 
             CreateMap<Projeto, ResponseProjetoWithRevisoesDTO>()
                 .ForMember(

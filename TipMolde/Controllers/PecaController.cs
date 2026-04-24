@@ -1,119 +1,179 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using MySqlX.XDevAPI.Common;
 using TipMolde.Application.DTOs.PecaDTO;
 using TipMolde.Application.Interface.Producao.IPeca;
-using TipMolde.Domain.Entities.Producao;
 
 namespace TipMolde.API.Controllers
 {
+    /// <summary>
+    /// Disponibiliza endpoints HTTP para a feature Peca.
+    /// </summary>
+    /// <remarks>
+    /// O controller valida input HTTP e delega regras de negocio ao servico.
+    /// </remarks>
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/pecas")]
     public class PecaController : ControllerBase
     {
         private readonly IPecaService _pecaService;
+        private readonly ILogger<PecaController> _logger;
 
-        public PecaController(IPecaService pecaService)
+        /// <summary>
+        /// Construtor de PecaController.
+        /// </summary>
+        /// <param name="pecaService">Servico responsavel pelos casos de uso da feature Peca.</param>
+        /// <param name="logger">Logger para rastreabilidade das operacoes HTTP.</param>
+        public PecaController(IPecaService pecaService, ILogger<PecaController> logger)
         {
             _pecaService = pecaService;
+            _logger = logger;
         }
 
+        /// <summary>
+        /// Lista pecas com paginacao.
+        /// </summary>
+        /// <param name="page">Pagina atual.</param>
+        /// <param name="pageSize">Tamanho da pagina.</param>
+        /// <returns>HTTP 200 com resultado paginado; HTTP 400 para paginacao invalida.</returns>
         [Authorize(Roles = "ADMIN,GESTOR_DESENHO")]
-        [HttpGet("all-pecas")]
-         public async Task<IActionResult> GetAllPecas()
+        [HttpGet]
+        public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
-            var result = await _pecaService.GetAllAsync();
-            return Ok(new
-            {
-                result.TotalCount,
-                result.CurrentPage,
-                result.PageSize,
-                Items = result.Items.Select(ToResponse)
-            });
+            if (page < 1 || pageSize < 1)
+                return BadRequest(CreateProblem(StatusCodes.Status400BadRequest, "Pedido invalido", "Page e pageSize devem ser >= 1."));
+
+            var result = await _pecaService.GetAllAsync(page, pageSize);
+            return Ok(result);
         }
 
+        /// <summary>
+        /// Obtem uma peca por ID.
+        /// </summary>
+        /// <param name="id">Identificador interno da peca.</param>
+        /// <returns>HTTP 200 com a peca; HTTP 404 quando nao encontrada.</returns>
         [Authorize(Roles = "ADMIN,GESTOR_DESENHO")]
-        [HttpGet("peca-byID")]
-        public async Task<IActionResult> GetPecaById(int id)
+        [HttpGet("{id:int}")]
+        public async Task<IActionResult> GetById(int id)
         {
             var peca = await _pecaService.GetByIdAsync(id);
-            if (peca == null) return NotFound();
-            return Ok(ToResponse(peca));
+            if (peca == null)
+                return NotFound(CreateProblem(StatusCodes.Status404NotFound, "Recurso nao encontrado", $"Peca com ID {id} nao encontrada."));
+
+            return Ok(peca);
         }
 
+        /// <summary>
+        /// Lista pecas de um molde com paginacao.
+        /// </summary>
+        /// <param name="moldeId">Identificador do molde.</param>
+        /// <param name="page">Pagina atual.</param>
+        /// <param name="pageSize">Tamanho da pagina.</param>
+        /// <returns>HTTP 200 com resultado paginado; HTTP 400 para paginacao invalida.</returns>
         [Authorize(Roles = "ADMIN,GESTOR_DESENHO")]
-        [HttpGet("by-molde")]
-        public async Task<IActionResult> GetByMoldeId([FromQuery] int moldeId)
+        [HttpGet("por-molde/{moldeId:int}")]
+        public async Task<IActionResult> GetByMoldeId(int moldeId, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
-            var pecas = await _pecaService.GetByMoldeIdAsync(moldeId);
-            return Ok(pecas.Items.Select(ToResponse));
+            if (page < 1 || pageSize < 1)
+                return BadRequest(CreateProblem(StatusCodes.Status400BadRequest, "Pedido invalido", "Page e pageSize devem ser >= 1."));
+
+            var result = await _pecaService.GetByMoldeIdAsync(moldeId, page, pageSize);
+            return Ok(result);
         }
 
+        /// <summary>
+        /// Obtem uma peca pela designacao dentro de um molde.
+        /// </summary>
+        /// <param name="designacao">Designacao funcional da peca.</param>
+        /// <param name="moldeId">Identificador do molde.</param>
+        /// <returns>HTTP 200 com a peca; HTTP 400 quando a query e invalida; HTTP 404 quando nao encontrada.</returns>
         [Authorize(Roles = "ADMIN,GESTOR_DESENHO")]
-        [HttpGet("by-designacao")]
+        [HttpGet("por-designacao")]
         public async Task<IActionResult> GetByDesignacao([FromQuery] string designacao, [FromQuery] int moldeId)
         {
             if (string.IsNullOrWhiteSpace(designacao))
-                return BadRequest("Designacao e obrigatoria.");
+                return BadRequest(CreateProblem(StatusCodes.Status400BadRequest, "Pedido invalido", "Designacao e obrigatoria."));
 
-            var peca = await _pecaService.GetByDesignacaoAsync(designacao.Trim(), moldeId);
-            if (peca == null) return NotFound();
-            return Ok(ToResponse(peca));
+            var peca = await _pecaService.GetByDesignacaoAsync(designacao, moldeId);
+            if (peca == null)
+                return NotFound(CreateProblem(StatusCodes.Status404NotFound, "Recurso nao encontrado", $"Peca '{designacao.Trim()}' nao encontrada no molde {moldeId}."));
+
+            return Ok(peca);
         }
 
+        /// <summary>
+        /// Cria uma nova peca.
+        /// </summary>
+        /// <param name="dto">Dados de criacao da peca.</param>
+        /// <returns>HTTP 201 com a peca criada; HTTP 400 quando o body e invalido.</returns>
         [Authorize(Roles = "ADMIN,GESTOR_DESENHO")]
-        [HttpPost("create-peca")]
-        public async Task<IActionResult> CreatePeca([FromBody] CreatePecaDTO dto)
+        [HttpPost]
+        public async Task<IActionResult> Create([FromBody] CreatePecaDTO dto)
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
+            if (!ModelState.IsValid)
+                return BadRequest(CreateProblem(StatusCodes.Status400BadRequest, "Pedido invalido", "Dados de criacao invalidos."));
 
-            var peca = new Peca
-            {
-                Designacao = dto.Designacao.Trim(),
-                Prioridade = dto.Prioridade,
-                MaterialDesignacao = dto.MaterialDesignacao,
-                MaterialRecebido = dto.MaterialRecebido,
-                Molde_id = dto.Molde_id
-            };
+            var created = await _pecaService.CreateAsync(dto);
 
-            var created = await _pecaService.CreateAsync(peca);
-            return CreatedAtAction(nameof(GetPecaById), new { id = created.Peca_id }, created);
+            _logger.LogInformation("Controller: Peca {PecaId} criada", created.PecaId);
+
+            return CreatedAtAction(nameof(GetById), new { id = created.PecaId }, created);
         }
 
+        /// <summary>
+        /// Atualiza parcialmente uma peca.
+        /// </summary>
+        /// <remarks>
+        /// Campos nao enviados devem manter o valor atual da peca.
+        /// </remarks>
+        /// <param name="id">Identificador da peca a atualizar.</param>
+        /// <param name="dto">Dados de atualizacao parcial.</param>
+        /// <returns>HTTP 204 quando a atualizacao e concluida; HTTP 400 quando o body e invalido.</returns>
         [Authorize(Roles = "ADMIN,GESTOR_DESENHO")]
-        [HttpPut("update-peca/{id:int}")]
-        public async Task<IActionResult> UpdatePeca(int id, [FromBody] UpdatePecaDTO dto)
+        [HttpPut("{id:int}")]
+        public async Task<IActionResult> Update(int id, [FromBody] UpdatePecaDTO dto)
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
+            if (!ModelState.IsValid)
+                return BadRequest(CreateProblem(StatusCodes.Status400BadRequest, "Pedido invalido", "Dados de atualizacao invalidos."));
 
-            var peca = new Peca
-            {
-                Peca_id = id,
-                Designacao = dto.Designacao ?? string.Empty,
-                Prioridade = dto.Prioridade ?? 0,
-                MaterialDesignacao = dto.MaterialDesignacao,
-                MaterialRecebido = dto.MaterialRecebido ?? false
-            };
+            await _pecaService.UpdateAsync(id, dto);
 
-            await _pecaService.UpdateAsync(peca);
+            _logger.LogInformation("Controller: Peca {PecaId} atualizada", id);
+
             return NoContent();
         }
 
+        /// <summary>
+        /// Remove uma peca.
+        /// </summary>
+        /// <param name="id">Identificador da peca a remover.</param>
+        /// <returns>HTTP 204 quando a remocao e concluida.</returns>
         [Authorize(Roles = "ADMIN,GESTOR_DESENHO")]
-        [HttpDelete("delete-peca/{id:int}")]
-        public async Task<IActionResult> DeletePeca(int id)
+        [HttpDelete("{id:int}")]
+        public async Task<IActionResult> Delete(int id)
         {
             await _pecaService.DeleteAsync(id);
+
+            _logger.LogInformation("Controller: Peca {PecaId} removida", id);
+
             return NoContent();
         }
 
-        private static ResponsePecaDTO ToResponse(Peca p) => new()
+        /// <summary>
+        /// Cria objeto ProblemDetails para respostas de erro no controller.
+        /// </summary>
+        /// <param name="status">Codigo HTTP do erro.</param>
+        /// <param name="title">Titulo curto do erro.</param>
+        /// <param name="detail">Detalhe funcional do erro.</param>
+        /// <returns>Objeto ProblemDetails preenchido com contexto do request atual.</returns>
+        private ProblemDetails CreateProblem(int status, string title, string detail)
         {
-            Designacao = p.Designacao,
-            Prioridade = p.Prioridade,
-            MaterialDesignacao = p.MaterialDesignacao,
-            MaterialRecebido = p.MaterialRecebido,
-            MoldeId = p.Molde_id
-        };
+            return new ProblemDetails
+            {
+                Status = status,
+                Title = title,
+                Detail = detail,
+                Instance = HttpContext?.Request?.Path
+            };
+        }
     }
 }

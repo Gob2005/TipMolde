@@ -2,6 +2,13 @@
 
 namespace TipMolde.Application.DTOs.PecaDTO
 {
+    /// <summary>
+    /// Representa os dados de criacao de uma peca associada a um molde.
+    /// </summary>
+    /// <remarks>
+    /// Este DTO pertence ao contrato de entrada da API e nao deve expor a entidade
+    /// de dominio diretamente.
+    /// </remarks>
     public class CreatePecaDTO
     {
         [Required]

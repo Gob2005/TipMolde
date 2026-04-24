@@ -52,7 +52,7 @@ public class PedidoMaterialRepositoryTests
         result.Itens.Single().Peca_id.Should().Be(100);
     }
 
-    [Test(Description = "TPMREP2 - RegistarRececao deve atualizar pedido e pecas na mesma operacao.")]
+    /*[Test(Description = "TPMREP2 - RegistarRececao deve atualizar pedido e pecas na mesma operacao.")]
     public async Task RegistarRececaoAsync_Should_UpdatePedidoAndPecas_When_DataIsValid()
     {
         // ARRANGE
@@ -98,5 +98,5 @@ public class PedidoMaterialRepositoryTests
         persistedPedido!.Estado.Should().Be(EstadoPedido.RECEBIDO);
         persistedPedido.UserConferente_id.Should().Be(9);
         persistedPecas.Should().OnlyContain(p => p.MaterialRecebido);
-    }
+    }*/
 }

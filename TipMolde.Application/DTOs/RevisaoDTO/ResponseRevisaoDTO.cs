@@ -1,7 +1,7 @@
 ﻿namespace TipMolde.Application.DTOs.RevisaoDTO
 {
     /// <summary>
-    /// Representa uma revisao devolvida nos cenarios de leitura da feature Projeto.
+    /// Representa a resposta publica da feature Revisao.
     /// </summary>
     public class ResponseRevisaoDTO
     {

@@ -56,6 +56,8 @@ namespace TipMolde.Infrastructure.DB
             modelBuilder.Entity<FichaProducao>().HasKey(x => x.FichaProducao_id);
             modelBuilder.Entity<FichaDocumento>().HasKey(x => x.FichaDocumento_id);
             modelBuilder.Entity<RevokedToken>().HasKey(x => x.RevokedToken_id);
+            modelBuilder.Entity<Maquina>().HasKey(m => m.Maquina_id);
+            modelBuilder.Entity<ItemPedidoMaterial>().HasKey(i => new { i.PedidoMaterial_id, i.Peca_id });
 
 
             modelBuilder.Entity<RevokedToken>()
@@ -125,9 +127,6 @@ namespace TipMolde.Infrastructure.DB
                 .HasForeignKey(i => i.PedidoMaterial_id);
 
             modelBuilder.Entity<Maquina>()
-                .HasKey(m => m.Maquina_id);
-
-            modelBuilder.Entity<Maquina>()
                 .Property(m => m.Estado).HasConversion<string>().HasMaxLength(30);
 
             modelBuilder.Entity<Maquina>()
@@ -150,9 +149,6 @@ namespace TipMolde.Infrastructure.DB
 
             modelBuilder.Entity<RegistosProducao>()
                 .Property(r => r.Estado_producao).HasConversion<string>().HasMaxLength(30);
-
-            modelBuilder.Entity<ItemPedidoMaterial>()
-                .HasKey(i => new { i.PedidoMaterial_id, i.Peca_id });
 
             modelBuilder.Entity<FichaProducao>()
                 .Property(f => f.Tipo).HasConversion<string>().HasMaxLength(10);
@@ -206,18 +202,53 @@ namespace TipMolde.Infrastructure.DB
                 .HasMaxLength(10);
 
             modelBuilder.Entity<Revisao>()
-                .HasOne(r => r.Projeto)
-                .WithMany(p => p.Revisoes)
-                .HasForeignKey(r => r.Projeto_id);
+                 .HasOne(r => r.Projeto)
+                 .WithMany(p => p.Revisoes)
+                 .HasForeignKey(r => r.Projeto_id);
+
+            modelBuilder.Entity<Revisao>()
+                .Property(r => r.DescricaoAlteracoes)
+                .HasMaxLength(2000)
+                .IsRequired();
+
+            modelBuilder.Entity<Revisao>()
+                .Property(r => r.FeedbackTexto)
+                .HasMaxLength(4000);
+
+            modelBuilder.Entity<Revisao>()
+                .Property(r => r.FeedbackImagemPath)
+                .HasMaxLength(255);
 
             modelBuilder.Entity<Revisao>()
                 .HasIndex(r => new { r.Projeto_id, r.NumRevisao })
                 .IsUnique();
 
             modelBuilder.Entity<RegistoTempoProjeto>()
+                .Property(r => r.Estado_tempo)
+                .HasConversion<string>()
+                .HasMaxLength(20);
+
+            modelBuilder.Entity<RegistoTempoProjeto>()
+                .HasIndex(r => new { r.Projeto_id, r.Autor_id, r.Data_hora, r.Registo_Tempo_Projeto_id });
+
+            modelBuilder.Entity<RegistoTempoProjeto>()
                 .HasOne(r => r.Projeto)
                 .WithMany(p => p.RegistosTempo)
-                .HasForeignKey(r => r.Projeto_id);
+                .HasForeignKey(r => r.Projeto_id)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<RegistoTempoProjeto>()
+                .HasOne(r => r.Autor)
+                .WithMany()
+                .HasForeignKey(r => r.Autor_id)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<RegistoTempoProjeto>()
+                .HasOne(r => r.Peca)
+                .WithMany()
+                .HasForeignKey(r => r.Peca_id)
+                .OnDelete(DeleteBehavior.Restrict);
+
         }
     }
 }

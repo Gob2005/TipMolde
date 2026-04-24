@@ -50,8 +50,8 @@ namespace TipMolde.Application.Service
         public async Task<PagedResult<ResponseProjetoDTO>> GetAllAsync(int page = 1, int pageSize = 10)
         {
             var result = await _projetoRepository.GetAllAsync(page, pageSize);
-            var items = _mapper.Map<IEnumerable<ResponseProjetoDTO>>(result.Items);
-            return new PagedResult<ResponseProjetoDTO>(items, result.TotalCount, result.CurrentPage, result.PageSize);
+            var itens = _mapper.Map<IEnumerable<ResponseProjetoDTO>>(result.Items);
+            return new PagedResult<ResponseProjetoDTO>(itens, result.TotalCount, result.CurrentPage, result.PageSize);
         }
 
         /// <summary>

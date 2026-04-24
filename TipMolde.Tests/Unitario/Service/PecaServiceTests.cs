@@ -1,10 +1,15 @@
+using AutoMapper;
 using FluentAssertions;
+using Microsoft.Extensions.Logging;
 using Moq;
+using TipMolde.Application.DTOs.PecaDTO;
+using TipMolde.Application.Interface;
 using TipMolde.Application.Interface.Producao.IMolde;
 using TipMolde.Application.Interface.Producao.IPeca;
+using TipMolde.Application.Mappings;
+using TipMolde.Application.Service;
 using TipMolde.Domain.Entities.Producao;
 using TipMolde.Domain.Enums;
-using TipMolde.Application.Service;
 
 namespace TipMolde.Tests.Unitario.Service;
 
@@ -14,14 +19,29 @@ public class PecaServiceTests
 {
     private Mock<IPecaRepository> _pecaRepository = null!;
     private Mock<IMoldeRepository> _moldeRepository = null!;
+    private Mock<ILogger<PecaService>> _logger = null!;
     private PecaService _sut = null!;
 
     [SetUp]
     public void SetUp()
     {
+        // ARRANGE
         _pecaRepository = new Mock<IPecaRepository>();
         _moldeRepository = new Mock<IMoldeRepository>();
-        _sut = new PecaService(_pecaRepository.Object, _moldeRepository.Object);
+        _logger = new Mock<ILogger<PecaService>>();
+
+        var mapperConfig = new MapperConfiguration(cfg =>
+        {
+            cfg.AddProfile<PecaProfile>();
+        });
+
+        var mapper = mapperConfig.CreateMapper();
+
+        _sut = new PecaService(
+            _pecaRepository.Object,
+            _moldeRepository.Object,
+            mapper,
+            _logger.Object);
     }
 
     private static Molde BuildMolde(int id = 1) => new()
@@ -42,161 +62,151 @@ public class PecaServiceTests
         Molde_id = moldeId
     };
 
-    [Test]
-    public async Task shouldCreatePecaWhenDataIsValid()
+    [Test(Description = "TPECASRV1 - Create deve persistir peca e devolver DTO quando os dados sao validos.")]
+    public async Task CreateAsync_Should_CreatePeca_When_DataIsValid()
     {
-        // Arrange
-        var peca = BuildPeca();
+        // ARRANGE
+        var dto = new CreatePecaDTO
+        {
+            Designacao = "  Extrator  ",
+            Prioridade = 1,
+            MaterialDesignacao = "Aco",
+            MaterialRecebido = false,
+            Molde_id = 1
+        };
+
         _moldeRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(BuildMolde());
         _pecaRepository.Setup(r => r.GetByDesignacaoAsync("Extrator", 1)).ReturnsAsync((Peca?)null);
+        _pecaRepository.Setup(r => r.AddAsync(It.IsAny<Peca>()))
+            .ReturnsAsync((Peca entity) =>
+            {
+                entity.Peca_id = 12;
+                return entity;
+            });
 
-        // Act
-        var result = await _sut.CreateAsync(peca);
+        // ACT
+        var result = await _sut.CreateAsync(dto);
 
-        // Assert
+        // ASSERT
+        result.PecaId.Should().Be(12);
         result.Designacao.Should().Be("Extrator");
-        _pecaRepository.Verify(r => r.AddAsync(It.IsAny<Peca>()), Times.Once);
+        result.Molde_id.Should().Be(1);
+        _pecaRepository.Verify(r => r.AddAsync(It.Is<Peca>(p =>
+            p.Designacao == "Extrator" &&
+            p.Molde_id == 1)), Times.Once);
     }
 
-    [Test]
-    public async Task shouldThrowKeyNotFoundExceptionWhenMoldeDoesNotExist()
+    [Test(Description = "TPECASRV2 - Create deve falhar quando o molde nao existe.")]
+    public async Task CreateAsync_Should_ThrowKeyNotFoundException_When_MoldeDoesNotExist()
     {
-        // Arrange
+        // ARRANGE
+        var dto = new CreatePecaDTO
+        {
+            Designacao = "Extrator",
+            Prioridade = 1,
+            Molde_id = 7
+        };
+
         _moldeRepository.Setup(r => r.GetByIdAsync(7)).ReturnsAsync((Molde?)null);
 
-        // Act
-        Func<Task> act = () => _sut.CreateAsync(BuildPeca(moldeId: 7));
+        // ACT
+        Func<Task> act = () => _sut.CreateAsync(dto);
 
-        // Assert
+        // ASSERT
         await act.Should().ThrowAsync<KeyNotFoundException>();
     }
 
-    [Test]
-    public async Task shouldThrowArgumentExceptionWhenDesignacaoIsBlank()
+    [Test(Description = "TPECASRV3 - GetAll deve devolver DTOs paginados com PecaId preenchido.")]
+    public async Task GetAllAsync_Should_ReturnPagedDtos_When_RequestIsValid()
     {
-        // Arrange
-        _moldeRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(BuildMolde());
+        // ARRANGE
+        var items = new[] { BuildPeca(id: 3), BuildPeca(id: 4, designacao: "Coluna") };
+        var paged = new PagedResult<Peca>(items, 2, 1, 10);
 
-        // Act
-        Func<Task> act = () => _sut.CreateAsync(BuildPeca(designacao: " "));
+        _pecaRepository.Setup(r => r.GetAllAsync(1, 10)).ReturnsAsync(paged);
 
-        // Assert
-        await act.Should().ThrowAsync<ArgumentException>();
+        // ACT
+        var result = await _sut.GetAllAsync(1, 10);
+
+        // ASSERT
+        result.TotalCount.Should().Be(2);
+        result.Items.Select(x => x.PecaId).Should().BeEquivalentTo(new[] { 3, 4 });
     }
 
-    [Test]
-    public async Task shouldThrowArgumentExceptionWhenDesignacaoAlreadyExistsForMolde()
+    [Test(Description = "TPECASRV4 - Update deve preservar MaterialRecebido quando o campo nao e enviado.")]
+    public async Task UpdateAsync_Should_PreserveMaterialRecebido_When_FieldIsOmitted()
     {
-        // Arrange
-        _moldeRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(BuildMolde());
-        _pecaRepository.Setup(r => r.GetByDesignacaoAsync("Extrator", 1)).ReturnsAsync(BuildPeca(id: 2));
+        // ARRANGE
+        var existing = BuildPeca(id: 1, designacao: "Original");
+        existing.MaterialRecebido = true;
 
-        // Act
-        Func<Task> act = () => _sut.CreateAsync(BuildPeca());
-
-        // Assert
-        await act.Should().ThrowAsync<ArgumentException>();
-    }
-
-    [Test]
-    public async Task shouldThrowKeyNotFoundExceptionWhenUpdatingUnknownPeca()
-    {
-        // Arrange
-        _pecaRepository.Setup(r => r.GetByIdAsync(99)).ReturnsAsync((Peca?)null);
-
-        // Act
-        Func<Task> act = () => _sut.UpdateAsync(BuildPeca(id: 99));
-
-        // Assert
-        await act.Should().ThrowAsync<KeyNotFoundException>();
-    }
-
-    [Test]
-    public async Task shouldUpdatePecaWhenIncomingValuesAreValid()
-    {
-        // Arrange
-        var existing = BuildPeca(id: 1, designacao: "A");
         _pecaRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(existing);
 
-        var update = BuildPeca(id: 1, designacao: "  B  ");
-        update.Prioridade = 5;
-        update.MaterialDesignacao = "Inox";
-        update.MaterialRecebido = true;
+        var dto = new UpdatePecaDTO
+        {
+            Designacao = "Atualizada"
+        };
 
-        // Act
-        await _sut.UpdateAsync(update);
+        // ACT
+        await _sut.UpdateAsync(1, dto);
 
-        // Assert
+        // ASSERT
         _pecaRepository.Verify(r => r.UpdateAsync(It.Is<Peca>(p =>
             p.Peca_id == 1 &&
-            p.Designacao == "B" &&
-            p.Prioridade == 5 &&
-            p.MaterialDesignacao == "Inox" &&
+            p.Designacao == "Atualizada" &&
             p.MaterialRecebido)), Times.Once);
     }
 
-    [Test]
-    public async Task shouldKeepPreviousValuesWhenIncomingValuesAreInvalid()
+    [Test(Description = "TPECASRV5 - Update deve rejeitar designacao duplicada dentro do mesmo molde.")]
+    public async Task UpdateAsync_Should_ThrowArgumentException_When_DesignacaoAlreadyExistsInMolde()
     {
-        // Arrange
-        var existing = BuildPeca(id: 1, designacao: "Original");
-        existing.Prioridade = 3;
-        existing.MaterialDesignacao = "Aco";
+        // ARRANGE
+        var existing = BuildPeca(id: 1, moldeId: 7, designacao: "Extrator");
+        var duplicate = BuildPeca(id: 2, moldeId: 7, designacao: "Coluna");
 
         _pecaRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(existing);
+        _pecaRepository.Setup(r => r.GetByDesignacaoAsync("Coluna", 7)).ReturnsAsync(duplicate);
 
-        var update = BuildPeca(id: 1, designacao: " ");
-        update.Prioridade = 0;
-        update.MaterialDesignacao = null;
+        var dto = new UpdatePecaDTO
+        {
+            Designacao = "Coluna"
+        };
 
-        // Act
-        await _sut.UpdateAsync(update);
+        // ACT
+        Func<Task> act = () => _sut.UpdateAsync(1, dto);
 
-        // Assert
-        _pecaRepository.Verify(r => r.UpdateAsync(It.Is<Peca>(p =>
-            p.Designacao == "Original" &&
-            p.Prioridade == 3 &&
-            p.MaterialDesignacao == "Aco")), Times.Once);
+        // ASSERT
+        await act.Should().ThrowAsync<ArgumentException>()
+            .WithMessage("*Ja existe uma peca*");
+        _pecaRepository.Verify(r => r.UpdateAsync(It.IsAny<Peca>()), Times.Never);
     }
 
-    [Test]
-    public async Task shouldThrowKeyNotFoundExceptionWhenDeletingUnknownPeca()
+    [Test(Description = "TPECASRV6 - Delete deve falhar quando a peca nao existe.")]
+    public async Task DeleteAsync_Should_ThrowKeyNotFoundException_When_PecaDoesNotExist()
     {
-        // Arrange
-        _pecaRepository.Setup(r => r.GetByIdAsync(10)).ReturnsAsync((Peca?)null);
+        // ARRANGE
+        _pecaRepository.Setup(r => r.GetByIdAsync(88)).ReturnsAsync((Peca?)null);
 
-        // Act
-        Func<Task> act = () => _sut.DeleteAsync(10);
+        // ACT
+        Func<Task> act = () => _sut.DeleteAsync(88);
 
-        // Assert
+        // ASSERT
         await act.Should().ThrowAsync<KeyNotFoundException>();
     }
 
-    [Test]
-    public async Task shouldDeletePecaWhenPecaExists()
+    [Test(Description = "TPECASRV7 - GetByDesignacao deve devolver DTO quando a peca existe.")]
+    public async Task GetByDesignacaoAsync_Should_ReturnMappedResponse_When_PecaExists()
     {
-        // Arrange
-        _pecaRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(BuildPeca());
-
-        // Act
-        await _sut.DeleteAsync(1);
-
-        // Assert
-        _pecaRepository.Verify(r => r.DeleteAsync(1), Times.Once);
-    }
-
-    [Test]
-    public async Task shouldReturnPecaWhenSearchingByDesignacao()
-    {
-        // Arrange
+        // ARRANGE
         _pecaRepository.Setup(r => r.GetByDesignacaoAsync("Extrator", 2))
             .ReturnsAsync(BuildPeca(id: 5, moldeId: 2));
 
-        // Act
+        // ACT
         var result = await _sut.GetByDesignacaoAsync("Extrator", 2);
 
-        // Assert
+        // ASSERT
         result.Should().NotBeNull();
-        result!.Peca_id.Should().Be(5);
+        result!.PecaId.Should().Be(5);
+        result.Molde_id.Should().Be(2);
     }
 }

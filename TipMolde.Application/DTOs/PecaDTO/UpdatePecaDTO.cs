@@ -2,6 +2,12 @@
 
 namespace TipMolde.Application.DTOs.PecaDTO
 {
+    /// <summary>
+    /// Representa os dados de atualizacao parcial de uma peca.
+    /// </summary>
+    /// <remarks>
+    /// Campos omitidos devem preservar o valor atual da entidade.
+    /// </remarks>
     public class UpdatePecaDTO
     {
         [MinLength(2)]

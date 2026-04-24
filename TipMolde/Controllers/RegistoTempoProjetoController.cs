@@ -2,54 +2,125 @@
 using Microsoft.AspNetCore.Mvc;
 using TipMolde.Application.DTOs.RegistoTempoProjetoDTO;
 using TipMolde.Application.Interface.Desenho.IRegistoTempoProjeto;
-using TipMolde.Domain.Entities.Desenho;
 
 namespace TipMolde.API.Controllers
 {
+    /// <summary>
+    /// Disponibiliza endpoints HTTP para a feature RegistoTempoProjeto.
+    /// </summary>
+    /// <remarks>
+    /// O controller valida input HTTP, delega regras de negocio ao service
+    /// e devolve contratos DTO estaveis para os consumidores da API.
+    /// </remarks>
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/registos-tempo-projeto")]
     public class RegistoTempoProjetoController : ControllerBase
     {
         private readonly IRegistoTempoProjetoService _service;
+        private readonly ILogger<RegistoTempoProjetoController> _logger;
 
-        public RegistoTempoProjetoController(IRegistoTempoProjetoService service)
+        /// <summary>
+        /// Construtor de RegistoTempoProjetoController.
+        /// </summary>
+        /// <param name="service">Service responsavel pelos casos de uso da feature.</param>
+        /// <param name="logger">Logger para rastreabilidade das operacoes HTTP.</param>
+        public RegistoTempoProjetoController(
+            IRegistoTempoProjetoService service,
+            ILogger<RegistoTempoProjetoController> logger)
         {
             _service = service;
+            _logger = logger;
         }
 
+        /// <summary>
+        /// Lista o historico temporal de um projeto para um autor.
+        /// </summary>
+        /// <param name="projetoId">Identificador do projeto.</param>
+        /// <param name="autorId">Identificador do autor.</param>
+        /// <returns>HTTP 200 com a colecao de registos; HTTP 400 quando os identificadores sao invalidos.</returns>
         [Authorize(Roles = "ADMIN")]
-        [HttpGet("historico-projeto")]
-        public async Task<IActionResult> GetHistorico(
-            [FromQuery] int projetoId,
-            [FromQuery] int autorId)
+        [HttpGet]
+        public async Task<IActionResult> GetHistorico([FromQuery] int projetoId, [FromQuery] int autorId)
         {
+            if (projetoId < 1 || autorId < 1)
+                return BadRequest(CreateProblem(StatusCodes.Status400BadRequest, "Pedido invalido", "ProjetoId e AutorId devem ser >= 1."));
+
             var historico = await _service.GetHistoricoAsync(projetoId, autorId);
             return Ok(historico);
         }
 
-        [Authorize(Roles = "ADMIN,GESTOR_DESENHO")]
-        [HttpPost("create")]
-        public async Task<IActionResult> Create([FromBody] CreateRegistoTempoProjetoDTO dto)
+        /// <summary>
+        /// Obtem um registo de tempo por identificador.
+        /// </summary>
+        /// <param name="id">Identificador interno do registo.</param>
+        /// <returns>HTTP 200 com o registo; HTTP 404 quando nao encontrado.</returns>
+        [Authorize(Roles = "ADMIN")]
+        [HttpGet("{id:int}")]
+        public async Task<IActionResult> GetById(int id)
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
+            var registo = await _service.GetByIdAsync(id);
+            if (registo == null)
+                return NotFound(CreateProblem(StatusCodes.Status404NotFound, "Recurso nao encontrado", $"Registo de tempo com ID {id} nao encontrado."));
 
-            var registo = new RegistoTempoProjeto
-            {
-                Estado_tempo = dto.Estado_tempo,
-                Projeto_id = dto.Projeto_id,
-                Autor_id = dto.Autor_id,
-            };
-
-            var created = await _service.CreateRegistoAsync(registo);
-            return Ok(created);
+            return Ok(registo);
         }
 
+        /// <summary>
+        /// Cria um novo registo de tempo.
+        /// </summary>
+        /// <param name="dto">Dados de criacao do registo.</param>
+        /// <returns>HTTP 201 com o registo criado; HTTP 400 quando o body e invalido.</returns>
+        [Authorize(Roles = "ADMIN,GESTOR_DESENHO")]
+        [HttpPost]
+        public async Task<IActionResult> Create([FromBody] CreateRegistoTempoProjetoDTO dto)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(CreateProblem(StatusCodes.Status400BadRequest, "Pedido invalido", "Dados de criacao invalidos."));
+
+            var created = await _service.CreateRegistoAsync(dto);
+
+            _logger.LogInformation(
+                "Controller: RegistoTempoProjeto {RegistoId} criado para Projeto {ProjetoId}, Autor {AutorId}, Peca {PecaId}",
+                created.Registo_Tempo_Projeto_id,
+                created.Projeto_id,
+                created.Autor_id,
+                created.Peca_id);
+
+            return CreatedAtAction(nameof(GetById), new { id = created.Registo_Tempo_Projeto_id }, created);
+        }
+
+        /// <summary>
+        /// Remove um registo de tempo existente.
+        /// </summary>
+        /// <param name="id">Identificador do registo a remover.</param>
+        /// <returns>HTTP 204 quando a remocao e concluida.</returns>
         [Authorize(Roles = "ADMIN")]
-        [HttpDelete("delete/{id:int}")]
+        [HttpDelete("{id:int}")]
         public async Task<IActionResult> Delete(int id)
         {
             await _service.DeleteAsync(id);
+
+            _logger.LogInformation("Controller: RegistoTempoProjeto {RegistoId} removido", id);
+
             return NoContent();
+        }
+
+        /// <summary>
+        /// Cria objeto ProblemDetails para respostas de erro do controller.
+        /// </summary>
+        /// <param name="status">Codigo HTTP do erro.</param>
+        /// <param name="title">Titulo curto do erro.</param>
+        /// <param name="detail">Detalhe funcional do erro.</param>
+        /// <returns>Objeto ProblemDetails preenchido com contexto do request atual.</returns>
+        private ProblemDetails CreateProblem(int status, string title, string detail)
+        {
+            return new ProblemDetails
+            {
+                Status = status,
+                Title = title,
+                Detail = detail,
+                Instance = HttpContext?.Request?.Path
+            };
         }
     }
 }

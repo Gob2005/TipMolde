@@ -40,11 +40,7 @@ namespace TipMolde.Application.Mappings
                 .ForMember(dest => dest.Password, opt => opt.Ignore())
                 .ForMember(dest => dest.CreatedAt, opt => opt.Ignore());
 
-            CreateMap<User, ResponseUserDTO>()
-                .ForMember(dest => dest.User_id, opt => opt.MapFrom(src => src.User_id))
-                .ForMember(dest => dest.Nome, opt => opt.MapFrom(src => src.Nome))
-                .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.Email))
-                .ForMember(dest => dest.Role, opt => opt.MapFrom(src => src.Role));
+            CreateMap<User, ResponseUserDTO>();
 
         }
     }

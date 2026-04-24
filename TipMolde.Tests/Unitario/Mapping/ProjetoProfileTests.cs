@@ -16,7 +16,12 @@ public class ProjetoProfileTests
     [SetUp]
     public void SetUp()
     {
-        var config = new MapperConfiguration(cfg => cfg.AddProfile<ProjetoProfile>());
+        var config = new MapperConfiguration(cfg =>
+        {
+            cfg.AddProfile<ProjetoProfile>();
+            cfg.AddProfile<RevisaoProfile>();
+        });
+
         _mapper = config.CreateMapper();
     }
 
@@ -24,7 +29,11 @@ public class ProjetoProfileTests
     public void MappingConfiguration_Should_BeValid()
     {
         // ARRANGE
-        var config = new MapperConfiguration(cfg => cfg.AddProfile<ProjetoProfile>());
+        var config = new MapperConfiguration(cfg =>
+        {
+            cfg.AddProfile<ProjetoProfile>();
+            cfg.AddProfile<RevisaoProfile>();
+        });
 
         // ACT
         Action act = () => config.AssertConfigurationIsValid();

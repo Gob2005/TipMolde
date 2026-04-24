@@ -31,7 +31,11 @@ public class ProjetoServiceTests
         _moldeRepository = new Mock<IMoldeRepository>();
         _logger = new Mock<ILogger<ProjetoService>>();
 
-        var config = new MapperConfiguration(cfg => cfg.AddProfile<ProjetoProfile>());
+        var config = new MapperConfiguration(cfg =>
+        {
+            cfg.AddProfile<ProjetoProfile>();
+            cfg.AddProfile<RevisaoProfile>();
+        });
         _mapper = config.CreateMapper();
 
         _sut = new ProjetoService(
@@ -232,7 +236,7 @@ public class ProjetoServiceTests
     {
         // ARRANGE
         var projeto = BuildProjeto(id: 20);
-        projeto.Revisoes = new List<TipMolde.Domain.Entities.Desenho.Revisao>
+        projeto.Revisoes = new List<Revisao>
         {
             new() { Revisao_id = 1, NumRevisao = 2, DescricaoAlteracoes = "Rev 2", Projeto_id = 20 }
         };

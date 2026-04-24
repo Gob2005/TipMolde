@@ -2,67 +2,159 @@
 using Microsoft.AspNetCore.Mvc;
 using TipMolde.Application.DTOs.RevisaoDTO;
 using TipMolde.Application.Interface.Desenho.IRevisao;
-using TipMolde.Domain.Entities.Desenho;
 
 namespace TipMolde.API.Controllers
 {
+    /// <summary>
+    /// Disponibiliza endpoints HTTP para a feature Revisao.
+    /// </summary>
+    /// <remarks>
+    /// O controller valida input HTTP, delega regras de negocio ao servico
+    /// e devolve contratos DTO estaveis para os consumidores da API.
+    /// </remarks>
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/revisoes")]
     public class RevisaoController : ControllerBase
     {
-        private readonly IRevisaoService _service;
+        private readonly IRevisaoService _revisaoService;
+        private readonly ILogger<RevisaoController> _logger;
 
-        public RevisaoController(IRevisaoService service)
+        /// <summary>
+        /// Construtor de RevisaoController.
+        /// </summary>
+        /// <param name="revisaoService">Servico responsavel pelos casos de uso da feature Revisao.</param>
+        /// <param name="logger">Logger para rastreabilidade das operacoes HTTP.</param>
+        public RevisaoController(
+            IRevisaoService revisaoService,
+            ILogger<RevisaoController> logger)
         {
-            _service = service;
+            _revisaoService = revisaoService;
+            _logger = logger;
         }
 
+        /// <summary>
+        /// Lista revisoes de um projeto.
+        /// </summary>
+        /// <param name="projetoId">Identificador do projeto.</param>
+        /// <returns>HTTP 200 com a colecao de revisoes; HTTP 400 para projetoId invalido.</returns>
         [Authorize(Roles = "ADMIN,GESTOR_DESENHO")]
-        [HttpGet("by-projeto")]
-        public async Task<IActionResult> GetByProjeto(int projetoId) =>
-            Ok(await _service.GetByProjetoIdAsync(projetoId));
+        [HttpGet]
+        public async Task<IActionResult> GetByProjeto([FromQuery] int projetoId)
+        {
+            if (projetoId < 1)
+            {
+                return BadRequest(CreateProblem(
+                    StatusCodes.Status400BadRequest,
+                    "Pedido invalido",
+                    "ProjetoId deve ser >= 1."));
+            }
 
+            var revisoes = await _revisaoService.GetByProjetoIdAsync(projetoId);
+            return Ok(revisoes);
+        }
+
+        /// <summary>
+        /// Obtem uma revisao por ID.
+        /// </summary>
+        /// <param name="id">Identificador interno da revisao.</param>
+        /// <returns>HTTP 200 com a revisao; HTTP 404 quando nao encontrada.</returns>
         [Authorize(Roles = "ADMIN,GESTOR_DESENHO")]
-        [HttpGet("by-id")]
+        [HttpGet("{id:int}")]
         public async Task<IActionResult> GetById(int id)
         {
-            var revisao = await _service.GetByIdAsync(id);
-            if (revisao == null) return NotFound();
+            var revisao = await _revisaoService.GetByIdAsync(id);
+            if (revisao == null)
+            {
+                return NotFound(CreateProblem(
+                    StatusCodes.Status404NotFound,
+                    "Recurso nao encontrado",
+                    $"Revisao com ID {id} nao encontrada."));
+            }
+
             return Ok(revisao);
         }
 
+        /// <summary>
+        /// Cria uma nova revisao.
+        /// </summary>
+        /// <param name="dto">Dados de criacao da revisao.</param>
+        /// <returns>HTTP 201 com a revisao criada; HTTP 400 quando o body e invalido.</returns>
         [Authorize(Roles = "ADMIN")]
-        [HttpPost("create")]
+        [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateRevisaoDTO dto)
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
-
-            var revisao = new Revisao
+            if (!ModelState.IsValid)
             {
-                Projeto_id = dto.Projeto_id,
-                DescricaoAlteracoes = dto.DescricaoAlteracoes.Trim()
-            };
+                return BadRequest(CreateProblem(
+                    StatusCodes.Status400BadRequest,
+                    "Pedido invalido",
+                    "Dados de criacao invalidos."));
+            }
 
-            var created = await _service.CreateAsync(revisao);
+            var created = await _revisaoService.CreateAsync(dto);
+
+            _logger.LogInformation("Controller: Revisao {RevisaoId} criada", created.Revisao_id);
+
             return CreatedAtAction(nameof(GetById), new { id = created.Revisao_id }, created);
         }
 
+        /// <summary>
+        /// Regista a resposta do cliente a uma revisao enviada.
+        /// </summary>
+        /// <param name="id">Identificador da revisao.</param>
+        /// <param name="dto">Payload de resposta do cliente.</param>
+        /// <returns>HTTP 204 quando a operacao e concluida; HTTP 400 quando o body e invalido.</returns>
         [Authorize(Roles = "ADMIN")]
-        [HttpPut("resposta-cliente/{id:int}")]
+        [HttpPut("{id:int}/resposta-cliente")]
         public async Task<IActionResult> UpdateRespostaCliente(int id, [FromBody] UpdateRespostaRevisaoDTO dto)
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(CreateProblem(
+                    StatusCodes.Status400BadRequest,
+                    "Pedido invalido",
+                    "Dados de resposta do cliente invalidos."));
+            }
 
-            await _service.UpdateRespostaClienteAsync(id, dto.Aprovado, dto.FeedbackTexto, dto.FeedbackImagemPath);
+            await _revisaoService.UpdateRespostaClienteAsync(id, dto);
+
+            _logger.LogInformation("Controller: resposta do cliente registada para a revisao {RevisaoId}", id);
+
             return NoContent();
         }
 
+        /// <summary>
+        /// Remove uma revisao.
+        /// </summary>
+        /// <param name="id">Identificador da revisao a remover.</param>
+        /// <returns>HTTP 204 quando a remocao e concluida.</returns>
         [Authorize(Roles = "ADMIN")]
-        [HttpDelete("delete/{id:int}")]
+        [HttpDelete("{id:int}")]
         public async Task<IActionResult> Delete(int id)
         {
-            await _service.DeleteAsync(id);
+            await _revisaoService.DeleteAsync(id);
+
+            _logger.LogInformation("Controller: Revisao {RevisaoId} removida", id);
+
             return NoContent();
+        }
+
+        /// <summary>
+        /// Cria objeto ProblemDetails para respostas de erro no controller.
+        /// </summary>
+        /// <param name="status">Codigo HTTP do erro.</param>
+        /// <param name="title">Titulo curto do erro.</param>
+        /// <param name="detail">Detalhe funcional do erro.</param>
+        /// <returns>Objeto ProblemDetails preenchido com contexto do request atual.</returns>
+        private ProblemDetails CreateProblem(int status, string title, string detail)
+        {
+            return new ProblemDetails
+            {
+                Status = status,
+                Title = title,
+                Detail = detail,
+                Instance = HttpContext?.Request?.Path
+            };
         }
     }
 }
