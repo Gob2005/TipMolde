@@ -1,4 +1,4 @@
-﻿using TipMolde.Application.Interface;
+using TipMolde.Application.Interface;
 using TipMolde.Domain.Entities.Producao;
 using TipMolde.Domain.Enums;
 
@@ -23,7 +23,7 @@ namespace TipMolde.Application.Interface.Producao.IMaquina
         /// <param name="page">Pagina atual.</param>
         /// <param name="pageSize">Tamanho da pagina.</param>
         /// <returns>Resultado paginado com maquinas filtradas.</returns>
-        Task<PagedResult<Maquina>> GetByEstadoAsync(EstadoMaquina estado, int page = 1, int pageSize = 10);
+        Task<PagedResult<Maquina>> GetByEstadoAsync(EstadoMaquina estado, int page, int pageSize);
 
         /// <summary>
         /// Verifica se ja existe uma maquina com o numero fisico informado.

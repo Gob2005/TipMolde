@@ -61,7 +61,8 @@ namespace TipMolde.Application.Service
         /// <returns>Resultado paginado com pedidos de material mapeados para DTO.</returns>
         public async Task<PagedResult<ResponsePedidoMaterialDto>> GetAllAsync(int page = 1, int pageSize = 10)
         {
-            var result = await _pedidoRepository.GetPagedWithItensAsync(page, pageSize);
+            var (normalizedPage, normalizedPageSize) = PaginationDefaults.Normalize(page, pageSize);
+            var result = await _pedidoRepository.GetPagedWithItensAsync(normalizedPage, normalizedPageSize);
             var mappedItems = _mapper.Map<IEnumerable<ResponsePedidoMaterialDto>>(result.Items);
 
             return new PagedResult<ResponsePedidoMaterialDto>(
@@ -91,7 +92,8 @@ namespace TipMolde.Application.Service
         /// <returns>Resultado paginado com pedidos associados ao fornecedor informado.</returns>
         public async Task<PagedResult<ResponsePedidoMaterialDto>> GetByFornecedorIdAsync(int fornecedorId, int page = 1, int pageSize = 10)
         {
-            var result = await _pedidoRepository.GetByFornecedorIdWithItensAsync(fornecedorId, page, pageSize);
+            var (normalizedPage, normalizedPageSize) = PaginationDefaults.Normalize(page, pageSize);
+            var result = await _pedidoRepository.GetByFornecedorIdWithItensAsync(fornecedorId, normalizedPage, normalizedPageSize);
             var mappedItems = _mapper.Map<IEnumerable<ResponsePedidoMaterialDto>>(result.Items);
 
             return new PagedResult<ResponsePedidoMaterialDto>(
@@ -120,8 +122,8 @@ namespace TipMolde.Application.Service
                 "Criacao de pedido de material iniciada para fornecedor {FornecedorId}",
                 dto.Fornecedor_id);
 
-            _ = await _fornecedorRepository.GetByIdAsync(dto.Fornecedor_id)
-                ?? throw new KeyNotFoundException($"Fornecedor com ID {dto.Fornecedor_id} nao encontrado.");
+            if( await _fornecedorRepository.GetByIdAsync(dto.Fornecedor_id) == null)
+                throw new KeyNotFoundException($"Fornecedor com ID {dto.Fornecedor_id} nao encontrado.");
 
             if (dto.Itens == null || dto.Itens.Count == 0)
                 throw new ArgumentException("Pedido deve conter pelo menos um item.");
@@ -144,7 +146,7 @@ namespace TipMolde.Application.Service
                 .ToList();
 
             var pecas = await _pecaRepository.GetByIdsAsync(pecaIds);
-            var existingPecaIds = pecas.Items.Select(p => p.Peca_id).ToHashSet();
+            var existingPecaIds = pecas.Select(p => p.Peca_id).ToHashSet();
 
             var missingPecaIds = pecaIds
                 .Where(id => !existingPecaIds.Contains(id))
@@ -162,11 +164,7 @@ namespace TipMolde.Application.Service
 
             // Porque: o agregado so e persistido depois de validar todas as dependencias,
             // evitando deixar pedidos ou linhas parciais gravados em caso de falha.
-            await _pedidoRepository.AddAsync(pedido);
-
-            var created = await _pedidoRepository.GetByIdWithItensAsync(pedido.PedidoMaterial_id)
-                ?? throw new InvalidOperationException(
-                    $"Pedido de material {pedido.PedidoMaterial_id} foi criado mas nao pode ser relido.");
+            var created =  await _pedidoRepository.AddAsync(pedido);
 
             _logger.LogInformation("Pedido de material {PedidoId} criado com sucesso", created.PedidoMaterial_id);
 
@@ -197,8 +195,8 @@ namespace TipMolde.Application.Service
             var pedido = await _pedidoRepository.GetByIdWithItensAsync(pedidoId)
                 ?? throw new KeyNotFoundException($"Pedido com ID {pedidoId} nao encontrado.");
 
-            _ = await _userRepository.GetByIdAsync(userId)
-                ?? throw new KeyNotFoundException($"Utilizador com ID {userId} nao encontrado.");
+            if( await _userRepository.GetByIdAsync(userId) == null)
+                throw new KeyNotFoundException($"Utilizador com ID {userId} nao encontrado.");
 
             // Invariante: a rececao so pode ser registada uma vez para preservar auditoria.
             if (pedido.Estado == EstadoPedido.RECEBIDO)
@@ -209,7 +207,7 @@ namespace TipMolde.Application.Service
                 .Distinct()
                 .ToList();
 
-            var pecas = (await _pecaRepository.GetByIdsAsync(pecaIds)).Items.ToList();
+            var pecas = (await _pecaRepository.GetByIdsAsync(pecaIds)).ToList();
             var existingPecaIds = pecas.Select(p => p.Peca_id).ToHashSet();
 
             var missingPecaIds = pecaIds

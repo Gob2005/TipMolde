@@ -1,4 +1,4 @@
-﻿using TipMolde.Domain.Entities.Comercio;
+using TipMolde.Domain.Entities.Comercio;
 
 namespace TipMolde.Application.Interface.Comercio.IPedidoMaterial.IItemPedidoMaterial
 {
@@ -14,6 +14,6 @@ namespace TipMolde.Application.Interface.Comercio.IPedidoMaterial.IItemPedidoMat
         /// <param name="page">Numero da pagina a consultar.</param>
         /// <param name="pageSize">Quantidade de itens por pagina.</param>
         /// <returns>Resultado paginado com linhas associadas ao pedido informado.</returns>
-        Task<PagedResult<ItemPedidoMaterial>> GetByPedidoIdAsync(int pedidoId, int page = 1, int pageSize = 10);
+        Task<PagedResult<ItemPedidoMaterial>> GetByPedidoIdAsync(int pedidoId, int page, int pageSize);
     }
 }

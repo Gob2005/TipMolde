@@ -118,8 +118,8 @@ public class EncomendaMoldeServiceTests
         // ARRANGE
         var entity = new EncomendaMolde { EncomendaMolde_id = 3, Encomenda_id = 1, Molde_id = 2, Quantidade = 8, Prioridade = 2 };
         var dto = new ResponseEncomendaMoldeDto { EncomendaMolde_id = 3, Encomenda_id = 1, Molde_id = 2, Quantidade = 8, Prioridade = 2 };
-        _repo.Setup(r => r.GetByEncomendaIdAsync(1, 2, 5))
-            .ReturnsAsync(new PagedResult<EncomendaMolde>(new[] { entity }, 1, 2, 5));
+        _repo.Setup(r => r.GetByEncomendaIdAsync(1, 2, 10))
+            .ReturnsAsync(new PagedResult<EncomendaMolde>(new[] { entity }, 1, 2, 10));
         _mapper.Setup(m => m.Map<IEnumerable<ResponseEncomendaMoldeDto>>(It.IsAny<IEnumerable<EncomendaMolde>>()))
             .Returns(new[] { dto });
 

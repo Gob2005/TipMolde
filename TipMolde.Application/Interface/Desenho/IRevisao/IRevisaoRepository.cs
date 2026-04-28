@@ -1,4 +1,4 @@
-﻿using TipMolde.Domain.Entities.Desenho;
+using TipMolde.Domain.Entities.Desenho;
 
 namespace TipMolde.Application.Interface.Desenho.IRevisao
 {
@@ -14,7 +14,7 @@ namespace TipMolde.Application.Interface.Desenho.IRevisao
         /// <param name="page">Numero da pagina a ser retornada.</param>
         /// <param name="pageSize">Quantidade de itens por pagina.</param>
         /// <returns>Colecao de revisoes ordenadas por numero decrescente.</returns>
-        Task<PagedResult<Revisao>> GetByProjetoIdAsync(int projetoId, int page = 1, int pageSize = 10);
+        Task<PagedResult<Revisao>> GetByProjetoIdAsync(int projetoId, int page, int pageSize);
 
         /// <summary>
         /// Persiste uma nova revisao atribuindo o proximo numero de forma consistente.

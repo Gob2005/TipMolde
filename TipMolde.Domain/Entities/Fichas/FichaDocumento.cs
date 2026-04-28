@@ -8,7 +8,7 @@
         public FichaProducao? FichaProducao { get; set; }
 
         public int CriadoPor_user_id { get; set; }
-        public User CriadoPor { get; set; }
+        public User? CriadoPor { get; set; }
 
         public int Versao { get; set; }
         public string Origem { get; set; } = "SISTEMA"; // SISTEMA | UPLOAD

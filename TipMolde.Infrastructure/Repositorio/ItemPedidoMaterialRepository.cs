@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using TipMolde.Application.Interface;
 using TipMolde.Application.Interface.Comercio.IPedidoMaterial.IItemPedidoMaterial;
 using TipMolde.Domain.Entities.Comercio;
@@ -28,8 +28,6 @@ namespace TipMolde.Infrastructure.Repositorio
         /// <returns>Resultado paginado com linhas associadas ao pedido informado.</returns>
         public async Task<PagedResult<ItemPedidoMaterial>> GetByPedidoIdAsync(int pedidoId, int page, int pageSize)
         {
-            page = page < 1 ? 1 : page;
-            pageSize = pageSize < 1 ? 10 : pageSize > 200 ? 200 : pageSize;
 
             var query = _context.ItensPedidoMaterial
                 .Include(i => i.Peca)

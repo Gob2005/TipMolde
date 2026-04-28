@@ -34,7 +34,7 @@ public class FasesProducaoServiceTests
         _sut = new FasesProducaoService(_repository.Object, _mapper, _logger.Object);
     }
 
-    private static FasesProducao BuildFase(int id = 1, Nome_fases nome = Nome_fases.MAQUINACAO, string? descricao = "Descricao")
+    private static FasesProducao BuildFase(int id = 1, NomeFases nome = NomeFases.MAQUINACAO, string? descricao = "Descricao")
     {
         return new FasesProducao
         {
@@ -48,8 +48,8 @@ public class FasesProducaoServiceTests
     public async Task Create_Should_CreateFase_When_NomeIsUnique()
     {
         // ARRANGE
-        var dto = new CreateFasesProducaoDto { Nome = Nome_fases.MAQUINACAO, Descricao = "Descricao" };
-        _repository.Setup(r => r.GetByNomeAsync(Nome_fases.MAQUINACAO)).ReturnsAsync((FasesProducao?)null);
+        var dto = new CreateFasesProducaoDto { Nome = NomeFases.MAQUINACAO, Descricao = "Descricao" };
+        _repository.Setup(r => r.GetByNomeAsync(NomeFases.MAQUINACAO)).ReturnsAsync((FasesProducao?)null);
         _repository.Setup(r => r.CreateAsync(It.IsAny<FasesProducao>()))
             .ReturnsAsync((FasesProducao fase) =>
             {
@@ -62,9 +62,9 @@ public class FasesProducaoServiceTests
 
         // ASSERT
         result.FasesProducao_id.Should().Be(1);
-        result.Nome.Should().Be(Nome_fases.MAQUINACAO);
+        result.Nome.Should().Be(NomeFases.MAQUINACAO);
         _repository.Verify(r => r.CreateAsync(It.Is<FasesProducao>(f =>
-            f.Nome == Nome_fases.MAQUINACAO &&
+            f.Nome == NomeFases.MAQUINACAO &&
             f.Descricao == "Descricao")), Times.Once);
     }
 
@@ -72,8 +72,8 @@ public class FasesProducaoServiceTests
     public async Task Create_Should_ThrowBusinessConflictException_When_NomeAlreadyExists()
     {
         // ARRANGE
-        var dto = new CreateFasesProducaoDto { Nome = Nome_fases.EROSAO };
-        _repository.Setup(r => r.GetByNomeAsync(Nome_fases.EROSAO)).ReturnsAsync(BuildFase(id: 2, nome: Nome_fases.EROSAO));
+        var dto = new CreateFasesProducaoDto { Nome = NomeFases.EROSAO };
+        _repository.Setup(r => r.GetByNomeAsync(NomeFases.EROSAO)).ReturnsAsync(BuildFase(id: 2, nome: NomeFases.EROSAO));
 
         // ACT
         Func<Task> act = () => _sut.CreateAsync(dto);
@@ -90,7 +90,7 @@ public class FasesProducaoServiceTests
         _repository.Setup(r => r.GetByIdAsync(99)).ReturnsAsync((FasesProducao?)null);
 
         // ACT
-        Func<Task> act = () => _sut.UpdateAsync(99, new UpdateFasesProducaoDto { Nome = Nome_fases.MONTAGEM });
+        Func<Task> act = () => _sut.UpdateAsync(99, new UpdateFasesProducaoDto { Nome = NomeFases.MONTAGEM });
 
         // ASSERT
         await act.Should().ThrowAsync<KeyNotFoundException>();
@@ -114,11 +114,11 @@ public class FasesProducaoServiceTests
     public async Task Update_Should_ThrowBusinessConflictException_When_NomeAlreadyBelongsToAnotherFase()
     {
         // ARRANGE
-        _repository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(BuildFase(id: 1, nome: Nome_fases.MAQUINACAO));
-        _repository.Setup(r => r.GetByNomeAsync(Nome_fases.MONTAGEM)).ReturnsAsync(BuildFase(id: 2, nome: Nome_fases.MONTAGEM));
+        _repository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(BuildFase(id: 1, nome: NomeFases.MAQUINACAO));
+        _repository.Setup(r => r.GetByNomeAsync(NomeFases.MONTAGEM)).ReturnsAsync(BuildFase(id: 2, nome: NomeFases.MONTAGEM));
 
         // ACT
-        Func<Task> act = () => _sut.UpdateAsync(1, new UpdateFasesProducaoDto { Nome = Nome_fases.MONTAGEM });
+        Func<Task> act = () => _sut.UpdateAsync(1, new UpdateFasesProducaoDto { Nome = NomeFases.MONTAGEM });
         // ASSERT
         await act.Should().ThrowAsync<BusinessConflictException>()
             .WithMessage("Ja existe uma fase de producao com esse nome.");
@@ -145,8 +145,8 @@ public class FasesProducaoServiceTests
         // ARRANGE
         var fases = new List<FasesProducao>
         {
-            BuildFase(1, Nome_fases.MAQUINACAO),
-            BuildFase(2, Nome_fases.EROSAO)
+            BuildFase(1, NomeFases.MAQUINACAO),
+            BuildFase(2, NomeFases.EROSAO)
         };
 
         _repository.Setup(r => r.GetAllAsync(1, 10))
@@ -158,6 +158,6 @@ public class FasesProducaoServiceTests
         // ASSERT
         result.TotalCount.Should().Be(2);
         result.Items.Should().HaveCount(2);
-        result.Items.Select(x => x.Nome).Should().Contain(new[] { Nome_fases.MAQUINACAO, Nome_fases.EROSAO });
+        result.Items.Select(x => x.Nome).Should().Contain(new[] { NomeFases.MAQUINACAO, NomeFases.EROSAO });
     }
 }

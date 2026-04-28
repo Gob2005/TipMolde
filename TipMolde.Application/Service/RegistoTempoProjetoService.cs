@@ -62,7 +62,8 @@ namespace TipMolde.Application.Service
         /// <returns>Colecao ordenada de registos convertidos para DTO.</returns>
         public async Task<PagedResult<ResponseRegistoTempoProjetoDto>> GetHistoricoAsync(int projetoId, int autorId, int page = 1, int pageSize = 10)
         {
-            var result = await _registoRepository.GetHistoricoAsync(projetoId, autorId, page, pageSize);
+            var (normalizedPage, normalizedPageSize) = PaginationDefaults.Normalize(page, pageSize);
+            var result = await _registoRepository.GetHistoricoAsync(projetoId, autorId, normalizedPage, normalizedPageSize);
             var itens = _mapper.Map<IEnumerable<ResponseRegistoTempoProjetoDto>>(result.Items);
             return new PagedResult<ResponseRegistoTempoProjetoDto>(itens, result.TotalCount, result.CurrentPage, result.PageSize);
         }

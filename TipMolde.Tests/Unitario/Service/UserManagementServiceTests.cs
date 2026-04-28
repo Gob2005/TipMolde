@@ -265,8 +265,8 @@ public class UserManagementServiceTests
         // ASSERT
         result.Items.Should().BeEmpty();
         result.TotalCount.Should().Be(0);
-        result.CurrentPage.Should().Be(0);
-        result.PageSize.Should().Be(500);
+        result.CurrentPage.Should().Be(1);
+        result.PageSize.Should().Be(200);
     }
 
     [Test(Description = "T14USR - Search por nome deve paginar e mapear utilizadores.")]
@@ -281,8 +281,8 @@ public class UserManagementServiceTests
         };
 
         _userRepository
-       .Setup(r => r.SearchByNameAsync("Ana", 1, 2))
-       .ReturnsAsync(new PagedResult<User>(users.Take(2).ToList(), users.Count, 1, 2));
+       .Setup(r => r.SearchByNameAsync("Ana", 1, 10))
+       .ReturnsAsync(new PagedResult<User>(users.Take(2).ToList(), users.Count, 1, 10));
 
         // ACT
         var result = await _sut.SearchByNameAsync("Ana", 1, 2);
@@ -290,7 +290,7 @@ public class UserManagementServiceTests
         // ASSERT
         result.TotalCount.Should().Be(3);
         result.CurrentPage.Should().Be(1);
-        result.PageSize.Should().Be(2);
+        result.PageSize.Should().Be(10);
         result.Items.Should().HaveCount(2);
         result.Items.Select(x => x.User_id).Should().Contain(new[] { 1, 2 });
         result.Items.Select(x => x.User_id).Should().NotContain(3);

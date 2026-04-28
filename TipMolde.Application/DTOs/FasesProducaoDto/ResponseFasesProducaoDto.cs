@@ -15,7 +15,7 @@ namespace TipMolde.Application.Dtos.FasesProducaoDto
         /// <summary>
         /// Nome funcional da fase.
         /// </summary>
-        public Nome_fases Nome { get; set; }
+        public NomeFases Nome { get; set; }
 
         /// <summary>
         /// Descricao funcional da fase.

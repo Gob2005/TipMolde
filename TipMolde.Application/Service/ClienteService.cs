@@ -36,7 +36,8 @@ namespace TipMolde.Application.Service
         /// <returns>Resultado paginado com clientes e metadados de navegacao.</returns>
         public async Task<PagedResult<ResponseClienteDto>> GetAllAsync(int page = 1, int pageSize = 10)
         {
-            var result = await _clienteRepository.GetAllAsync(page, pageSize);
+            var (normalizedPage, normalizedPageSize) = PaginationDefaults.Normalize(page, pageSize);
+            var result = await _clienteRepository.GetAllAsync(normalizedPage, normalizedPageSize);
             var mappedItems = _mapper.Map<IEnumerable<ResponseClienteDto>>(result.Items);
 
             return new PagedResult<ResponseClienteDto>(
@@ -64,13 +65,16 @@ namespace TipMolde.Application.Service
         /// Quando o termo de pesquisa e vazio devolve colecao vazia para evitar consulta desnecessaria.
         /// </remarks>
         /// <param name="searchTerm">Termo parcial para pesquisa no nome.</param>
+        /// <param name="page">Numero da pagina a consultar.</param>
+        /// <param name="pageSize">Quantidade de itens por pagina.</param>
         /// <returns>Colecao de clientes que correspondem ao termo informado.</returns>
         public async Task<PagedResult<ResponseClienteDto>> SearchByNameAsync(string searchTerm, int page = 1, int pageSize = 10)
         {
             if (string.IsNullOrWhiteSpace(searchTerm))
                 return CreateEmptyPage(page, pageSize);
 
-            var result = await _clienteRepository.SearchByNameAsync(searchTerm.Trim(), page, pageSize);
+            var (normalizedPage, normalizedPageSize) = PaginationDefaults.Normalize(page, pageSize);
+            var result = await _clienteRepository.SearchByNameAsync(searchTerm.Trim(), normalizedPage, normalizedPageSize);
             var mappedItems = _mapper.Map<IEnumerable<ResponseClienteDto>>(result.Items);
 
             return new PagedResult<ResponseClienteDto>(
@@ -87,13 +91,16 @@ namespace TipMolde.Application.Service
         /// Quando o termo de pesquisa e vazio devolve colecao vazia para evitar consulta desnecessaria.
         /// </remarks>
         /// <param name="searchTerm">Termo parcial para pesquisa na sigla.</param>
+        /// <param name="page">Numero da pagina a consultar.</param>
+        /// <param name="pageSize">Quantidade de itens por pagina.</param>
         /// <returns>Colecao de clientes que correspondem ao termo informado.</returns>
         public async Task<PagedResult<ResponseClienteDto>> SearchBySiglaAsync(string searchTerm, int page = 1, int pageSize = 10)
         {
             if (string.IsNullOrWhiteSpace(searchTerm))
                 return CreateEmptyPage(page, pageSize);
 
-            var result = await _clienteRepository.SearchBySiglaAsync(searchTerm.Trim(), page, pageSize);
+            var (normalizedPage, normalizedPageSize) = PaginationDefaults.Normalize(page, pageSize);
+            var result = await _clienteRepository.SearchBySiglaAsync(searchTerm.Trim(), normalizedPage, normalizedPageSize);
             var mappedItems = _mapper.Map<IEnumerable<ResponseClienteDto>>(result.Items);
 
             return new PagedResult<ResponseClienteDto>(
@@ -143,13 +150,6 @@ namespace TipMolde.Application.Service
             if (siglaExists != null)
                 throw new ArgumentException("Ja existe cliente com esta Sigla.");
 
-            var cliente = new Cliente
-            {
-                Nome = dto.Nome.Trim(),
-                NIF = dto.NIF.Trim(),
-                Sigla = dto.Sigla.Trim()
-            };
-
             var entity = _mapper.Map<Cliente>(dto);
             await _clienteRepository.AddAsync(entity);
             return _mapper.Map<ResponseClienteDto>(entity);
@@ -196,14 +196,7 @@ namespace TipMolde.Application.Service
         /// <returns>Resultado paginado sem itens e com metadados consistentes.</returns>
         private static PagedResult<ResponseClienteDto> CreateEmptyPage(int page = 1, int pageSize = 10)
         {
-            var normalizedPage = page < 1 ? 1 : page;
-            var normalizedPageSize = pageSize < 1 ? 10 : pageSize > 200 ? 200 : pageSize;
-
-            return new PagedResult<ResponseClienteDto>(
-                Enumerable.Empty<ResponseClienteDto>(),
-                0,
-                normalizedPage,
-                normalizedPageSize);
+            return PaginationDefaults.EmptyPage<ResponseClienteDto>(page, pageSize);
         }
 
         private async Task<Cliente> GetExistingClienteAsync(int id)

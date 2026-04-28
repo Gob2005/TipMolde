@@ -302,9 +302,9 @@ public class MaquinaServiceTests
             new[] { BuildMaquina(id: 9, estado: EstadoMaquina.EM_USO) },
             1,
             2,
-            5);
+            10);
 
-        _maquinaRepository.Setup(r => r.GetByEstadoAsync(EstadoMaquina.EM_USO, 2, 5))
+        _maquinaRepository.Setup(r => r.GetByEstadoAsync(EstadoMaquina.EM_USO, 2, 10))
             .ReturnsAsync(paged);
 
         // ACT
@@ -313,7 +313,7 @@ public class MaquinaServiceTests
         // ASSERT
         result.TotalCount.Should().Be(1);
         result.CurrentPage.Should().Be(2);
-        result.PageSize.Should().Be(5);
+        result.PageSize.Should().Be(10);
         result.Items.Single().Estado.Should().Be(EstadoMaquina.EM_USO);
     }
 }

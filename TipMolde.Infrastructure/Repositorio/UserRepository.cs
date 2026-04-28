@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using TipMolde.Application.Interface;
 using TipMolde.Application.Interface.Utilizador.IUser;
 using TipMolde.Domain.Entities;
@@ -29,8 +29,6 @@ namespace TipMolde.Infrastructure.Repositorio
         /// <returns>Colecao de utilizadores ordenada alfabeticamente pelo nome.</returns>
         public async Task<PagedResult<User>> SearchByNameAsync(string searchTerm, int page, int pageSize)
         {
-            page = page < 1 ? 1 : page;
-            pageSize = pageSize < 1 ? 10 : pageSize > 200 ? 200 : pageSize;
 
             var query = _context.Users
                 .AsNoTracking()

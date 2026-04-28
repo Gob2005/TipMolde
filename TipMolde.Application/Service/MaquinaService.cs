@@ -46,7 +46,8 @@ namespace TipMolde.Application.Service
         /// <returns>Resultado paginado com DTOs de resposta.</returns>
         public async Task<PagedResult<ResponseMaquinaDto>> GetAllAsync(int page = 1, int pageSize = 10)
         {
-            var result = await _maquinaRepository.GetAllAsync(page, pageSize);
+            var (normalizedPage, normalizedPageSize) = PaginationDefaults.Normalize(page, pageSize);
+            var result = await _maquinaRepository.GetAllAsync(normalizedPage, normalizedPageSize);
             var items = _mapper.Map<IEnumerable<ResponseMaquinaDto>>(result.Items);
 
             return new PagedResult<ResponseMaquinaDto>(
@@ -76,7 +77,8 @@ namespace TipMolde.Application.Service
         /// <returns>Resultado paginado com DTOs filtrados por estado.</returns>
         public async Task<PagedResult<ResponseMaquinaDto>> GetByEstadoAsync(EstadoMaquina estado, int page = 1, int pageSize = 10)
         {
-            var result = await _maquinaRepository.GetByEstadoAsync(estado, page, pageSize);
+            var (normalizedPage, normalizedPageSize) = PaginationDefaults.Normalize(page, pageSize);
+            var result = await _maquinaRepository.GetByEstadoAsync(estado, normalizedPage, normalizedPageSize);
             var items = _mapper.Map<IEnumerable<ResponseMaquinaDto>>(result.Items);
 
             return new PagedResult<ResponseMaquinaDto>(

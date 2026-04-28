@@ -43,7 +43,7 @@ public class RegistosProducaoServiceTests
     private static FasesProducao BuildFase(int id = 1) => new()
     {
         Fases_producao_id = id,
-        Nome = Nome_fases.MAQUINACAO,
+        Nome = NomeFases.MAQUINACAO,
         Descricao = "Fase teste"
     };
 

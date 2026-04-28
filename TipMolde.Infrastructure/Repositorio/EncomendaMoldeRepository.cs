@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using TipMolde.Application.Interface;
 using TipMolde.Application.Interface.Comercio.IEncomendaMolde;
 using TipMolde.Domain.Entities.Comercio;
@@ -35,9 +35,6 @@ namespace TipMolde.Infrastructure.Repositorio
             int page,
             int pageSize)
         {
-            page = page < 1 ? 1 : page;
-            pageSize = pageSize < 1 ? 10 : pageSize > 200 ? 200 : pageSize;
-
             var query = _context.EncomendasMoldes
                 .AsNoTracking()
                 .Include(em => em.Molde)
@@ -69,9 +66,6 @@ namespace TipMolde.Infrastructure.Repositorio
             int page,
             int pageSize)
         {
-            page = page < 1 ? 1 : page;
-            pageSize = pageSize < 1 ? 10 : pageSize > 200 ? 200 : pageSize;
-
             var query = _context.EncomendasMoldes
                 .AsNoTracking()
                 .Include(em => em.Encomenda)

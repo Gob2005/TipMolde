@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using System.Threading;
 using TipMolde.Application.Interface;
 using TipMolde.Application.Interface.Comercio.ICliente;
@@ -64,9 +64,6 @@ namespace TipMolde.Infrastructure.Repositorio
         /// <returns>Colecao de clientes ordenada alfabeticamente pelo nome.</returns>
         public async Task<PagedResult<Cliente>> SearchByNameAsync(string searchTerm, int page, int pageSize)
         {
-            page = page < 1 ? 1 : page;
-            pageSize = pageSize < 1 ? 10 : pageSize > 200 ? 200 : pageSize;
-
             var query = _context.Clientes
                 .AsNoTracking()
                 .Where(c => c.Nome.Contains(searchTerm));
@@ -90,11 +87,8 @@ namespace TipMolde.Infrastructure.Repositorio
         /// <param name="page">Numero da pagina a consultar.</param>
         /// <param name="pageSize">Quantidade de itens por pagina.</param>
         /// <returns>Colecao de clientes ordenada alfabeticamente pela sigla.</returns>
-        public async Task<PagedResult<Cliente>> SearchBySiglaAsync(string searchTerm, int page = 1, int pageSize = 10)
+        public async Task<PagedResult<Cliente>> SearchBySiglaAsync(string searchTerm, int page, int pageSize)
         {
-            page = page < 1 ? 1 : page;
-            pageSize = pageSize < 1 ? 10 : pageSize > 200 ? 200 : pageSize;
-
             var query = _context.Clientes
                 .AsNoTracking()
                 .Where(c => c.Sigla.Contains(searchTerm));

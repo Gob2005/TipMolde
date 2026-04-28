@@ -49,7 +49,8 @@ namespace TipMolde.Application.Service
         /// <returns>Resultado paginado com Dtos de projeto.</returns>
         public async Task<PagedResult<ResponseProjetoDto>> GetAllAsync(int page = 1, int pageSize = 10)
         {
-            var result = await _projetoRepository.GetAllAsync(page, pageSize);
+            var (normalizedPage, normalizedPageSize) = PaginationDefaults.Normalize(page, pageSize);
+            var result = await _projetoRepository.GetAllAsync(normalizedPage, normalizedPageSize);
             var itens = _mapper.Map<IEnumerable<ResponseProjetoDto>>(result.Items);
             return new PagedResult<ResponseProjetoDto>(itens, result.TotalCount, result.CurrentPage, result.PageSize);
         }
@@ -85,7 +86,8 @@ namespace TipMolde.Application.Service
         /// <returns>Resultado paginado com Dtos de projeto.</returns>
         public async Task<PagedResult<ResponseProjetoDto>> GetByMoldeIdAsync(int moldeId, int page = 1, int pageSize = 10)
         {
-            var projetos = await _projetoRepository.GetByMoldeIdAsync(moldeId, page, pageSize);
+            var (normalizedPage, normalizedPageSize) = PaginationDefaults.Normalize(page, pageSize);
+            var projetos = await _projetoRepository.GetByMoldeIdAsync(moldeId, normalizedPage, normalizedPageSize);
             var itens = _mapper.Map<IEnumerable<ResponseProjetoDto>>(projetos.Items);
             return new PagedResult<ResponseProjetoDto>(itens, projetos.TotalCount, projetos.CurrentPage, projetos.PageSize);
         }

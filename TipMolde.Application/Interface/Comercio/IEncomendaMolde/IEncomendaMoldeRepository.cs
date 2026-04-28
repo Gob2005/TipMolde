@@ -20,8 +20,8 @@ namespace TipMolde.Application.Interface.Comercio.IEncomendaMolde
         /// <returns>Resultado paginado com associacoes da encomenda.</returns>
         Task<PagedResult<EncomendaMolde>> GetByEncomendaIdAsync(
             int encomendaId,
-            int page = 1,
-            int pageSize = 10);
+            int page,
+            int pageSize);
 
         /// <summary>
         /// Lista associacoes por molde com paginacao.
@@ -32,8 +32,8 @@ namespace TipMolde.Application.Interface.Comercio.IEncomendaMolde
         /// <returns>Resultado paginado com associacoes do molde.</returns>
         Task<PagedResult<EncomendaMolde>> GetByMoldeIdAsync(
             int moldeId,
-            int page = 1,
-            int pageSize = 10);
+            int page,
+            int pageSize);
 
         /// <summary>
         /// Verifica se ja existe associacao para o par Encomenda_id + Molde_id.

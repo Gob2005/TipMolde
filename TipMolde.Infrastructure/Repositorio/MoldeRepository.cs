@@ -32,8 +32,6 @@ namespace TipMolde.Infrastructure.Repositorio
         /// <returns>Resultado paginado de moldes.</returns>
         public async Task<PagedResult<Molde>> GetAllAsync(int page, int pageSize)
         {
-            page = page < 1 ? 1 : page;
-            pageSize = pageSize < 1 ? 10 : pageSize > 200 ? 200 : pageSize;
 
             var query = _context.Moldes
                 .AsNoTracking()
@@ -84,8 +82,6 @@ namespace TipMolde.Infrastructure.Repositorio
         /// <returns>Colecao de moldes associados com especificacoes carregadas.</returns>
         public async Task<PagedResult<Molde>> GetByEncomendaIdAsync(int encomendaId, int page, int pageSize)
         {
-            page = page < 1 ? 1 : page;
-            pageSize = pageSize < 1 ? 10 : pageSize > 200 ? 200 : pageSize;
 
             var query = _context.EncomendasMoldes
                 .AsNoTracking()

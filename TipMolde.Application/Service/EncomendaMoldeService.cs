@@ -69,7 +69,8 @@ namespace TipMolde.Application.Service
             int page = 1,
             int pageSize = 10)
         {
-            var result = await _repo.GetByEncomendaIdAsync(encomendaId, page, pageSize);
+            var (normalizedPage, normalizedPageSize) = PaginationDefaults.Normalize(page, pageSize);
+            var result = await _repo.GetByEncomendaIdAsync(encomendaId, normalizedPage, normalizedPageSize);
             var mapped = _mapper.Map<IEnumerable<ResponseEncomendaMoldeDto>>(result.Items);
             return new PagedResult<ResponseEncomendaMoldeDto>(mapped, result.TotalCount, result.CurrentPage, result.PageSize);
         }
@@ -86,7 +87,8 @@ namespace TipMolde.Application.Service
             int page = 1,
             int pageSize = 10)
         {
-            var result = await _repo.GetByMoldeIdAsync(moldeId, page, pageSize);
+            var (normalizedPage, normalizedPageSize) = PaginationDefaults.Normalize(page, pageSize);
+            var result = await _repo.GetByMoldeIdAsync(moldeId, normalizedPage, normalizedPageSize);
             var mapped = _mapper.Map<IEnumerable<ResponseEncomendaMoldeDto>>(result.Items);
             return new PagedResult<ResponseEncomendaMoldeDto>(mapped, result.TotalCount, result.CurrentPage, result.PageSize);
         }

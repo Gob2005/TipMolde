@@ -256,8 +256,8 @@ public class ProjetoServiceTests
     public async Task GetByMoldeIdAsync_Should_MapPagedResult_When_RepositoryReturnsItems()
     {
         // ARRANGE
-        var paged = new PagedResult<Projeto>(new[] { BuildProjeto(id: 30) }, 1, 2, 5);
-        _projetoRepository.Setup(r => r.GetByMoldeIdAsync(7, 2, 5)).ReturnsAsync(paged);
+        var paged = new PagedResult<Projeto>(new[] { BuildProjeto(id: 30) }, 1, 2, 10);
+        _projetoRepository.Setup(r => r.GetByMoldeIdAsync(7, 2, 10)).ReturnsAsync(paged);
 
         // ACT
         var result = await _sut.GetByMoldeIdAsync(7, 2, 5);

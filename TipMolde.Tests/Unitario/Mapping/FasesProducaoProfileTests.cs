@@ -39,7 +39,7 @@ public class FasesProducaoProfileTests
         // ARRANGE
         var source = new CreateFasesProducaoDto
         {
-            Nome = Nome_fases.MAQUINACAO,
+            Nome = NomeFases.MAQUINACAO,
             Descricao = "  Descricao  "
         };
 
@@ -47,7 +47,7 @@ public class FasesProducaoProfileTests
         var result = _mapper.Map<FasesProducao>(source);
 
         // ASSERT
-        result.Nome.Should().Be(Nome_fases.MAQUINACAO);
+        result.Nome.Should().Be(NomeFases.MAQUINACAO);
         result.Descricao.Should().Be("Descricao");
     }
 
@@ -58,7 +58,7 @@ public class FasesProducaoProfileTests
         var source = new FasesProducao
         {
             Fases_producao_id = 9,
-            Nome = Nome_fases.EROSAO,
+            Nome = NomeFases.EROSAO,
             Descricao = "Descricao"
         };
 
@@ -67,7 +67,7 @@ public class FasesProducaoProfileTests
 
         // ASSERT
         result.FasesProducao_id.Should().Be(9);
-        result.Nome.Should().Be(Nome_fases.EROSAO);
+        result.Nome.Should().Be(NomeFases.EROSAO);
         result.Descricao.Should().Be("Descricao");
     }
 
@@ -83,7 +83,7 @@ public class FasesProducaoProfileTests
         var destination = new FasesProducao
         {
             Fases_producao_id = 2,
-            Nome = Nome_fases.MONTAGEM,
+            Nome = NomeFases.MONTAGEM,
             Descricao = "Descricao antiga"
         };
 
@@ -91,7 +91,7 @@ public class FasesProducaoProfileTests
         _mapper.Map(source, destination);
 
         // ASSERT
-        destination.Nome.Should().Be(Nome_fases.MONTAGEM);
+        destination.Nome.Should().Be(NomeFases.MONTAGEM);
         destination.Descricao.Should().Be("Nova descricao");
     }
 }

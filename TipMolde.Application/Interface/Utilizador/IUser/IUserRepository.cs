@@ -1,4 +1,4 @@
-﻿using TipMolde.Domain.Entities;
+using TipMolde.Domain.Entities;
 
 namespace TipMolde.Application.Interface.Utilizador.IUser
 {
@@ -17,7 +17,7 @@ namespace TipMolde.Application.Interface.Utilizador.IUser
         /// <param name="page">Numero da pagina a ser retornada.</param>
         /// <param name="pageSize">Quantidade de itens por pagina.</param>
         /// <returns>Colecao de utilizadores que correspondem ao termo informado.</returns>
-        Task<PagedResult<User>> SearchByNameAsync(string searchTerm, int page = 1, int pageSize = 10);
+        Task<PagedResult<User>> SearchByNameAsync(string searchTerm, int page, int pageSize);
 
         /// <summary>
         /// Obtem um utilizador pelo email.

@@ -1,4 +1,4 @@
-﻿using TipMolde.Domain.Entities.Comercio;
+using TipMolde.Domain.Entities.Comercio;
 using TipMolde.Domain.Enums;
 
 namespace TipMolde.Application.Interface.Comercio.IEncomenda
@@ -15,10 +15,10 @@ namespace TipMolde.Application.Interface.Comercio.IEncomenda
         Task<Encomenda?> GetByNumeroEncomendaClienteAsync(string numero);
 
         /// <summary>Lista encomendas por estado.</summary>
-        Task<PagedResult<Encomenda>> GetByEstadoAsync(EstadoEncomenda estado, int page = 1, int pageSize = 10);
+        Task<PagedResult<Encomenda>> GetByEstadoAsync(EstadoEncomenda estado, int page, int pageSize);
 
         /// <summary>Lista encomendas com estado nao terminal.</summary>
-        Task<PagedResult<Encomenda>> GetEncomendasPorConcluirAsync(int page = 1, int pageSize = 10);
+        Task<PagedResult<Encomenda>> GetEncomendasPorConcluirAsync(int page, int pageSize);
 
         /// <summary>
         /// Verifica se ja existe encomenda com o numero informado.

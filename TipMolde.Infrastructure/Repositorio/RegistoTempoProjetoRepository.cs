@@ -1,4 +1,4 @@
-﻿using System.Data;
+using System.Data;
 using Microsoft.EntityFrameworkCore;
 using TipMolde.Application.Interface;
 using TipMolde.Application.Interface.Desenho.IRegistoTempoProjeto;
@@ -30,8 +30,6 @@ namespace TipMolde.Infrastructure.Repositorio
         /// <returns>Colecao ordenada por data e identificador.</returns>
         public async Task<PagedResult<RegistoTempoProjeto>> GetHistoricoAsync(int projetoId, int autorId, int page, int pageSize)
         {
-            page = page < 1 ? 1 : page;
-            pageSize = pageSize < 1 ? 10 : pageSize > 200 ? 200 : pageSize;
 
             var query = _context.RegistosTempoProjeto
                 .AsNoTracking()

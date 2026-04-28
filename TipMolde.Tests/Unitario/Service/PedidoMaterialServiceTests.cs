@@ -102,10 +102,8 @@ public class PedidoMaterialServiceTests
         var pecas = BuildPecas(1, 2).ToList();
         _pecaRepository
             .Setup(r => r.GetByIdsAsync(
-                It.Is<IEnumerable<int>>(ids => ids.SequenceEqual(new[] { 1, 2 })),
-                1,
-                10))
-            .ReturnsAsync(new PagedResult<Peca>(pecas, 2, 1, 10));
+                It.Is<IEnumerable<int>>(ids => ids.SequenceEqual(new[] { 1, 2 }))))
+            .ReturnsAsync(pecas);
 
         _pedidoRepository
             .Setup(r => r.AddAsync(It.IsAny<PedidoMaterial>()))
@@ -209,10 +207,8 @@ public class PedidoMaterialServiceTests
         });
         _pecaRepository
             .Setup(r => r.GetByIdsAsync(
-                It.Is<IEnumerable<int>>(ids => ids.SequenceEqual(new[] { 1, 2 })),
-                1,
-                10))
-            .ReturnsAsync(new PagedResult<Peca>(pecas, 2, 1, 10));
+                It.Is<IEnumerable<int>>(ids => ids.SequenceEqual(new[] { 1, 2 }))))
+            .ReturnsAsync(pecas);
 
         // ACT
         await _sut.RegistarRececaoAsync(41, 9);

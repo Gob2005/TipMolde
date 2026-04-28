@@ -383,8 +383,8 @@ public class EncomendaServiceTests
             new[] { BuildEncomenda(id: 8, numero: "ENC-008", estado: EstadoEncomenda.EM_PRODUCAO) },
             1,
             2,
-            5);
-        _encomendaRepository.Setup(r => r.GetByEstadoAsync(EstadoEncomenda.EM_PRODUCAO, 2, 5)).ReturnsAsync(paged);
+            10);
+        _encomendaRepository.Setup(r => r.GetByEstadoAsync(EstadoEncomenda.EM_PRODUCAO, 2, 10)).ReturnsAsync(paged);
 
         // ACT
         var result = await _sut.GetByEstadoAsync(EstadoEncomenda.EM_PRODUCAO, 2, 5);

@@ -248,10 +248,10 @@ public class ClienteServiceTests
     {
         // ARRANGE
         var clientes = new[] { BuildCliente(id: 10, nome: " Cliente X ", nif: "111111111", sigla: " CX ") };
-        var paged = new PagedResult<Cliente>(clientes, 1, 2, 5);
+        var paged = new PagedResult<Cliente>(clientes, 1, 2, 10);
 
         _clienteRepository
-            .Setup(r => r.SearchByNameAsync("Cliente", 2, 5))
+            .Setup(r => r.SearchByNameAsync("Cliente", 2, 10))
             .ReturnsAsync(paged);
 
         // ACT
@@ -260,7 +260,7 @@ public class ClienteServiceTests
         // ASSERT
         result.TotalCount.Should().Be(1);
         result.CurrentPage.Should().Be(2);
-        result.PageSize.Should().Be(5);
+        result.PageSize.Should().Be(10);
         result.Items.Should().ContainSingle();
         result.Items.Single().Cliente_id.Should().Be(10);
         result.Items.Single().Nome.Should().Be("Cliente X");
@@ -318,10 +318,10 @@ public class ClienteServiceTests
     {
         // ARRANGE
         var clientes = new[] { BuildCliente(id: 12, nome: "Cliente Y", nif: "222222222", sigla: " CY ") };
-        var paged = new PagedResult<Cliente>(clientes, 1, 3, 4);
+        var paged = new PagedResult<Cliente>(clientes, 1, 3, 10);
 
         _clienteRepository
-            .Setup(r => r.SearchBySiglaAsync("CY", 3, 4))
+            .Setup(r => r.SearchBySiglaAsync("CY", 3, 10))
             .ReturnsAsync(paged);
 
         // ACT
@@ -330,7 +330,7 @@ public class ClienteServiceTests
         // ASSERT
         result.TotalCount.Should().Be(1);
         result.CurrentPage.Should().Be(3);
-        result.PageSize.Should().Be(4);
+        result.PageSize.Should().Be(10);
         result.Items.Single().Cliente_id.Should().Be(12);
         result.Items.Single().Sigla.Should().Be("CY");
     }

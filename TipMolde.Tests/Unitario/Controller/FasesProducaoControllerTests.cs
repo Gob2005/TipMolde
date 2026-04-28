@@ -34,7 +34,7 @@ public class FasesProducaoControllerTests
         };
     }
 
-    private static ResponseFasesProducaoDto BuildResponse(int id = 1, Nome_fases nome = Nome_fases.MAQUINACAO)
+    private static ResponseFasesProducaoDto BuildResponse(int id = 1, NomeFases nome = NomeFases.MAQUINACAO)
     {
         return new ResponseFasesProducaoDto
         {
@@ -76,7 +76,7 @@ public class FasesProducaoControllerTests
         _controller.ModelState.AddModelError("Nome", "Obrigatorio");
 
         // ACT
-        var result = await _controller.Create(new CreateFasesProducaoDto { Nome = Nome_fases.MAQUINACAO });
+        var result = await _controller.Create(new CreateFasesProducaoDto { Nome = NomeFases.MAQUINACAO });
 
         // ASSERT
         result.Should().BeOfType<BadRequestObjectResult>();
@@ -87,8 +87,8 @@ public class FasesProducaoControllerTests
     public async Task Create_Should_ReturnCreatedAtAction_When_RequestIsValid()
     {
         // ARRANGE
-        var dto = new CreateFasesProducaoDto { Nome = Nome_fases.MONTAGEM, Descricao = "Descricao" };
-        var response = BuildResponse(id: 7, nome: Nome_fases.MONTAGEM);
+        var dto = new CreateFasesProducaoDto { Nome = NomeFases.MONTAGEM, Descricao = "Descricao" };
+        var response = BuildResponse(id: 7, nome: NomeFases.MONTAGEM);
         _service.Setup(s => s.CreateAsync(dto)).ReturnsAsync(response);
 
         // ACT
@@ -135,7 +135,7 @@ public class FasesProducaoControllerTests
     {
         // ARRANGE
         var paged = new PagedResult<ResponseFasesProducaoDto>(
-            new[] { BuildResponse(1, Nome_fases.MAQUINACAO), BuildResponse(2, Nome_fases.EROSAO) },
+            new[] { BuildResponse(1, NomeFases.MAQUINACAO), BuildResponse(2, NomeFases.EROSAO) },
             2,
             1,
             10);

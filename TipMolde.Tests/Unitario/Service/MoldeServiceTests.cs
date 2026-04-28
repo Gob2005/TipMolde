@@ -312,8 +312,8 @@ public class MoldeServiceTests
     public async Task GetByEncomendaIdAsync_Should_MapPagedResult_When_RepositoryReturnsItems()
     {
         // ARRANGE
-        var paged = new PagedResult<Molde>(new[] { BuildMolde(id: 40, numero: "MOL-040") }, 1, 2, 5);
-        _moldeRepository.Setup(r => r.GetByEncomendaIdAsync(7, 2, 5)).ReturnsAsync(paged);
+        var paged = new PagedResult<Molde>(new[] { BuildMolde(id: 40, numero: "MOL-040") }, 1, 2, 10);
+        _moldeRepository.Setup(r => r.GetByEncomendaIdAsync(7, 2, 10)).ReturnsAsync(paged);
 
         // ACT
         var result = await _sut.GetByEncomendaIdAsync(7, 2, 5);

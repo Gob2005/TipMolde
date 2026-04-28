@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using TipMolde.Application.Interface;
 using TipMolde.Application.Interface.Comercio.IPedidoMaterial;
 using TipMolde.Domain.Entities.Comercio;
@@ -32,8 +32,6 @@ namespace TipMolde.Infrastructure.Repositorio
         /// <returns>Resultado paginado com pedidos enriquecidos com itens.</returns>
         public async Task<PagedResult<PedidoMaterial>> GetPagedWithItensAsync(int page, int pageSize)
         {
-            page = page < 1 ? 1 : page;
-            pageSize = pageSize < 1 ? 10 : pageSize > 200 ? 200 : pageSize;
 
             var query = _context.PedidosMaterial
                 .AsNoTracking()
@@ -70,8 +68,6 @@ namespace TipMolde.Infrastructure.Repositorio
         /// <returns>Resultado paginado com pedidos associados ao fornecedor.</returns>
         public async Task<PagedResult<PedidoMaterial>> GetByFornecedorIdWithItensAsync(int fornecedorId, int page, int pageSize)
         {
-            page = page < 1 ? 1 : page;
-            pageSize = pageSize < 1 ? 10 : pageSize > 200 ? 200 : pageSize;
 
             var query = _context.PedidosMaterial
                 .AsNoTracking()

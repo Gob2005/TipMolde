@@ -64,7 +64,8 @@ namespace TipMolde.Application.Service
         /// <returns>Resultado paginado com Dtos de peca.</returns>
         public async Task<PagedResult<ResponsePecaDto>> GetAllAsync(int page = 1, int pageSize = 10)
         {
-            var result = await _pecaRepository.GetAllAsync(page, pageSize);
+            var (normalizedPage, normalizedPageSize) = PaginationDefaults.Normalize(page, pageSize);
+            var result = await _pecaRepository.GetAllAsync(normalizedPage, normalizedPageSize);
             var items = _mapper.Map<IEnumerable<ResponsePecaDto>>(result.Items);
             return new PagedResult<ResponsePecaDto>(items, result.TotalCount, result.CurrentPage, result.PageSize);
         }
@@ -89,7 +90,8 @@ namespace TipMolde.Application.Service
         /// <returns>Resultado paginado com Dtos de peca.</returns>
         public async Task<PagedResult<ResponsePecaDto>> GetByMoldeIdAsync(int moldeId, int page = 1, int pageSize = 10)
         {
-            var result = await _pecaRepository.GetByMoldeIdAsync(moldeId, page, pageSize);
+            var (normalizedPage, normalizedPageSize) = PaginationDefaults.Normalize(page, pageSize);
+            var result = await _pecaRepository.GetByMoldeIdAsync(moldeId, normalizedPage, normalizedPageSize);
             var items = _mapper.Map<IEnumerable<ResponsePecaDto>>(result.Items);
             return new PagedResult<ResponsePecaDto>(items, result.TotalCount, result.CurrentPage, result.PageSize);
         }
@@ -299,6 +301,13 @@ namespace TipMolde.Application.Service
                 || dto.MaterialRecebido.HasValue;
         }
 
+        /// <summary>
+        /// Valida a unicidade funcional da peca dentro do molde.
+        /// </summary>
+        /// <param name="moldeId">Identificador do molde ao qual a peca pertence.</param>
+        /// <param name="numeroPeca">Numero funcional da peca, quando informado.</param>
+        /// <param name="designacao">Designacao usada como fallback de unicidade.</param>
+        /// <param name="currentPecaId">Identificador da peca atual a excluir em updates.</param>
         private async Task ValidateUniquePecaAsync(int moldeId, string? numeroPeca, string designacao, int? currentPecaId)
         {
             if (!string.IsNullOrWhiteSpace(numeroPeca))
@@ -315,6 +324,12 @@ namespace TipMolde.Application.Service
                 throw new ArgumentException("Ja existe uma peca com esta designacao neste molde.");
         }
 
+        /// <summary>
+        /// Resolve o valor opcional que uma propriedade tera apos um update parcial.
+        /// </summary>
+        /// <param name="incomingValue">Valor recebido no DTO de update.</param>
+        /// <param name="currentValue">Valor atualmente persistido.</param>
+        /// <returns>Valor normalizado quando enviado; caso contrario, valor atual.</returns>
         private static string? ResolveFutureValue(string? incomingValue, string? currentValue)
         {
             return incomingValue == null
@@ -322,6 +337,12 @@ namespace TipMolde.Application.Service
                 : MappingProfileExtensions.NormalizeOptionalString(incomingValue);
         }
 
+        /// <summary>
+        /// Resolve o valor obrigatorio que uma propriedade tera apos um update parcial.
+        /// </summary>
+        /// <param name="incomingValue">Valor recebido no DTO de update.</param>
+        /// <param name="currentValue">Valor atualmente persistido.</param>
+        /// <returns>Valor trimado quando enviado; caso contrario, valor atual.</returns>
         private static string ResolveFutureRequiredValue(string? incomingValue, string currentValue)
         {
             return string.IsNullOrWhiteSpace(incomingValue)
@@ -329,6 +350,13 @@ namespace TipMolde.Application.Service
                 : incomingValue.Trim();
         }
 
+        /// <summary>
+        /// Constroi uma peca consolidada a partir de um grupo de linhas CSV do mesmo NumeroPeca.
+        /// </summary>
+        /// <param name="moldeId">Identificador do molde de destino.</param>
+        /// <param name="prioridade">Prioridade sequencial atribuida a peca importada.</param>
+        /// <param name="linhasGrupo">Linhas CSV que representam a mesma peca.</param>
+        /// <returns>Entidade Peca pronta para persistencia.</returns>
         private static Peca BuildPecaFromCsvGroup(int moldeId, int prioridade, IReadOnlyCollection<PecaCsvLinhaDto> linhasGrupo)
         {
             var primeiraLinha = linhasGrupo.OrderBy(x => x.NumeroLinha).First();
@@ -349,6 +377,11 @@ namespace TipMolde.Application.Service
             };
         }
 
+        /// <summary>
+        /// Garante que linhas CSV com o mesmo NumeroPeca podem ser consolidadas.
+        /// </summary>
+        /// <param name="numeroPeca">Numero funcional da peca importada.</param>
+        /// <param name="linhasGrupo">Linhas CSV agrupadas pelo mesmo NumeroPeca.</param>
         private static void ValidateCsvGroupConsistency(string numeroPeca, IReadOnlyCollection<PecaCsvLinhaDto> linhasGrupo)
         {
             var primeiraLinha = linhasGrupo.OrderBy(x => x.NumeroLinha).First();
@@ -368,6 +401,12 @@ namespace TipMolde.Application.Service
             }
         }
 
+        /// <summary>
+        /// Identifica campos divergentes entre duas linhas CSV da mesma peca.
+        /// </summary>
+        /// <param name="referencia">Linha usada como referencia do grupo.</param>
+        /// <param name="atual">Linha atual a comparar.</param>
+        /// <returns>Lista com nomes dos campos contraditorios.</returns>
         private static List<string> GetConflictingFields(PecaCsvLinhaDto referencia, PecaCsvLinhaDto atual)
         {
             var conflitos = new List<string>();
@@ -393,6 +432,12 @@ namespace TipMolde.Application.Service
             return conflitos;
         }
 
+        /// <summary>
+        /// Compara dois textos normalizados de forma insensivel a maiusculas.
+        /// </summary>
+        /// <param name="left">Primeiro valor textual.</param>
+        /// <param name="right">Segundo valor textual.</param>
+        /// <returns>True quando os textos normalizados sao equivalentes.</returns>
         private static bool StringEquals(string? left, string? right)
         {
             return string.Equals(
@@ -401,6 +446,11 @@ namespace TipMolde.Application.Service
                 StringComparison.OrdinalIgnoreCase);
         }
 
+        /// <summary>
+        /// Interpreta o ficheiro CSV de pecas e valida a sua estrutura funcional.
+        /// </summary>
+        /// <param name="csvStream">Stream do ficheiro CSV recebido.</param>
+        /// <returns>Modelo interno com metadados do molde e linhas de pecas lidas.</returns>
         private static async Task<ParsedPecaCsvFile> ParseCsvAsync(Stream csvStream)
         {
             using var memoryStream = new MemoryStream();
@@ -446,6 +496,10 @@ namespace TipMolde.Application.Service
                 linhasPeca);
         }
 
+        /// <summary>
+        /// Valida se o cabecalho CSV corresponde ao formato esperado.
+        /// </summary>
+        /// <param name="headerColumns">Colunas lidas da primeira linha do ficheiro.</param>
         private static void ValidateCsvHeader(IReadOnlyList<string> headerColumns)
         {
             ValidateColumnCount(headerColumns, 1);
@@ -460,6 +514,11 @@ namespace TipMolde.Application.Service
             }
         }
 
+        /// <summary>
+        /// Valida se uma linha CSV tem o numero esperado de colunas.
+        /// </summary>
+        /// <param name="columns">Colunas lidas da linha.</param>
+        /// <param name="lineNumber">Numero da linha no ficheiro CSV.</param>
         private static void ValidateColumnCount(IReadOnlyList<string> columns, int lineNumber)
         {
             if (columns.Count == CsvHeader.Length)
@@ -469,6 +528,10 @@ namespace TipMolde.Application.Service
                 $"A linha {lineNumber} do CSV contem {columns.Count} colunas. Eram esperadas {CsvHeader.Length} colunas.");
         }
 
+        /// <summary>
+        /// Valida se a segunda linha do CSV representa o resumo do molde.
+        /// </summary>
+        /// <param name="metadataColumns">Colunas lidas da linha de metadados.</param>
         private static void ValidateMetadataRow(IReadOnlyList<string> metadataColumns)
         {
             var numeroPeca = MappingProfileExtensions.NormalizeOptionalString(metadataColumns[0]);
@@ -482,6 +545,12 @@ namespace TipMolde.Application.Service
                 throw new ArgumentException("A linha 2 do CSV deve ter 'Molde' na coluna Ref.");
         }
 
+        /// <summary>
+        /// Converte uma linha CSV de peca para DTO interno validado.
+        /// </summary>
+        /// <param name="columns">Colunas da linha CSV.</param>
+        /// <param name="lineNumber">Numero da linha no ficheiro CSV.</param>
+        /// <returns>DTO interno com os dados da peca importada.</returns>
         private static PecaCsvLinhaDto ParsePieceRow(IReadOnlyList<string> columns, int lineNumber)
         {
             var numeroPeca = MappingProfileExtensions.NormalizeOptionalString(columns[0]);
@@ -510,6 +579,11 @@ namespace TipMolde.Application.Service
             };
         }
 
+        /// <summary>
+        /// Divide uma linha CSV respeitando separadores dentro de aspas.
+        /// </summary>
+        /// <param name="line">Linha CSV a dividir.</param>
+        /// <returns>Colunas extraidas da linha.</returns>
         private static IReadOnlyList<string> SplitCsvLine(string line)
         {
             var result = new List<string>();
@@ -538,6 +612,11 @@ namespace TipMolde.Application.Service
             return result;
         }
 
+        /// <summary>
+        /// Deteta a codificacao do CSV e devolve as linhas textuais.
+        /// </summary>
+        /// <param name="csvBytes">Conteudo binario do ficheiro CSV.</param>
+        /// <returns>Linhas do ficheiro interpretadas na codificacao adequada.</returns>
         private static string[] DecodeCsvLines(byte[] csvBytes)
         {
             foreach (var encoding in GetCandidateEncodings())
@@ -553,12 +632,21 @@ namespace TipMolde.Application.Service
             return SplitLines(Encoding.UTF8.GetString(csvBytes));
         }
 
+        /// <summary>
+        /// Devolve as codificacoes aceites para ficheiros CSV importados.
+        /// </summary>
+        /// <returns>Sequencia de codificacoes testadas por ordem de preferencia.</returns>
         private static IEnumerable<Encoding> GetCandidateEncodings()
         {
             yield return new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: false);
             yield return Encoding.GetEncoding(1252);
         }
 
+        /// <summary>
+        /// Normaliza quebras de linha e divide o conteudo textual.
+        /// </summary>
+        /// <param name="content">Conteudo textual do CSV.</param>
+        /// <returns>Linhas normalizadas do ficheiro.</returns>
         private static string[] SplitLines(string content)
         {
             return content
@@ -567,6 +655,11 @@ namespace TipMolde.Application.Service
                 .Split('\n');
         }
 
+        /// <summary>
+        /// Verifica se as colunas recebidas correspondem ao cabecalho esperado.
+        /// </summary>
+        /// <param name="headerColumns">Colunas candidatas a cabecalho.</param>
+        /// <returns>True quando o cabecalho corresponde ao formato aceite.</returns>
         private static bool IsExpectedCsvHeader(IReadOnlyList<string> headerColumns)
         {
             if (headerColumns.Count != CsvHeader.Length)
@@ -581,6 +674,11 @@ namespace TipMolde.Application.Service
             return true;
         }
 
+        /// <summary>
+        /// Normaliza texto CSV para comparacoes robustas de cabecalho e metadados.
+        /// </summary>
+        /// <param name="value">Valor textual lido do CSV.</param>
+        /// <returns>Texto canonico sem acentos, pontuacao irrelevante ou espacos repetidos.</returns>
         private static string CanonicalizeCsvToken(string? value)
         {
             if (string.IsNullOrWhiteSpace(value))

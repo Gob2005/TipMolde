@@ -29,7 +29,7 @@ namespace TipMolde.Infrastructure.Repositorio
         /// </summary>
         /// <param name="nome">Nome da fase a procurar.</param>
         /// <returns>Entidade encontrada; nulo caso nao exista.</returns>
-        public Task<FasesProducao?> GetByNomeAsync(Nome_fases nome)
+        public Task<FasesProducao?> GetByNomeAsync(NomeFases nome)
         {
             return _context.Fases_Producao
                 .AsNoTracking()

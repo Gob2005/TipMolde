@@ -1,4 +1,4 @@
-﻿using TipMolde.Domain.Entities.Desenho;
+using TipMolde.Domain.Entities.Desenho;
 
 namespace TipMolde.Application.Interface.Desenho.IProjeto
 {
@@ -14,7 +14,7 @@ namespace TipMolde.Application.Interface.Desenho.IProjeto
         /// <param name="page">Pagina atual.</param>
         /// <param name="pageSize">Tamanho da pagina.</param>
         /// <returns>Resultado paginado com projetos associados.</returns>
-        Task<PagedResult<Projeto>> GetByMoldeIdAsync(int moldeId, int page = 1, int pageSize = 10);
+        Task<PagedResult<Projeto>> GetByMoldeIdAsync(int moldeId, int page, int pageSize);
 
         /// <summary>
         /// Obtem um projeto com as revisoes carregadas.

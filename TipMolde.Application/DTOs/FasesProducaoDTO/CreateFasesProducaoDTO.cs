@@ -15,7 +15,7 @@ namespace TipMolde.Application.Dtos.FasesProducaoDto
         /// O cliente tem de enviar este campo explicitamente.
         /// </remarks>
         [Required]
-        public required Nome_fases Nome { get; set; }
+        public required NomeFases Nome { get; set; }
 
         /// <summary>
         /// Descricao funcional opcional da fase.

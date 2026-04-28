@@ -13,7 +13,7 @@ namespace TipMolde.Application.Interface.Producao.IFasesProducao
         /// </summary>
         /// <param name="nome">Nome da fase a procurar.</param>
         /// <returns>Entidade encontrada; nulo caso nao exista.</returns>
-        Task<FasesProducao?> GetByNomeAsync(Nome_fases nome);
+        Task<FasesProducao?> GetByNomeAsync(NomeFases nome);
 
         /// <summary>
         /// Verifica se a fase esta referenciada por maquinas.

@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using TipMolde.Application.Interface;
 using TipMolde.Application.Interface.Comercio.IEncomenda;
 using TipMolde.Domain.Entities.Comercio;
@@ -23,8 +23,6 @@ namespace TipMolde.Infrastructure.Repositorio
         /// </summary>
         public async Task<PagedResult<Encomenda>> GetByEstadoAsync(EstadoEncomenda estado, int page, int pageSize)
         {
-            page = page < 1 ? 1 : page;
-            pageSize = pageSize < 1 ? 10 : pageSize > 200 ? 200 : pageSize;
 
             var query = _context.Encomendas
                 .AsNoTracking()
@@ -45,8 +43,6 @@ namespace TipMolde.Infrastructure.Repositorio
         /// </summary>
         public async Task<PagedResult<Encomenda>> GetEncomendasPorConcluirAsync(int page, int pageSize)
         {
-            page = page < 1 ? 1 : page;
-            pageSize = pageSize < 1 ? 10 : pageSize > 200 ? 200 : pageSize;
 
             var query = _context.Encomendas
                 .AsNoTracking()

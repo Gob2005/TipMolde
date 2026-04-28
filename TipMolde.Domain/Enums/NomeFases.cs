@@ -1,6 +1,6 @@
 ﻿namespace TipMolde.Domain.Enums
 {
-    public enum Nome_fases
+    public enum NomeFases
     {
         MAQUINACAO,
         EROSAO,

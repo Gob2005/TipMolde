@@ -1,4 +1,4 @@
-﻿/// <summary>
+/// <summary>
 /// Repositório genérico base com operações CRUD.
 /// </summary>
 /// <typeparam name="T">Tipo da entidade.</typeparam>
@@ -10,7 +10,7 @@ namespace TipMolde.Application.Interface
 {
     public interface IGenericRepository<T, TKey> where T : class
     {
-        Task<PagedResult<T>> GetAllAsync(int page = 1, int pageSize = 10);
+        Task<PagedResult<T>> GetAllAsync(int page, int pageSize);
         Task<T?> GetByIdAsync(TKey id);
         Task<T> AddAsync(T entity);
         Task UpdateAsync(T entity);

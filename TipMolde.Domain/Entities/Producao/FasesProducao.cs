@@ -19,7 +19,7 @@ namespace TipMolde.Domain.Entities.Producao
         /// <summary>
         /// Nome funcional da fase de producao.
         /// </summary>
-        public required Nome_fases Nome { get; set; }
+        public required NomeFases Nome { get; set; }
 
         /// <summary>
         /// Descricao funcional da fase para apoio a utilizadores e administracao.

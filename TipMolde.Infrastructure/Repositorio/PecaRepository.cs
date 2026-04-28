@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using TipMolde.Application.Interface;
 using TipMolde.Application.Interface.Producao.IPeca;
 using TipMolde.Domain.Entities.Producao;
@@ -28,8 +28,6 @@ namespace TipMolde.Infrastructure.Repositorio
         /// <returns>Resultado paginado com pecas pertencentes ao molde informado.</returns>
         public async Task<PagedResult<Peca>> GetByMoldeIdAsync(int moldeId, int page, int pageSize)
         {
-            page = page < 1 ? 1 : page;
-            pageSize = pageSize < 1 ? 10 : pageSize > 200 ? 200 : pageSize;
 
             var query = _context.Pecas
                 .Where(p => p.Molde_id == moldeId);
@@ -69,30 +67,18 @@ namespace TipMolde.Infrastructure.Repositorio
         }
 
         /// <summary>
-        /// Lista pecas pelos identificadores informados.
+        /// Obtem todas as pecas correspondentes aos identificadores informados.
         /// </summary>
         /// <param name="ids">Colecao de identificadores a pesquisar.</param>
-        /// <param name="page">Numero da pagina a consultar.</param>
-        /// <param name="pageSize">Quantidade de itens por pagina.</param>
-        /// <returns>Resultado paginado com pecas encontradas para os ids informados.</returns>
-        public async Task<PagedResult<Peca>> GetByIdsAsync(IEnumerable<int> ids, int page, int pageSize)
+        /// <returns>Colecao de pecas encontradas para os ids informados.</returns>
+        public async Task<IReadOnlyList<Peca>> GetByIdsAsync(IEnumerable<int> ids)
         {
-            page = page < 1 ? 1 : page;
-            pageSize = pageSize < 1 ? 10 : pageSize > 200 ? 200 : pageSize;
-
             var idList = ids.Distinct().ToList();
 
-            var query = _context.Pecas
-                .Where(p => idList.Contains(p.Peca_id));
-
-            var totalCount = await query.CountAsync();
-            var items = await query
+            return await _context.Pecas
+                .Where(p => idList.Contains(p.Peca_id))
                 .OrderBy(p => p.Peca_id)
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
                 .ToListAsync();
-
-            return new PagedResult<Peca>(items, totalCount, page, pageSize);
         }
     }
 }

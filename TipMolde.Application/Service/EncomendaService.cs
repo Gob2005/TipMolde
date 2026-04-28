@@ -50,7 +50,8 @@ namespace TipMolde.Application.Service
         /// <returns>Resultado paginado com Dtos de resposta.</returns>
         public async Task<PagedResult<ResponseEncomendaDto>> GetAllAsync(int page = 1, int pageSize = 10)
         {
-            var result = await _encomendaRepository.GetAllAsync(page, pageSize);
+            var (normalizedPage, normalizedPageSize) = PaginationDefaults.Normalize(page, pageSize);
+            var result = await _encomendaRepository.GetAllAsync(normalizedPage, normalizedPageSize);
             var mappedItems = _mapper.Map<IEnumerable<ResponseEncomendaDto>>(result.Items);
             return new PagedResult<ResponseEncomendaDto>(mappedItems, result.TotalCount, result.CurrentPage, result.PageSize);
         }
@@ -81,10 +82,13 @@ namespace TipMolde.Application.Service
         /// Lista encomendas por estado.
         /// </summary>
         /// <param name="estado">Estado textual para filtro.</param>
+        /// <param name="page">Numero da pagina a consultar.</param>
+        /// <param name="pageSize">Quantidade de itens por pagina.</param>
         /// <returns>Colecao de Dtos de encomenda no estado informado.</returns>
         public async Task<PagedResult<ResponseEncomendaDto>> GetByEstadoAsync(EstadoEncomenda estado, int page = 1, int pageSize = 10)
         {
-            var result = await _encomendaRepository.GetByEstadoAsync(estado, page, pageSize);
+            var (normalizedPage, normalizedPageSize) = PaginationDefaults.Normalize(page, pageSize);
+            var result = await _encomendaRepository.GetByEstadoAsync(estado, normalizedPage, normalizedPageSize);
             var mappedItems = _mapper.Map<IEnumerable<ResponseEncomendaDto>>(result.Items);
             return new PagedResult<ResponseEncomendaDto>(mappedItems, result.TotalCount, result.CurrentPage, result.PageSize);
         }
@@ -92,10 +96,13 @@ namespace TipMolde.Application.Service
         /// <summary>
         /// Lista encomendas com estado nao terminal.
         /// </summary>
+        /// <param name="page">Numero da pagina a consultar.</param>
+        /// <param name="pageSize">Quantidade de itens por pagina.</param>
         /// <returns>Colecao de Dtos de encomendas por concluir.</returns>
         public async Task<PagedResult<ResponseEncomendaDto>> GetEncomendasPorConcluirAsync(int page = 1, int pageSize = 10)
         {
-            var result = await _encomendaRepository.GetEncomendasPorConcluirAsync(page, pageSize);
+            var (normalizedPage, normalizedPageSize) = PaginationDefaults.Normalize(page, pageSize);
+            var result = await _encomendaRepository.GetEncomendasPorConcluirAsync(normalizedPage, normalizedPageSize);
             var mappedItems = _mapper.Map<IEnumerable<ResponseEncomendaDto>>(result.Items);
             return new PagedResult<ResponseEncomendaDto>(mappedItems, result.TotalCount, result.CurrentPage, result.PageSize);
         }

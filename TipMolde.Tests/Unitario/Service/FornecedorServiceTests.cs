@@ -267,10 +267,10 @@ public class FornecedorServiceTests
             BuildFornecedor(id: 10, nome: " Fornecedor X ", nif: "111111111")
         };
 
-        var paged = new PagedResult<Fornecedor>(fornecedores, 1, 2, 5);
+        var paged = new PagedResult<Fornecedor>(fornecedores, 1, 2, 10);
 
         _fornecedorRepository
-            .Setup(r => r.SearchByNameAsync("Fornecedor", 2, 5))
+            .Setup(r => r.SearchByNameAsync("Fornecedor", 2, 10))
             .ReturnsAsync(paged);
 
         // ACT
@@ -279,7 +279,7 @@ public class FornecedorServiceTests
         // ASSERT
         result.TotalCount.Should().Be(1);
         result.CurrentPage.Should().Be(2);
-        result.PageSize.Should().Be(5);
+        result.PageSize.Should().Be(10);
         result.Items.Should().ContainSingle();
         result.Items.Single().FornecedorId.Should().Be(10);
         result.Items.Single().Nome.Should().Be("Fornecedor X");

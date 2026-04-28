@@ -36,7 +36,8 @@ namespace TipMolde.Application.Service
         /// <returns>Resultado paginado com fornecedores e metadados de navegacao.</returns>
         public async Task<PagedResult<ResponseFornecedorDto>> GetAllAsync(int page = 1, int pageSize = 10)
         {
-            var result = await _fornecedorRepository.GetAllAsync(page, pageSize);
+            var (normalizedPage, normalizedPageSize) = PaginationDefaults.Normalize(page, pageSize);
+            var result = await _fornecedorRepository.GetAllAsync(normalizedPage, normalizedPageSize);
             var mappedItems = _mapper.Map<IEnumerable<ResponseFornecedorDto>>(result.Items);
 
             return new PagedResult<ResponseFornecedorDto>(
@@ -72,7 +73,8 @@ namespace TipMolde.Application.Service
             if (string.IsNullOrWhiteSpace(searchTerm))
                 return CreateEmptyPage(page, pageSize);
 
-            var result = await _fornecedorRepository.SearchByNameAsync(searchTerm.Trim(), page, pageSize);
+            var (normalizedPage, normalizedPageSize) = PaginationDefaults.Normalize(page, pageSize);
+            var result = await _fornecedorRepository.SearchByNameAsync(searchTerm.Trim(), normalizedPage, normalizedPageSize);
             var mappedItems = _mapper.Map<IEnumerable<ResponseFornecedorDto>>(result.Items);
 
             return new PagedResult<ResponseFornecedorDto>(
@@ -170,14 +172,7 @@ namespace TipMolde.Application.Service
         /// <returns>Resultado paginado sem itens e com metadados consistentes.</returns>
         private static PagedResult<ResponseFornecedorDto> CreateEmptyPage(int page = 1, int pageSize = 10)
         {
-            var normalizedPage = page < 1 ? 1 : page;
-            var normalizedPageSize = pageSize < 1 ? 10 : pageSize > 200 ? 200 : pageSize;
-
-            return new PagedResult<ResponseFornecedorDto>(
-                Enumerable.Empty<ResponseFornecedorDto>(),
-                0,
-                normalizedPage,
-                normalizedPageSize);
+            return PaginationDefaults.EmptyPage<ResponseFornecedorDto>(page, pageSize);
         }
     }
 }

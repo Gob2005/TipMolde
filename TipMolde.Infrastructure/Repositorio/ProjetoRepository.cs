@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using TipMolde.Application.Interface;
 using TipMolde.Application.Interface.Desenho.IProjeto;
 using TipMolde.Domain.Entities.Desenho;
@@ -26,8 +26,6 @@ namespace TipMolde.Infrastructure.Repositorio
         /// <returns>Resultado paginado com projetos associados.</returns>
         public async Task<PagedResult<Projeto>> GetByMoldeIdAsync(int moldeId, int page, int pageSize)
         {
-            page = page < 1 ? 1 : page;
-            pageSize = pageSize < 1 ? 10 : pageSize > 200 ? 200 : pageSize;    
 
             var query = _context.Projetos
                 .AsNoTracking()

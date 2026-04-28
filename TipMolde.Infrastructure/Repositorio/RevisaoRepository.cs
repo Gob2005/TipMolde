@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using System.Data;
 using TipMolde.Application.Exceptions;
 using TipMolde.Application.Interface;
@@ -31,8 +31,6 @@ namespace TipMolde.Infrastructure.Repositorio
         /// <returns>Colecao de revisoes ordenadas por numero decrescente.</returns>
         public async Task<PagedResult<Revisao>> GetByProjetoIdAsync(int projetoId, int page, int pageSize)
         {
-            page = page < 1 ? 1 : page;
-            pageSize = pageSize < 1 ? 10 : pageSize > 200 ? 200 : pageSize;
 
             var query = _context.Revisoes
                 .AsNoTracking()

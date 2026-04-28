@@ -1,4 +1,4 @@
-﻿using TipMolde.Application.Interface;
+using TipMolde.Application.Interface;
 using TipMolde.Domain.Entities.Comercio;
 using TipMolde.Domain.Entities.Producao;
 
@@ -28,7 +28,7 @@ namespace TipMolde.Application.Interface.Producao.IMolde
         /// <param name="page">Pagina atual da pesquisa.</param>
         /// <param name="pageSize">Numero maximo de registos por pagina.</param>
         /// <returns>Resultado paginado com os moldes ligados a encomenda indicada.</returns>
-        Task<PagedResult<Molde>> GetByEncomendaIdAsync(int encomendaId, int page = 1, int pageSize = 10);
+        Task<PagedResult<Molde>> GetByEncomendaIdAsync(int encomendaId, int page, int pageSize);
 
 
         /// <summary>

@@ -27,7 +27,7 @@ public class FasesProducaoRepositoryTests
         await using var context = CreateContext();
         await context.Fases_Producao.AddAsync(new FasesProducao
         {
-            Nome = Nome_fases.MAQUINACAO,
+            Nome = NomeFases.MAQUINACAO,
             Descricao = "Descricao"
         });
         await context.SaveChangesAsync();
@@ -35,11 +35,11 @@ public class FasesProducaoRepositoryTests
         var repository = new FasesProducaoRepository(context);
 
         // ACT
-        var result = await repository.GetByNomeAsync(Nome_fases.MAQUINACAO);
+        var result = await repository.GetByNomeAsync(NomeFases.MAQUINACAO);
 
         // ASSERT
         result.Should().NotBeNull();
-        result!.Nome.Should().Be(Nome_fases.MAQUINACAO);
+        result!.Nome.Should().Be(NomeFases.MAQUINACAO);
     }
 
     [Test(Description = "TFPREP2 - HasMaquinasAssociadas deve devolver true quando existe pelo menos uma maquina na fase.")]
@@ -50,7 +50,7 @@ public class FasesProducaoRepositoryTests
 
         var fase = new FasesProducao
         {
-            Nome = Nome_fases.EROSAO,
+            Nome = NomeFases.EROSAO,
             Descricao = "Descricao"
         };
 

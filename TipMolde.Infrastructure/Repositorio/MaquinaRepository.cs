@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using TipMolde.Application.Exceptions;
 using TipMolde.Application.Interface;
 using TipMolde.Application.Interface.Producao.IMaquina;
@@ -44,8 +44,6 @@ namespace TipMolde.Infrastructure.Repositorio
         /// <returns>Resultado paginado com maquinas filtradas.</returns>
         public async Task<PagedResult<Maquina>> GetByEstadoAsync(EstadoMaquina estado, int page, int pageSize)
         {
-            page = page < 1 ? 1 : page;
-            pageSize = pageSize < 1 ? 10 : pageSize > 200 ? 200 : pageSize;
 
             var query = _context.Maquinas
                 .AsNoTracking()

@@ -1,4 +1,4 @@
-﻿using TipMolde.Domain.Entities.Producao;
+using TipMolde.Domain.Entities.Producao;
 
 namespace TipMolde.Application.Interface.Producao.IPeca
 {
@@ -14,7 +14,7 @@ namespace TipMolde.Application.Interface.Producao.IPeca
         /// <param name="page">Numero da pagina a consultar.</param>
         /// <param name="pageSize">Quantidade de itens por pagina.</param>
         /// <returns>Resultado paginado com pecas pertencentes ao molde informado.</returns>
-        Task<PagedResult<Peca>> GetByMoldeIdAsync(int moldeId, int page = 1, int pageSize = 10);
+        Task<PagedResult<Peca>> GetByMoldeIdAsync(int moldeId, int page, int pageSize);
 
         /// <summary>
         /// Obtem uma peca pela designacao dentro de um molde.
@@ -33,12 +33,10 @@ namespace TipMolde.Application.Interface.Producao.IPeca
         Task<Peca?> GetByNumeroPecaAsync(string numeroPeca, int moldeId);
 
         /// <summary>
-        /// Lista pecas pelos identificadores informados.
+        /// Obtem todas as pecas correspondentes aos identificadores informados.
         /// </summary>
         /// <param name="ids">Colecao de identificadores a pesquisar.</param>
-        /// <param name="page">Numero da pagina a consultar.</param>
-        /// <param name="pageSize">Quantidade de itens por pagina.</param>
-        /// <returns>Resultado paginado com pecas encontradas para os ids informados.</returns>
-        Task<PagedResult<Peca>> GetByIdsAsync(IEnumerable<int> ids, int page = 1, int pageSize = 10);
+        /// <returns>Colecao de pecas encontradas para os ids informados.</returns>
+        Task<IReadOnlyList<Peca>> GetByIdsAsync(IEnumerable<int> ids);
     }
 }
