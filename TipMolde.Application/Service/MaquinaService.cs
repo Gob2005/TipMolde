@@ -148,17 +148,13 @@ namespace TipMolde.Application.Service
             if (!HasAnyChanges(dto))
                 throw new ArgumentException("Pelo menos um campo deve ser informado para atualizacao.");
 
-            if (dto.Numero.HasValue && dto.Numero.Value != existing.Numero)
-            {
-                if (await _maquinaRepository.ExistsNumeroAsync(dto.Numero.Value, id))
-                    throw new BusinessConflictException($"Ja existe uma maquina com o numero '{dto.Numero.Value}'.");
-            }
+            if (dto.Numero.HasValue && dto.Numero.Value != existing.Numero && await _maquinaRepository.ExistsNumeroAsync(dto.Numero.Value, id))
+                throw new BusinessConflictException($"Ja existe uma maquina com o numero '{dto.Numero.Value}'.");
 
-            if (dto.FaseDedicada_id.HasValue)
-            {
-                if (!await _maquinaRepository.ExistsFaseDedicadaAsync(dto.FaseDedicada_id.Value))
+
+            if (dto.FaseDedicada_id.HasValue && !await _maquinaRepository.ExistsFaseDedicadaAsync(dto.FaseDedicada_id.Value))
                     throw new KeyNotFoundException($"Fase de producao com ID {dto.FaseDedicada_id.Value} nao encontrada.");
-            }
+            
 
             _mapper.Map(dto, existing);
 

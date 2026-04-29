@@ -1,5 +1,4 @@
-﻿using TipMolde.Domain.Entities;
-using TipMolde.Application.Dtos.UserDto;
+﻿using TipMolde.Application.Dtos.UserDto;
 using TipMolde.Domain.Enums;
 
 namespace TipMolde.Application.Interface.Utilizador.IUser

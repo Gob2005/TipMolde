@@ -87,7 +87,7 @@ namespace TipMolde.API.Controllers
         [Authorize(Roles = "ADMIN,GESTOR_COMERCIAL")]
         [HttpGet("search/by-name")]
         public async Task<IActionResult> SearchByName(
-            [FromQuery] string searchTerm,
+            [FromQuery] string? searchTerm,
             [FromQuery] int page = 1,
             [FromQuery] int pageSize = 10)
         {

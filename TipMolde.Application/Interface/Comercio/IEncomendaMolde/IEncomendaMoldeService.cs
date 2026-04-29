@@ -1,5 +1,4 @@
 ﻿using TipMolde.Application.Dtos.EncomendaMoldeDto;
-using TipMolde.Application.Interface;
 
 namespace TipMolde.Application.Interface.Comercio.IEncomendaMolde
 {

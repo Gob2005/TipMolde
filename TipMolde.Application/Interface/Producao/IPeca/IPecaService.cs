@@ -1,5 +1,4 @@
 ﻿using TipMolde.Application.Dtos.PecaDto;
-using TipMolde.Application.Interface;
 
 namespace TipMolde.Application.Interface.Producao.IPeca
 {

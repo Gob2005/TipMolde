@@ -300,7 +300,53 @@ public class PecaServiceTests
             p.Prioridade == 1)), Times.Once);
     }
 
-    [Test(Description = "TPECASRV9 - ImportarCsvAsync deve rejeitar NumeroPeca repetido quando os restantes campos divergem.")]
+    [Test(Description = "TPECASRV9 - ImportarCsvAsync deve atribuir prioridades por pecas base, variantes, 0 a 011 e restantes.")]
+    public async Task ImportarCsvAsync_Should_AssignPriorities_By_ClientPriorityBlocks()
+    {
+        // ARRANGE
+        const string csv =
+            "N PECA;DESIGNACAO;QTD;REF;MATERIAL;TRAT TERMICO;MASS;OBS\n" +
+            ";;1;Molde;;;433,73kg;\n" +
+            "12;Suporte;1;REF-12;Aco;;1kg;\n" +
+            "200A;Postico Grupo 200;1;REF-200;Aco;;1kg;\n" +
+            "080C;Postico Grupo 080;1;REF-080;Aco;;1kg;\n" +
+            "100B;Postico Grupo 100 B;1;REF-100B;Aco;;1kg;\n" +
+            "80;Postico Grupo 80;1;REF-80;Aco;;1kg;\n" +
+            "011;Peca Onze;1;REF-011;Aco;;1kg;\n" +
+            "300A;Peca Restante;1;REF-300;Aco;;1kg;\n" +
+            "100A;Postico Grupo 100 A;1;REF-100A;Aco;;1kg;\n" +
+            "009;Peca Nove;1;REF-009;Aco;;1kg;\n" +
+            "2;Peca Dois;1;REF-2;Aco;;1kg;\n" +
+            "201;Peca 201 Restante;1;REF-201;Aco;;1kg;\n" +
+            "200;Base Grupo 200;1;REF-BASE-200;Aco;;1kg;\n" +
+            "100;Base Grupo 100;1;REF-BASE-100;Aco;;1kg;\n" +
+            "080A;Postico Grupo 080 A;1;REF-080A;Aco;;1kg;\n";
+
+        _moldeRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(BuildMolde());
+        _pecaRepository.Setup(r => r.GetByNumeroPecaAsync(It.IsAny<string>(), 1)).ReturnsAsync((Peca?)null);
+        _pecaRepository.Setup(r => r.AddAsync(It.IsAny<Peca>()))
+            .ReturnsAsync((Peca entity) => entity);
+
+        await using var stream = BuildCsvStream(csv);
+
+        // ACT
+        var result = await _sut.ImportarCsvAsync(1, stream);
+
+        // ASSERT
+        result.PecasImportadas
+            .OrderBy(x => x.Prioridade)
+            .Select(x => x.NumeroPeca)
+            .Should()
+            .Equal("100", "200", "80", "100B", "100A", "200A", "080C", "080A", "011", "009", "2", "12", "300A", "201");
+
+        result.PecasImportadas
+            .OrderBy(x => x.Prioridade)
+            .Select(x => x.Prioridade)
+            .Should()
+            .Equal(Enumerable.Range(1, 14));
+    }
+
+    [Test(Description = "TPECASRV10 - ImportarCsvAsync deve rejeitar NumeroPeca repetido quando os restantes campos divergem.")]
     public async Task ImportarCsvAsync_Should_ThrowArgumentException_When_RepeatedNumeroPecaHasConflictingData()
     {
         // ARRANGE

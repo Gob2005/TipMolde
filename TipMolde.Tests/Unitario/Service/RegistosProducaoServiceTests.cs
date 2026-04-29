@@ -5,10 +5,10 @@ using TipMolde.Application.Interface.Producao.IMaquina;
 using TipMolde.Application.Interface.Producao.IPeca;
 using TipMolde.Application.Interface.Producao.IRegistosProducao;
 using TipMolde.Application.Interface.Utilizador.IUser;
+using TipMolde.Application.Service;
 using TipMolde.Domain.Entities;
 using TipMolde.Domain.Entities.Producao;
 using TipMolde.Domain.Enums;
-using TipMolde.Application.Service;
 
 namespace TipMolde.Tests.Unitario.Service;
 

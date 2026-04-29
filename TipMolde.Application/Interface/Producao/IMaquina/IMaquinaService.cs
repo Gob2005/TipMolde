@@ -1,5 +1,4 @@
 ﻿using TipMolde.Application.Dtos.MaquinaDto;
-using TipMolde.Application.Interface;
 using TipMolde.Domain.Enums;
 
 namespace TipMolde.Application.Interface.Producao.IMaquina

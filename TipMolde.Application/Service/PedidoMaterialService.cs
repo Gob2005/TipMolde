@@ -122,7 +122,7 @@ namespace TipMolde.Application.Service
                 "Criacao de pedido de material iniciada para fornecedor {FornecedorId}",
                 dto.Fornecedor_id);
 
-            if( await _fornecedorRepository.GetByIdAsync(dto.Fornecedor_id) == null)
+            if (await _fornecedorRepository.GetByIdAsync(dto.Fornecedor_id) == null)
                 throw new KeyNotFoundException($"Fornecedor com ID {dto.Fornecedor_id} nao encontrado.");
 
             if (dto.Itens == null || dto.Itens.Count == 0)
@@ -164,7 +164,7 @@ namespace TipMolde.Application.Service
 
             // Porque: o agregado so e persistido depois de validar todas as dependencias,
             // evitando deixar pedidos ou linhas parciais gravados em caso de falha.
-            var created =  await _pedidoRepository.AddAsync(pedido);
+            var created = await _pedidoRepository.AddAsync(pedido);
 
             _logger.LogInformation("Pedido de material {PedidoId} criado com sucesso", created.PedidoMaterial_id);
 
@@ -195,7 +195,7 @@ namespace TipMolde.Application.Service
             var pedido = await _pedidoRepository.GetByIdWithItensAsync(pedidoId)
                 ?? throw new KeyNotFoundException($"Pedido com ID {pedidoId} nao encontrado.");
 
-            if( await _userRepository.GetByIdAsync(userId) == null)
+            if (await _userRepository.GetByIdAsync(userId) == null)
                 throw new KeyNotFoundException($"Utilizador com ID {userId} nao encontrado.");
 
             // Invariante: a rececao so pode ser registada uma vez para preservar auditoria.

@@ -7,9 +7,9 @@ using TipMolde.Application.Interface;
 using TipMolde.Application.Interface.Utilizador.ISecurity;
 using TipMolde.Application.Interface.Utilizador.IUser;
 using TipMolde.Application.Mappings;
+using TipMolde.Application.Service;
 using TipMolde.Domain.Entities;
 using TipMolde.Domain.Enums;
-using TipMolde.Application.Service;
 
 namespace TipMolde.Tests.Unitario.Service;
 
@@ -56,12 +56,12 @@ public class UserManagementServiceTests
         string email = "operador@tipmolde.pt",
         string password = "Passw0rd!",
         UserRole role = UserRole.GESTOR_PRODUCAO) => new()
-    {
-        Nome = nome,
-        Email = email,
-        Password = password,
-        Role = role
-    };
+        {
+            Nome = nome,
+            Email = email,
+            Password = password,
+            Role = role
+        };
 
     private static UpdateUserDto BuildUpdateUserDto(string? nome = "Operador", string? email = "operador@tipmolde.pt") => new()
     {

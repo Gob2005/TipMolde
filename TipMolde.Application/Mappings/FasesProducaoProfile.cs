@@ -1,7 +1,6 @@
 ﻿using AutoMapper;
 using TipMolde.Application.Dtos.FasesProducaoDto;
 using TipMolde.Domain.Entities.Producao;
-using static TipMolde.Application.Mappings.MappingProfileExtensions;
 
 namespace TipMolde.Application.Mappings
 {

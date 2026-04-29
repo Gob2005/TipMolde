@@ -1,25 +1,14 @@
 ﻿using FluentAssertions;
-using Microsoft.EntityFrameworkCore;
 using TipMolde.Domain.Entities.Producao;
 using TipMolde.Domain.Enums;
-using TipMolde.Infrastructure.DB;
 using TipMolde.Infrastructure.Repositorio;
 
 namespace TipMolde.Tests.Integracao.Repositorio;
 
 [TestFixture]
 [Category("Integration")]
-public class FasesProducaoRepositoryTests
+public sealed class FasesProducaoRepositoryTests : RepositoryIntegrationTestBase
 {
-    private static ApplicationDbContext CreateContext()
-    {
-        var options = new DbContextOptionsBuilder<ApplicationDbContext>()
-            .UseInMemoryDatabase(Guid.NewGuid().ToString())
-            .Options;
-
-        return new ApplicationDbContext(options);
-    }
-
     [Test(Description = "TFPREP1 - GetByNome deve devolver a fase quando o nome existe.")]
     public async Task GetByNomeAsync_Should_ReturnFase_When_NomeExists()
     {
@@ -73,4 +62,29 @@ public class FasesProducaoRepositoryTests
         // ASSERT
         result.Should().BeTrue();
     }
+
+    [Test(Description = "TFPREP3 - HasMaquinasAssociadas deve devolver false quando a fase nao tem maquinas.")]
+    public async Task HasMaquinasAssociadasAsync_Should_ReturnFalse_When_FaseHasNoMaquinas()
+    {
+        // ARRANGE
+        await using var context = CreateContext();
+
+        var fase = new FasesProducao
+        {
+            Nome = NomeFases.MONTAGEM,
+            Descricao = "Montagem final"
+        };
+
+        await context.Fases_Producao.AddAsync(fase);
+        await context.SaveChangesAsync();
+
+        var repository = new FasesProducaoRepository(context);
+
+        // ACT
+        var result = await repository.HasMaquinasAssociadasAsync(fase.Fases_producao_id);
+
+        // ASSERT
+        result.Should().BeFalse();
+    }
+
 }

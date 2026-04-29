@@ -1,5 +1,4 @@
 ﻿using TipMolde.Application.Dtos.PedidoMaterialDto;
-using TipMolde.Application.Interface;
 
 namespace TipMolde.Application.Interface.Comercio.IPedidoMaterial
 {

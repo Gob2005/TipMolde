@@ -1,6 +1,5 @@
 ﻿using AutoMapper;
 using TipMolde.Application.Dtos.ClienteDto;
-using TipMolde.Application.Dtos.EncomendaDto;
 using TipMolde.Domain.Entities.Comercio;
 
 namespace TipMolde.Application.Mappings

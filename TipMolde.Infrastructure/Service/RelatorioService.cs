@@ -2,12 +2,12 @@
 using Microsoft.Extensions.Configuration;
 using QuestPDF.Fluent;
 using QuestPDF.Infrastructure;
-using TipMolde.Domain.Enums;
 using TipMolde.Application.Interface.Fichas.IFichaDocumento;
 using TipMolde.Application.Interface.Relatorios;
 using TipMolde.Domain.Entities.Comercio;
 using TipMolde.Domain.Entities.Fichas;
 using TipMolde.Domain.Entities.Producao;
+using TipMolde.Domain.Enums;
 
 namespace TipMolde.Infrastructure.Service
 {
@@ -263,13 +263,13 @@ namespace TipMolde.Infrastructure.Service
 
             using var ms = new MemoryStream();
             wb.SaveAs(ms);
-                await _fichaDocumentoService.GuardarGeradoAsync(
-                        fichaId,
-                        ms.ToArray(),
-                        $"ficha_FOP_{fichaId}.xlsx",
-                        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                        userId,
-                        "SISTEMA");
+            await _fichaDocumentoService.GuardarGeradoAsync(
+                    fichaId,
+                    ms.ToArray(),
+                    $"ficha_FOP_{fichaId}.xlsx",
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    userId,
+                    "SISTEMA");
             return (ms.ToArray(), $"ficha_FOP_{fichaId}.xlsx");
         }
 

@@ -1,5 +1,4 @@
 ﻿using TipMolde.Application.Dtos.EncomendaDto;
-using TipMolde.Domain.Entities.Comercio;
 using TipMolde.Domain.Enums;
 
 namespace TipMolde.Application.Interface.Comercio.IEncomenda

@@ -1,4 +1,3 @@
-using TipMolde.Application.Interface;
 using TipMolde.Domain.Entities.Comercio;
 using TipMolde.Domain.Entities.Producao;
 

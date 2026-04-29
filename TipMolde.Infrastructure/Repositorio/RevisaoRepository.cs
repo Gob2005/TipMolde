@@ -1,10 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using System.Data;
-using TipMolde.Application.Exceptions;
 using TipMolde.Application.Interface;
 using TipMolde.Application.Interface.Desenho.IRevisao;
 using TipMolde.Domain.Entities.Desenho;
-using TipMolde.Domain.Entities.Producao;
 using TipMolde.Infrastructure.DB;
 
 namespace TipMolde.Infrastructure.Repositorio

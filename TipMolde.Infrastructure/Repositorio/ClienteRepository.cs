@@ -1,9 +1,7 @@
 using Microsoft.EntityFrameworkCore;
-using System.Threading;
 using TipMolde.Application.Interface;
 using TipMolde.Application.Interface.Comercio.ICliente;
 using TipMolde.Domain.Entities.Comercio;
-using TipMolde.Domain.Entities.Producao;
 using TipMolde.Infrastructure.DB;
 
 namespace TipMolde.Infrastructure.Repositorio
@@ -67,7 +65,7 @@ namespace TipMolde.Infrastructure.Repositorio
             var query = _context.Clientes
                 .AsNoTracking()
                 .Where(c => c.Nome.Contains(searchTerm));
-                
+
 
             var totalCount = await query.CountAsync();
 

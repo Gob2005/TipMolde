@@ -2,11 +2,11 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Moq;
-using TipMolde.Domain.Enums;
 using TipMolde.Application.Interface.Fichas.IFichaDocumento;
 using TipMolde.Domain.Entities.Comercio;
 using TipMolde.Domain.Entities.Fichas;
 using TipMolde.Domain.Entities.Producao;
+using TipMolde.Domain.Enums;
 using TipMolde.Infrastructure.DB;
 using TipMolde.Infrastructure.Repositorio;
 using TipMolde.Infrastructure.Service;

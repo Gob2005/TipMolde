@@ -7,7 +7,7 @@ using TipMolde.Domain.Entities.Comercio;
 namespace TipMolde.Tests.Unitario.Mapping
 {
     [TestFixture]
-[Category("Unit")]
+    [Category("Unit")]
     public class FornecedorProfileTests
     {
         private IMapper _mapper = null!;

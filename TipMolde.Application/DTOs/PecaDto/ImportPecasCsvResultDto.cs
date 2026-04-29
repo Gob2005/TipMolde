@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace TipMolde.Application.Dtos.PecaDto
 {
     /// <summary>

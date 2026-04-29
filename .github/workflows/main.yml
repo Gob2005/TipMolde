@@ -92,10 +92,49 @@ jobs:
           path: ${{ env.TEST_RESULTS_DIR }}
           if-no-files-found: warn
 
+    integration-tests:
+    name: Integration Tests
+    runs-on: self-hosted
+    needs: [ build ]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check local .NET SDK
+        shell: powershell
+        run: |
+          dotnet --info
+          dotnet --list-sdks
+
+      - name: Cache NuGet
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('**/*.csproj') }}
+          restore-keys: |
+            nuget-${{ runner.os }}-
+
+      - name: Run Integration Tests with OpenCover
+        shell: powershell
+        run: |
+          dotnet test ${{ env.TEST_PROJECT }} --configuration Release `
+            --filter "Category=Integration" `
+            --collect:"XPlat Code Coverage;Format=opencover" `
+            --logger "trx;LogFileName=integration-tests.trx" `
+            --results-directory "${{ env.TEST_RESULTS_DIR }}"
+
+      - name: Upload Integration Test Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-test-results
+          path: ${{ env.TEST_RESULTS_DIR }}
+          if-no-files-found: warn
+
   coverage-report:
     name: Coverage Report
     runs-on: self-hosted
-    needs: [ unit-tests ]
+    needs: [ unit-tests, integration-tests ]
     if: always()
 
     steps:
@@ -106,7 +145,12 @@ jobs:
         with:
           name: unit-test-results
           path: TestResults/Unit
-        continue-on-error: true
+
+      - name: Download Integration Test Results
+        uses: actions/download-artifact@v4
+        with:
+          name: integration-test-results
+          path: TestResults/Integration
 
       - name: Check if coverage files exist
         id: check-coverage
@@ -165,7 +209,12 @@ jobs:
         with:
           name: unit-test-results
           path: TestResults
-        continue-on-error: true
+
+      - name: Download Integration Test Results
+        uses: actions/download-artifact@v4
+        with:
+          name: integration-test-results
+          path: TestResults/Integration
 
       - name: Sonar Begin
         shell: powershell

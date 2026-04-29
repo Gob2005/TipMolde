@@ -1,7 +1,7 @@
-using System.Globalization;
-using System.Text;
 using AutoMapper;
 using Microsoft.Extensions.Logging;
+using System.Globalization;
+using System.Text;
 using TipMolde.Application.Dtos.PecaDto;
 using TipMolde.Application.Interface;
 using TipMolde.Application.Interface.Producao.IMolde;
@@ -222,7 +222,9 @@ namespace TipMolde.Application.Service
             var parsedFile = await ParseCsvAsync(csvStream);
             var grupos = parsedFile.LinhasPeca
                 .GroupBy(x => x.NumeroPeca, StringComparer.OrdinalIgnoreCase)
-                .OrderBy(g => g.Min(x => x.NumeroLinha))
+                .Select(g => new CsvPecaGroup(g.Key, g.OrderBy(x => x.NumeroLinha).ToList(), g.Min(x => x.NumeroLinha)))
+                .OrderBy(g => GetCsvPriorityBucket(g.NumeroPeca))
+                .ThenBy(g => g.FirstLineNumber)
                 .ToList();
 
             var resultado = new ImportPecasCsvResultDto
@@ -238,8 +240,8 @@ namespace TipMolde.Application.Service
 
             foreach (var grupo in grupos)
             {
-                var linhasGrupo = grupo.OrderBy(x => x.NumeroLinha).ToList();
-                ValidateCsvGroupConsistency(grupo.Key, linhasGrupo);
+                var linhasGrupo = grupo.Linhas;
+                ValidateCsvGroupConsistency(grupo.NumeroPeca, linhasGrupo);
 
                 var pecaConsolidada = BuildPecaFromCsvGroup(moldeId, prioridadeAtual, linhasGrupo);
                 await ValidateUniquePecaAsync(moldeId, pecaConsolidada.NumeroPeca, pecaConsolidada.Designacao, null);
@@ -280,6 +282,69 @@ namespace TipMolde.Application.Service
             await _pecaRepository.DeleteAsync(id);
 
             _logger.LogInformation("Peca {PecaId} removida com sucesso", id);
+        }
+
+        /// <summary>
+        /// Define o bloco de prioridade das pecas importadas do CSV.
+        /// </summary>
+        /// <remarks>
+        /// Regra do cliente: pecas base 100, 200 e 080/80 primeiro; depois as variantes
+        /// desses grupos; depois pecas de 0 a 011; as restantes seguem a ordem original do CSV.
+        /// </remarks>
+        /// <param name="numeroPeca">Numero funcional da peca importada.</param>
+        /// <returns>Bloco de ordenacao usado antes da prioridade sequencial.</returns>
+        private static int GetCsvPriorityBucket(string numeroPeca)
+        {
+            var normalized = MappingProfileExtensions.NormalizeOptionalString(numeroPeca)?.ToUpperInvariant() ?? string.Empty;
+            var hasLeadingNumber = TryGetLeadingNumber(normalized, out var leadingNumber, out var hasSuffix);
+
+            if (hasLeadingNumber && leadingNumber == 100 && !hasSuffix)
+                return 0;
+
+            if (hasLeadingNumber && leadingNumber == 200 && !hasSuffix)
+                return 1;
+
+            if (hasLeadingNumber && leadingNumber == 80 && !hasSuffix)
+                return 2;
+
+            if (hasLeadingNumber && leadingNumber == 100)
+                return 3;
+
+            if (hasLeadingNumber && leadingNumber == 200)
+                return 4;
+
+            if (hasLeadingNumber && leadingNumber == 80)
+                return 5;
+
+            if (hasLeadingNumber && leadingNumber is >= 0 and <= 11)
+                return 6;
+
+            return 7;
+        }
+
+        /// <summary>
+        /// Extrai o prefixo numerico inicial de um NumeroPeca.
+        /// </summary>
+        /// <param name="value">NumeroPeca normalizado.</param>
+        /// <param name="number">Prefixo numerico extraido.</param>
+        /// <param name="hasSuffix">Indica se existe texto apos o prefixo numerico.</param>
+        /// <returns>True quando existe prefixo numerico valido.</returns>
+        private static bool TryGetLeadingNumber(string value, out int number, out bool hasSuffix)
+        {
+            number = 0;
+            hasSuffix = false;
+            var digits = new StringBuilder();
+
+            foreach (var character in value)
+            {
+                if (!char.IsDigit(character))
+                    break;
+
+                digits.Append(character);
+            }
+
+            hasSuffix = digits.Length < value.Length;
+            return digits.Length > 0 && int.TryParse(digits.ToString(), out number);
         }
 
         /// <summary>
@@ -584,7 +649,7 @@ namespace TipMolde.Application.Service
         /// </summary>
         /// <param name="line">Linha CSV a dividir.</param>
         /// <returns>Colunas extraidas da linha.</returns>
-        private static IReadOnlyList<string> SplitCsvLine(string line)
+        private static List<string> SplitCsvLine(string line)
         {
             var result = new List<string>();
             var current = new StringBuilder();
@@ -712,5 +777,10 @@ namespace TipMolde.Application.Service
             string? ReferenciaMolde,
             string? MassaMolde,
             List<PecaCsvLinhaDto> LinhasPeca);
+
+        private sealed record CsvPecaGroup(
+            string NumeroPeca,
+            List<PecaCsvLinhaDto> Linhas,
+            int FirstLineNumber);
     }
 }

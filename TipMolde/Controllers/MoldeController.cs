@@ -89,7 +89,7 @@ namespace TipMolde.API.Controllers
         /// <returns>HTTP 200 com o molde; HTTP 400 quando o numero e invalido; HTTP 404 quando nao encontrado.</returns>
         [Authorize]
         [HttpGet("por-numero")]
-        public async Task<IActionResult> GetByNumero([FromQuery] string numero)
+        public async Task<IActionResult> GetByNumero([FromQuery] string? numero)
         {
             if (string.IsNullOrWhiteSpace(numero))
                 return BadRequest(CreateProblem(StatusCodes.Status400BadRequest, "Pedido invalido", "Numero do molde e obrigatorio."));

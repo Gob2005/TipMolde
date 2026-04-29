@@ -7,7 +7,7 @@ namespace TipMolde.Infrastructure.Repositorio
 {
     public class RegistosProducaoRepository : GenericRepository<RegistosProducao, int>, IRegistosProducaoRepository
     {
-        public RegistosProducaoRepository(ApplicationDbContext context) : base(context)   {  }
+        public RegistosProducaoRepository(ApplicationDbContext context) : base(context) { }
         public Task<IEnumerable<RegistosProducao>> GetHistoricoAsync(int faseId, int pecaId)
         {
             return Task.FromResult<IEnumerable<RegistosProducao>>(

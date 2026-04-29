@@ -3,9 +3,9 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using TipMolde.Application.Interface.Utilizador.ISecurity;
 using TipMolde.Application.Interface.Utilizador.IUser;
+using TipMolde.Application.Service;
 using TipMolde.Domain.Entities;
 using TipMolde.Domain.Enums;
-using TipMolde.Application.Service;
 
 namespace TipMolde.Tests.Unitario.Service;
 

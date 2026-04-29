@@ -141,7 +141,7 @@ namespace TipMolde.API.Controllers
         /// <returns>Resultado HTTP com a encomenda encontrada.</returns>
         [Authorize(Roles = "ADMIN,GESTOR_COMERCIAL")]
         [HttpGet("por-numero-cliente")]
-        public async Task<IActionResult> GetByNumeroCliente([FromQuery] string numero)
+        public async Task<IActionResult> GetByNumeroCliente([FromQuery] string? numero)
         {
             if (string.IsNullOrWhiteSpace(numero))
                 return BadRequest(CreateProblem(

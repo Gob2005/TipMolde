@@ -1,5 +1,4 @@
-﻿using TipMolde.Domain.Entities;
-using TipMolde.Domain.Entities.Producao;
+﻿using TipMolde.Domain.Entities.Producao;
 using TipMolde.Domain.Enums;
 
 namespace TipMolde.Domain.Entities.Desenho

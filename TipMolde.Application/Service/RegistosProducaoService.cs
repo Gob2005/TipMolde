@@ -105,10 +105,10 @@ namespace TipMolde.Application.Service
         /// <returns>Registo persistido.</returns>
         public async Task<RegistosProducao> CreateAsync(RegistosProducao registo)
         {
-            if(await _fpRepository.GetByIdAsync(registo.Fase_id) == null)
+            if (await _fpRepository.GetByIdAsync(registo.Fase_id) == null)
                 throw new KeyNotFoundException($"Fase com ID {registo.Fase_id} nao encontrada.");
 
-            if(await _userRepository.GetByIdAsync(registo.Operador_id) == null)
+            if (await _userRepository.GetByIdAsync(registo.Operador_id) == null)
                 throw new KeyNotFoundException($"Operador com ID {registo.Operador_id} nao encontrado.");
 
             var peca = await _pecaRepository.GetByIdAsync(registo.Peca_id)

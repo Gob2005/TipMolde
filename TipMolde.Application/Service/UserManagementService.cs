@@ -1,5 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
-using AutoMapper;
+﻿using AutoMapper;
+using Microsoft.Extensions.Logging;
 using TipMolde.Application.Dtos.UserDto;
 using TipMolde.Application.Interface;
 using TipMolde.Application.Interface.Utilizador.ISecurity;

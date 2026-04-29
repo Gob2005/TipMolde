@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using TipMolde.Application.Dtos.PecaDto;
 using TipMolde.Application.Interface.Producao.IPeca;
@@ -89,7 +88,7 @@ namespace TipMolde.API.Controllers
         /// <returns>HTTP 200 com a peca; HTTP 400 quando a query e invalida; HTTP 404 quando nao encontrada.</returns>
         [Authorize(Roles = "ADMIN,GESTOR_DESENHO")]
         [HttpGet("por-designacao")]
-        public async Task<IActionResult> GetByDesignacao([FromQuery] string designacao, [FromQuery] int moldeId)
+        public async Task<IActionResult> GetByDesignacao([FromQuery] string? designacao, [FromQuery] int moldeId)
         {
             if (string.IsNullOrWhiteSpace(designacao))
                 return BadRequest(CreateProblem(StatusCodes.Status400BadRequest, "Pedido invalido", "Designacao e obrigatoria."));
@@ -129,7 +128,7 @@ namespace TipMolde.API.Controllers
         [Authorize(Roles = "ADMIN,GESTOR_DESENHO")]
         [HttpPost("por-molde/{moldeId:int}/importacao-csv")]
         [Consumes("multipart/form-data")]
-        public async Task<IActionResult> ImportarCsv(int moldeId, IFormFile file)
+        public async Task<IActionResult> ImportarCsv(int moldeId, [FromForm] IFormFile? file = null)
         {
             if (file == null || file.Length == 0)
                 return BadRequest(CreateProblem(StatusCodes.Status400BadRequest, "Pedido invalido", "O ficheiro CSV e obrigatorio."));

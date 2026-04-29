@@ -1,6 +1,5 @@
 ﻿using AutoMapper;
 using TipMolde.Application.Dtos.ProjetoDto;
-using TipMolde.Application.Dtos.RevisaoDto;
 using TipMolde.Domain.Entities.Desenho;
 
 namespace TipMolde.Application.Mappings

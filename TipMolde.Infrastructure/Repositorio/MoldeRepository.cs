@@ -1,4 +1,3 @@
-using DocumentFormat.OpenXml.Spreadsheet;
 using Microsoft.EntityFrameworkCore;
 using TipMolde.Application.Interface;
 using TipMolde.Application.Interface.Producao.IMolde;
@@ -83,11 +82,10 @@ namespace TipMolde.Infrastructure.Repositorio
         public async Task<PagedResult<Molde>> GetByEncomendaIdAsync(int encomendaId, int page, int pageSize)
         {
 
-            var query = _context.EncomendasMoldes
+            var query = _context.Moldes
                 .AsNoTracking()
-                .Where(em => em.Encomenda_id == encomendaId)
-                .Select(em => em.Molde!)
-                .Include(m => m.Especificacoes);
+                .Include(m => m.Especificacoes)
+                .Where(m => m.EncomendasMoldes.Any(em => em.Encomenda_id == encomendaId));
 
 
             var totalCount = await query.CountAsync();

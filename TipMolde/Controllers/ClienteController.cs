@@ -1,9 +1,7 @@
-using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TipMolde.Application.Dtos.ClienteDto;
 using TipMolde.Application.Interface.Comercio.ICliente;
-using TipMolde.Domain.Entities.Comercio;
 
 namespace TipMolde.API.Controllers
 {

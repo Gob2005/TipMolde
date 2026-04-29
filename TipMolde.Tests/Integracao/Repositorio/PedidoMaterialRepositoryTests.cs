@@ -1,26 +1,14 @@
 ﻿using FluentAssertions;
-using Microsoft.EntityFrameworkCore;
 using TipMolde.Domain.Entities.Comercio;
-using TipMolde.Domain.Entities.Producao;
 using TipMolde.Domain.Enums;
-using TipMolde.Infrastructure.DB;
 using TipMolde.Infrastructure.Repositorio;
 
 namespace TipMolde.Tests.Integracao.Repositorio;
 
 [TestFixture]
 [Category("Integration")]
-public class PedidoMaterialRepositoryTests
+public sealed class PedidoMaterialRepositoryTests : RepositoryIntegrationTestBase
 {
-    private static ApplicationDbContext CreateContext()
-    {
-        var options = new DbContextOptionsBuilder<ApplicationDbContext>()
-            .UseInMemoryDatabase(Guid.NewGuid().ToString())
-            .Options;
-
-        return new ApplicationDbContext(options);
-    }
-
     [Test(Description = "TPMREP1 - GetByIdWithItens deve carregar pedido com linhas associadas.")]
     public async Task GetByIdWithItensAsync_Should_LoadItens_When_PedidoExists()
     {

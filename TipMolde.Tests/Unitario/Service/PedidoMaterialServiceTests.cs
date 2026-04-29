@@ -4,7 +4,6 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using TipMolde.Application.Dtos.PedidoMaterialDto;
 using TipMolde.Application.Exceptions;
-using TipMolde.Application.Interface;
 using TipMolde.Application.Interface.Comercio.IFornecedor;
 using TipMolde.Application.Interface.Comercio.IPedidoMaterial;
 using TipMolde.Application.Interface.Producao.IPeca;
