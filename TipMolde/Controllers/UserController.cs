@@ -70,7 +70,7 @@ namespace TipMolde.API.Controllers
         {
             if (page < 1 || pageSize < 1)
             {
-                return BadRequest(CreateProblem(
+                return BadRequest(this.CreateProblem(
                     StatusCodes.Status400BadRequest,
                     "Pedido invalido",
                     "Os parametros de paginacao sao invalidos. Regras: page >= 1."));
@@ -99,7 +99,7 @@ namespace TipMolde.API.Controllers
             var user = await _userService.GetByIdAsync(id);
             if (user == null)
             {
-                return NotFound(CreateProblem(
+                return NotFound(this.CreateProblem(
                     StatusCodes.Status404NotFound,
                     "Recurso nao encontrado",
                     $"Utilizador com ID {id} nao encontrado."));
@@ -118,7 +118,7 @@ namespace TipMolde.API.Controllers
         {
             if (string.IsNullOrWhiteSpace(searchTerm))
             {
-                return BadRequest(CreateProblem(
+                return BadRequest(this.CreateProblem(
                     StatusCodes.Status400BadRequest,
                     "Pedido invalido",
                     "O parametro searchTerm e obrigatorio."));
@@ -126,7 +126,7 @@ namespace TipMolde.API.Controllers
 
             if (page < 1 || pageSize < 1)
             {
-                return BadRequest(CreateProblem(
+                return BadRequest(this.CreateProblem(
                     StatusCodes.Status400BadRequest,
                     "Pedido invalido",
                     "Os parametros de paginacao sao invalidos. Regras: page >= 1."));
@@ -152,7 +152,7 @@ namespace TipMolde.API.Controllers
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(CreateProblem(
+                return BadRequest(this.CreateProblem(
                     StatusCodes.Status400BadRequest,
                     "Pedido invalido",
                     "O body do pedido e invalido."));
@@ -182,7 +182,7 @@ namespace TipMolde.API.Controllers
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(CreateProblem(
+                return BadRequest(this.CreateProblem(
                     StatusCodes.Status400BadRequest,
                     "Pedido invalido",
                     "O body do pedido e invalido."));
@@ -195,7 +195,7 @@ namespace TipMolde.API.Controllers
             }
             catch (UnauthorizedAccessException ex)
             {
-                return Unauthorized(CreateProblem(
+                return Unauthorized(this.CreateProblem(
                     StatusCodes.Status401Unauthorized,
                     "Nao autorizado",
                     ex.Message));
@@ -204,7 +204,7 @@ namespace TipMolde.API.Controllers
             var authenticatedUser = await _userService.GetByIdAsync(authenticatedUserId);
             if (authenticatedUser == null)
             {
-                return Unauthorized(CreateProblem(
+                return Unauthorized(this.CreateProblem(
                     StatusCodes.Status401Unauthorized,
                     "Nao autorizado",
                     "Utilizador autenticado nao encontrado."));
@@ -216,13 +216,13 @@ namespace TipMolde.API.Controllers
             {
                 return StatusCode(
                     StatusCodes.Status403Forbidden,
-                    CreateProblem(StatusCodes.Status403Forbidden, "Proibido", "Sem permissao para atualizar este utilizador."));
+                    this.CreateProblem(StatusCodes.Status403Forbidden, "Proibido", "Sem permissao para atualizar este utilizador."));
             }
 
             var user = await _userService.GetByIdAsync(id);
             if (user == null)
             {
-                return NotFound(CreateProblem(
+                return NotFound(this.CreateProblem(
                     StatusCodes.Status404NotFound,
                     "Recurso nao encontrado",
                     $"Utilizador com ID {id} nao encontrado."));
@@ -244,7 +244,7 @@ namespace TipMolde.API.Controllers
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(CreateProblem(
+                return BadRequest(this.CreateProblem(
                     StatusCodes.Status400BadRequest,
                     "Pedido invalido",
                     "O body do pedido e invalido."));
@@ -265,24 +265,6 @@ namespace TipMolde.API.Controllers
         {
             await _userService.DeleteAsync(id);
             return NoContent();
-        }
-
-        /// <summary>
-        /// Cria uma resposta de erro padrao no formato ProblemDetails.
-        /// </summary>
-        /// <param name="status">Codigo de estado HTTP da resposta.</param>
-        /// <param name="title">Titulo curto do erro.</param>
-        /// <param name="detail">Descricao detalhada do problema.</param>
-        /// <returns>Instancia de ProblemDetails com o contexto da falha.</returns>
-        private ProblemDetails CreateProblem(int status, string title, string detail)
-        {
-            return new ProblemDetails
-            {
-                Status = status,
-                Title = title,
-                Detail = detail,
-                Instance = HttpContext?.Request?.Path
-            };
         }
     }
 }

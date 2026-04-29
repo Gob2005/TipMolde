@@ -37,15 +37,20 @@ namespace TipMolde.API.Controllers
         /// </summary>
         /// <param name="projetoId">Identificador do projeto.</param>
         /// <param name="autorId">Identificador do autor.</param>
+        /// <param name="page">Pagina atual.</param>
+        /// <param name="pageSize">Tamanho da pagina.</param>
         /// <returns>HTTP 200 com a colecao de registos; HTTP 400 quando os identificadores sao invalidos.</returns>
         [Authorize(Roles = "ADMIN")]
         [HttpGet]
-        public async Task<IActionResult> GetHistorico([FromQuery] int projetoId, [FromQuery] int autorId)
+        public async Task<IActionResult> GetHistorico([FromQuery] int projetoId, [FromQuery] int autorId, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
             if (projetoId < 1 || autorId < 1)
-                return BadRequest(CreateProblem(StatusCodes.Status400BadRequest, "Pedido invalido", "ProjetoId e AutorId devem ser >= 1."));
+                return BadRequest(this.CreateProblem(StatusCodes.Status400BadRequest, "Pedido invalido", "ProjetoId e AutorId devem ser >= 1."));
 
-            var historico = await _service.GetHistoricoAsync(projetoId, autorId);
+            if (page < 1 || pageSize < 1)
+                return BadRequest(this.CreateProblem(StatusCodes.Status400BadRequest, "Pedido invalido", "Page e pageSize devem ser maiores ou iguais a 1."));
+
+            var historico = await _service.GetHistoricoAsync(projetoId, autorId, page, pageSize);
             return Ok(historico);
         }
 
@@ -60,7 +65,7 @@ namespace TipMolde.API.Controllers
         {
             var registo = await _service.GetByIdAsync(id);
             if (registo == null)
-                return NotFound(CreateProblem(StatusCodes.Status404NotFound, "Recurso nao encontrado", $"Registo de tempo com ID {id} nao encontrado."));
+                return NotFound(this.CreateProblem(StatusCodes.Status404NotFound, "Recurso nao encontrado", $"Registo de tempo com ID {id} nao encontrado."));
 
             return Ok(registo);
         }
@@ -75,7 +80,7 @@ namespace TipMolde.API.Controllers
         public async Task<IActionResult> Create([FromBody] CreateRegistoTempoProjetoDto dto)
         {
             if (!ModelState.IsValid)
-                return BadRequest(CreateProblem(StatusCodes.Status400BadRequest, "Pedido invalido", "Dados de criacao invalidos."));
+                return BadRequest(this.CreateProblem(StatusCodes.Status400BadRequest, "Pedido invalido", "Dados de criacao invalidos."));
 
             var created = await _service.CreateRegistoAsync(dto);
 
@@ -103,24 +108,6 @@ namespace TipMolde.API.Controllers
             _logger.LogInformation("Controller: RegistoTempoProjeto {RegistoId} removido", id);
 
             return NoContent();
-        }
-
-        /// <summary>
-        /// Cria objeto ProblemDetails para respostas de erro do controller.
-        /// </summary>
-        /// <param name="status">Codigo HTTP do erro.</param>
-        /// <param name="title">Titulo curto do erro.</param>
-        /// <param name="detail">Detalhe funcional do erro.</param>
-        /// <returns>Objeto ProblemDetails preenchido com contexto do request atual.</returns>
-        private ProblemDetails CreateProblem(int status, string title, string detail)
-        {
-            return new ProblemDetails
-            {
-                Status = status,
-                Title = title,
-                Detail = detail,
-                Instance = HttpContext?.Request?.Path
-            };
         }
     }
 }

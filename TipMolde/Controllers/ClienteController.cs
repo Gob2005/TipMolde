@@ -45,7 +45,7 @@ namespace TipMolde.API.Controllers
         public async Task<IActionResult> GetAllClientes([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
             if (page < 1 || pageSize < 1)
-                return BadRequest(CreateProblem(
+                return BadRequest(this.CreateProblem(
                     StatusCodes.Status400BadRequest,
                     "Pedido invalido",
                     "Page e pageSize devem ser >= 1."));
@@ -67,7 +67,7 @@ namespace TipMolde.API.Controllers
             var cliente = await _clienteService.GetByIdAsync(id);
             if (cliente == null)
             {
-                return NotFound(CreateProblem(
+                return NotFound(this.CreateProblem(
                     StatusCodes.Status404NotFound,
                     "Recurso nao encontrado",
                     $"Cliente com ID {id} nao encontrado."));
@@ -88,7 +88,7 @@ namespace TipMolde.API.Controllers
             var cliente = await _clienteService.GetClienteWithEncomendasAsync(id);
             if (cliente == null)
             {
-                return NotFound(CreateProblem(
+                return NotFound(this.CreateProblem(
                     StatusCodes.Status404NotFound,
                     "Recurso nao encontrado",
                     $"Cliente com ID {id} nao encontrado."));
@@ -106,23 +106,23 @@ namespace TipMolde.API.Controllers
         /// <returns>Resultado HTTP com clientes que correspondem ao termo informado.</returns>
         [Authorize(Roles = "ADMIN,GESTOR_COMERCIAL,GESTOR_DESENHO")]
         [HttpGet("search/by-name")]
-        public async Task<IActionResult> SearchByName([FromQuery] string searchTerm, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+        public async Task<IActionResult> SearchByName([FromQuery] string? searchTerm, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
             if (string.IsNullOrWhiteSpace(searchTerm))
             {
-                return BadRequest(CreateProblem(
+                return BadRequest(this.CreateProblem(
                     StatusCodes.Status400BadRequest,
                     "Pedido invalido",
                     "O parametro searchTerm e obrigatorio."));
             }
 
             if (page < 1 || pageSize < 1)
-                return BadRequest(CreateProblem(
+                return BadRequest(this.CreateProblem(
                     StatusCodes.Status400BadRequest,
                     "Pedido invalido",
                     "Page e pageSize devem ser >= 1."));
 
-            var clientes = await _clienteService.SearchByNameAsync(searchTerm);
+            var clientes = await _clienteService.SearchByNameAsync(searchTerm, page, pageSize);
             return Ok(clientes);
         }
 
@@ -135,23 +135,23 @@ namespace TipMolde.API.Controllers
         /// <returns>Resultado HTTP com clientes que correspondem ao termo informado.</returns>
         [Authorize(Roles = "ADMIN,GESTOR_COMERCIAL,GESTOR_DESENHO")]
         [HttpGet("search/by-sigla")]
-        public async Task<IActionResult> SearchBySigla([FromQuery] string searchTerm, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+        public async Task<IActionResult> SearchBySigla([FromQuery] string? searchTerm, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
             if (string.IsNullOrWhiteSpace(searchTerm))
             {
-                return BadRequest(CreateProblem(
+                return BadRequest(this.CreateProblem(
                     StatusCodes.Status400BadRequest,
                     "Pedido invalido",
                     "O parametro searchTerm e obrigatorio."));
             }
 
             if (page < 1 || pageSize < 1)
-                return BadRequest(CreateProblem(
+                return BadRequest(this.CreateProblem(
                     StatusCodes.Status400BadRequest,
                     "Pedido invalido",
                     "Page e pageSize devem ser >= 1."));
 
-            var clientes = await _clienteService.SearchBySiglaAsync(searchTerm);
+            var clientes = await _clienteService.SearchBySiglaAsync(searchTerm, page, pageSize);
             return Ok(clientes);
         }
 
@@ -168,7 +168,7 @@ namespace TipMolde.API.Controllers
         public async Task<IActionResult> CreateCliente([FromBody] CreateClienteDto dto)
         {
             if (!ModelState.IsValid)
-                return BadRequest(CreateProblem(StatusCodes.Status400BadRequest, "Pedido invalido", "Dados de criacao invalidos."));
+                return BadRequest(this.CreateProblem(StatusCodes.Status400BadRequest, "Pedido invalido", "Dados de criacao invalidos."));
 
             var created = await _clienteService.CreateAsync(dto);
 
@@ -191,7 +191,7 @@ namespace TipMolde.API.Controllers
             if (existingCliente == null)
             {
                 _logger.LogWarning("Tentativa de atualizacao de cliente {ClienteId} falhou: recurso nao encontrado", id);
-                return NotFound(CreateProblem(
+                return NotFound(this.CreateProblem(
                     StatusCodes.Status404NotFound,
                     "Recurso nao encontrado",
                     $"Cliente com ID {id} nao encontrado."));
@@ -217,7 +217,7 @@ namespace TipMolde.API.Controllers
             if (existingCliente == null)
             {
                 _logger.LogWarning("Tentativa de remocao de cliente {ClienteId} falhou: recurso nao encontrado", id);
-                return NotFound(CreateProblem(
+                return NotFound(this.CreateProblem(
                     StatusCodes.Status404NotFound,
                     "Recurso nao encontrado",
                     $"Cliente com ID {id} nao encontrado."));
@@ -228,24 +228,6 @@ namespace TipMolde.API.Controllers
             _logger.LogInformation("Cliente {ClienteId} removido com sucesso", id);
 
             return NoContent();
-        }
-
-        /// <summary>
-        /// Cria um objeto de erro padrao no formato ProblemDetails.
-        /// </summary>
-        /// <param name="status">Codigo de estado HTTP da resposta.</param>
-        /// <param name="title">Titulo curto do problema.</param>
-        /// <param name="detail">Descricao detalhada do problema.</param>
-        /// <returns>Instancia de ProblemDetails preenchida com o contexto do pedido.</returns>
-        private ProblemDetails CreateProblem(int status, string title, string detail)
-        {
-            return new ProblemDetails
-            {
-                Status = status,
-                Title = title,
-                Detail = detail,
-                Instance = HttpContext?.Request?.Path
-            };
         }
     }
 }

@@ -565,7 +565,7 @@ namespace TipMolde.Application.Service
         /// Valida se o cabecalho CSV corresponde ao formato esperado.
         /// </summary>
         /// <param name="headerColumns">Colunas lidas da primeira linha do ficheiro.</param>
-        private static void ValidateCsvHeader(IReadOnlyList<string> headerColumns)
+        private static void ValidateCsvHeader(List<string> headerColumns)
         {
             ValidateColumnCount(headerColumns, 1);
 
@@ -584,7 +584,7 @@ namespace TipMolde.Application.Service
         /// </summary>
         /// <param name="columns">Colunas lidas da linha.</param>
         /// <param name="lineNumber">Numero da linha no ficheiro CSV.</param>
-        private static void ValidateColumnCount(IReadOnlyList<string> columns, int lineNumber)
+        private static void ValidateColumnCount(List<string> columns, int lineNumber)
         {
             if (columns.Count == CsvHeader.Length)
                 return;
@@ -597,7 +597,7 @@ namespace TipMolde.Application.Service
         /// Valida se a segunda linha do CSV representa o resumo do molde.
         /// </summary>
         /// <param name="metadataColumns">Colunas lidas da linha de metadados.</param>
-        private static void ValidateMetadataRow(IReadOnlyList<string> metadataColumns)
+        private static void ValidateMetadataRow(List<string> metadataColumns)
         {
             var numeroPeca = MappingProfileExtensions.NormalizeOptionalString(metadataColumns[0]);
             var designacao = MappingProfileExtensions.NormalizeOptionalString(metadataColumns[1]);
@@ -616,7 +616,7 @@ namespace TipMolde.Application.Service
         /// <param name="columns">Colunas da linha CSV.</param>
         /// <param name="lineNumber">Numero da linha no ficheiro CSV.</param>
         /// <returns>DTO interno com os dados da peca importada.</returns>
-        private static PecaCsvLinhaDto ParsePieceRow(IReadOnlyList<string> columns, int lineNumber)
+        private static PecaCsvLinhaDto ParsePieceRow(List<string> columns, int lineNumber)
         {
             var numeroPeca = MappingProfileExtensions.NormalizeOptionalString(columns[0]);
             if (string.IsNullOrWhiteSpace(numeroPeca))
@@ -725,7 +725,7 @@ namespace TipMolde.Application.Service
         /// </summary>
         /// <param name="headerColumns">Colunas candidatas a cabecalho.</param>
         /// <returns>True quando o cabecalho corresponde ao formato aceite.</returns>
-        private static bool IsExpectedCsvHeader(IReadOnlyList<string> headerColumns)
+        private static bool IsExpectedCsvHeader(List<string> headerColumns)
         {
             if (headerColumns.Count != CsvHeader.Length)
                 return false;

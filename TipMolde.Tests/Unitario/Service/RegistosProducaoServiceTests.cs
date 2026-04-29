@@ -1,10 +1,14 @@
+using AutoMapper;
 using FluentAssertions;
+using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
+using TipMolde.Application.Dtos.RegistoProducaoDto;
 using TipMolde.Application.Interface.Producao.IFasesProducao;
 using TipMolde.Application.Interface.Producao.IMaquina;
 using TipMolde.Application.Interface.Producao.IPeca;
 using TipMolde.Application.Interface.Producao.IRegistosProducao;
 using TipMolde.Application.Interface.Utilizador.IUser;
+using TipMolde.Application.Mappings;
 using TipMolde.Application.Service;
 using TipMolde.Domain.Entities;
 using TipMolde.Domain.Entities.Producao;
@@ -12,6 +16,9 @@ using TipMolde.Domain.Enums;
 
 namespace TipMolde.Tests.Unitario.Service;
 
+/// <summary>
+/// Testes unitarios dos casos de uso de RegistosProducao.
+/// </summary>
 [TestFixture]
 [Category("Unit")]
 public class RegistosProducaoServiceTests
@@ -21,6 +28,7 @@ public class RegistosProducaoServiceTests
     private Mock<IUserRepository> _userRepository = null!;
     private Mock<IMaquinaRepository> _maquinaRepository = null!;
     private Mock<IPecaRepository> _pecaRepository = null!;
+    private IMapper _mapper = null!;
     private RegistosProducaoService _sut = null!;
 
     [SetUp]
@@ -32,12 +40,17 @@ public class RegistosProducaoServiceTests
         _maquinaRepository = new Mock<IMaquinaRepository>();
         _pecaRepository = new Mock<IPecaRepository>();
 
+        var mapperConfig = new MapperConfiguration(cfg => cfg.AddProfile<RegistosProducaoProfile>());
+        _mapper = mapperConfig.CreateMapper();
+
         _sut = new RegistosProducaoService(
             _registosRepository.Object,
             _fasesRepository.Object,
             _userRepository.Object,
             _maquinaRepository.Object,
-            _pecaRepository.Object);
+            _pecaRepository.Object,
+            _mapper,
+            NullLogger<RegistosProducaoService>.Instance);
     }
 
     private static FasesProducao BuildFase(int id = 1) => new()
@@ -75,7 +88,12 @@ public class RegistosProducaoServiceTests
         Estado = estado
     };
 
-    private static RegistosProducao BuildRegisto(int faseId = 1, int operadorId = 1, int pecaId = 1, EstadoProducao estado = EstadoProducao.PREPARACAO, int? maquinaId = 1) => new()
+    private static CreateRegistosProducaoDto BuildDto(
+        int faseId = 1,
+        int operadorId = 1,
+        int pecaId = 1,
+        EstadoProducao? estado = EstadoProducao.PREPARACAO,
+        int? maquinaId = 1) => new()
     {
         Fase_id = faseId,
         Operador_id = operadorId,
@@ -84,149 +102,160 @@ public class RegistosProducaoServiceTests
         Maquina_id = maquinaId
     };
 
-    [Test]
-    public async Task shouldThrowKeyNotFoundExceptionWhenFaseDoesNotExist()
+    private void SetupValidDependencies()
     {
-        // Arrange
+        _fasesRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(BuildFase());
+        _userRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(BuildOperador());
+        _pecaRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(BuildPeca());
+    }
+
+    private void SetupPersistCreated()
+    {
+        _registosRepository
+            .Setup(r => r.AddWithMachineStateAsync(It.IsAny<RegistosProducao>(), It.IsAny<Maquina?>()))
+            .ReturnsAsync((RegistosProducao registo, Maquina? _) =>
+            {
+                registo.Registo_Producao_id = 10;
+                return registo;
+            });
+    }
+
+    [Test(Description = "TRP001 - Criacao falha quando a fase nao existe.")]
+    public async Task CreateAsync_Should_Throw_When_FaseDoesNotExist()
+    {
+        // ARRANGE
         _fasesRepository.Setup(r => r.GetByIdAsync(99)).ReturnsAsync((FasesProducao?)null);
 
-        // Act
-        Func<Task> act = () => _sut.CreateAsync(BuildRegisto(faseId: 99));
+        // ACT
+        Func<Task> act = () => _sut.CreateAsync(BuildDto(faseId: 99));
 
-        // Assert
+        // ASSERT
         await act.Should().ThrowAsync<KeyNotFoundException>();
     }
 
-    [Test]
-    public async Task shouldThrowKeyNotFoundExceptionWhenOperadorDoesNotExist()
+    [Test(Description = "TRP002 - Criacao falha quando o operador nao existe.")]
+    public async Task CreateAsync_Should_Throw_When_OperadorDoesNotExist()
     {
-        // Arrange
+        // ARRANGE
         _fasesRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(BuildFase());
         _userRepository.Setup(r => r.GetByIdAsync(99)).ReturnsAsync((User?)null);
 
-        // Act
-        Func<Task> act = () => _sut.CreateAsync(BuildRegisto(operadorId: 99));
+        // ACT
+        Func<Task> act = () => _sut.CreateAsync(BuildDto(operadorId: 99));
 
-        // Assert
+        // ASSERT
         await act.Should().ThrowAsync<KeyNotFoundException>();
     }
 
-    [Test]
-    public async Task shouldThrowKeyNotFoundExceptionWhenPecaDoesNotExist()
+    [Test(Description = "TRP003 - Criacao falha quando a peca nao existe.")]
+    public async Task CreateAsync_Should_Throw_When_PecaDoesNotExist()
     {
-        // Arrange
+        // ARRANGE
         _fasesRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(BuildFase());
         _userRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(BuildOperador());
         _pecaRepository.Setup(r => r.GetByIdAsync(88)).ReturnsAsync((Peca?)null);
 
-        // Act
-        Func<Task> act = () => _sut.CreateAsync(BuildRegisto(pecaId: 88));
+        // ACT
+        Func<Task> act = () => _sut.CreateAsync(BuildDto(pecaId: 88));
 
-        // Assert
+        // ASSERT
         await act.Should().ThrowAsync<KeyNotFoundException>();
     }
 
-    [Test]
-    public async Task shouldThrowArgumentExceptionWhenMaterialWasNotReceived()
+    [Test(Description = "TRP004 - Criacao falha quando a peca ainda nao tem material recebido.")]
+    public async Task CreateAsync_Should_Throw_When_MaterialWasNotReceived()
     {
-        // Arrange
+        // ARRANGE
         _fasesRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(BuildFase());
         _userRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(BuildOperador());
         _pecaRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(BuildPeca(materialRecebido: false));
 
-        // Act
-        Func<Task> act = () => _sut.CreateAsync(BuildRegisto());
+        // ACT
+        Func<Task> act = () => _sut.CreateAsync(BuildDto());
 
-        // Assert
+        // ASSERT
         await act.Should().ThrowAsync<ArgumentException>();
     }
 
-    [Test]
-    public async Task shouldThrowArgumentExceptionWhenFirstTransitionIsNotPreparacao()
+    [Test(Description = "TRP005 - Primeira transicao tem de ser PREPARACAO.")]
+    public async Task CreateAsync_Should_Throw_When_FirstTransitionIsNotPreparacao()
     {
-        // Arrange
-        _fasesRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(BuildFase());
-        _userRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(BuildOperador());
-        _pecaRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(BuildPeca());
+        // ARRANGE
+        SetupValidDependencies();
         _registosRepository.Setup(r => r.GetUltimoRegistoAsync(1, 1)).ReturnsAsync((RegistosProducao?)null);
 
-        // Act
-        Func<Task> act = () => _sut.CreateAsync(BuildRegisto(estado: EstadoProducao.EM_CURSO));
+        // ACT
+        Func<Task> act = () => _sut.CreateAsync(BuildDto(estado: EstadoProducao.EM_CURSO));
 
-        // Assert
+        // ASSERT
         await act.Should().ThrowAsync<ArgumentException>();
     }
 
-    [Test]
-    public async Task shouldCreateRegistoAndSetMachineInUseWhenTransitionIsPreparacao()
+    [Test(Description = "TRP006 - PREPARACAO cria registo e coloca maquina em uso numa unica operacao de persistencia.")]
+    public async Task CreateAsync_Should_CreateRegistoAndSetMachineInUse_When_TransitionIsPreparacao()
     {
-        // Arrange
-        _fasesRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(BuildFase());
-        _userRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(BuildOperador());
-        _pecaRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(BuildPeca());
+        // ARRANGE
+        SetupValidDependencies();
+        SetupPersistCreated();
         _registosRepository.Setup(r => r.GetUltimoRegistoAsync(1, 1)).ReturnsAsync((RegistosProducao?)null);
 
         var maquina = BuildMaquina(id: 1, faseId: 1, estado: EstadoMaquina.DISPONIVEL);
         _maquinaRepository.Setup(r => r.GetByIdUnicoAsync(1)).ReturnsAsync(maquina);
 
-        var registo = BuildRegisto(estado: EstadoProducao.PREPARACAO, maquinaId: 1);
+        // ACT
+        var result = await _sut.CreateAsync(BuildDto(estado: EstadoProducao.PREPARACAO, maquinaId: 1));
 
-        // Act
-        var result = await _sut.CreateAsync(registo);
-
-        // Assert
+        // ASSERT
         result.Estado_producao.Should().Be(EstadoProducao.PREPARACAO);
         result.Data_hora.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
         maquina.Estado.Should().Be(EstadoMaquina.EM_USO);
-        _maquinaRepository.Verify(r => r.UpdateAsync(It.Is<Maquina>(m => m.Estado == EstadoMaquina.EM_USO)), Times.Once);
-        _registosRepository.Verify(r => r.AddAsync(It.IsAny<RegistosProducao>()), Times.Once);
+        _maquinaRepository.Verify(r => r.UpdateAsync(It.IsAny<Maquina>()), Times.Never);
+        _registosRepository.Verify(r => r.AddWithMachineStateAsync(
+            It.IsAny<RegistosProducao>(),
+            It.Is<Maquina>(m => m.Estado == EstadoMaquina.EM_USO)), Times.Once);
     }
 
-    [Test]
-    public async Task shouldThrowArgumentExceptionWhenMachinePhaseDoesNotMatchRegistoPhase()
+    [Test(Description = "TRP007 - PREPARACAO falha quando a maquina nao pertence a fase.")]
+    public async Task CreateAsync_Should_Throw_When_MachinePhaseDoesNotMatchRegistoPhase()
     {
-        // Arrange
-        _fasesRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(BuildFase());
-        _userRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(BuildOperador());
-        _pecaRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(BuildPeca());
+        // ARRANGE
+        SetupValidDependencies();
         _registosRepository.Setup(r => r.GetUltimoRegistoAsync(1, 1)).ReturnsAsync((RegistosProducao?)null);
         _maquinaRepository.Setup(r => r.GetByIdUnicoAsync(1)).ReturnsAsync(BuildMaquina(id: 1, faseId: 2));
 
-        // Act
-        Func<Task> act = () => _sut.CreateAsync(BuildRegisto(estado: EstadoProducao.PREPARACAO, maquinaId: 1));
+        // ACT
+        Func<Task> act = () => _sut.CreateAsync(BuildDto(estado: EstadoProducao.PREPARACAO, maquinaId: 1));
 
-        // Assert
+        // ASSERT
         await act.Should().ThrowAsync<ArgumentException>();
     }
 
-    [Test]
-    public async Task shouldThrowArgumentExceptionWhenMachineIsUnavailable()
+    [Test(Description = "TRP008 - PREPARACAO falha quando a maquina esta indisponivel.")]
+    public async Task CreateAsync_Should_Throw_When_MachineIsUnavailable()
     {
-        // Arrange
-        _fasesRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(BuildFase());
-        _userRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(BuildOperador());
-        _pecaRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(BuildPeca());
+        // ARRANGE
+        SetupValidDependencies();
         _registosRepository.Setup(r => r.GetUltimoRegistoAsync(1, 1)).ReturnsAsync((RegistosProducao?)null);
         _maquinaRepository.Setup(r => r.GetByIdUnicoAsync(1)).ReturnsAsync(BuildMaquina(id: 1, faseId: 1, estado: EstadoMaquina.EM_USO));
 
-        // Act
-        Func<Task> act = () => _sut.CreateAsync(BuildRegisto(estado: EstadoProducao.PREPARACAO, maquinaId: 1));
+        // ACT
+        Func<Task> act = () => _sut.CreateAsync(BuildDto(estado: EstadoProducao.PREPARACAO, maquinaId: 1));
 
-        // Assert
+        // ASSERT
         await act.Should().ThrowAsync<ArgumentException>();
     }
 
-    [Test]
-    public async Task shouldReleaseMachineWhenTransitionIsConcluido()
+    [Test(Description = "TRP009 - CONCLUIDO liberta a maquina associada ao ultimo registo.")]
+    public async Task CreateAsync_Should_ReleaseMachine_When_TransitionIsConcluido()
     {
-        // Arrange
-        _fasesRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(BuildFase());
-        _userRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(BuildOperador());
-        _pecaRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(BuildPeca());
+        // ARRANGE
+        SetupValidDependencies();
+        SetupPersistCreated();
         _registosRepository.Setup(r => r.GetUltimoRegistoAsync(1, 1)).ReturnsAsync(new RegistosProducao
         {
             Fase_id = 1,
             Peca_id = 1,
+            Maquina_id = 1,
             Estado_producao = EstadoProducao.EM_CURSO,
             Data_hora = DateTime.UtcNow.AddMinutes(-5)
         });
@@ -234,21 +263,22 @@ public class RegistosProducaoServiceTests
         var maquina = BuildMaquina(id: 1, faseId: 1, estado: EstadoMaquina.EM_USO);
         _maquinaRepository.Setup(r => r.GetByIdUnicoAsync(1)).ReturnsAsync(maquina);
 
-        // Act
-        await _sut.CreateAsync(BuildRegisto(estado: EstadoProducao.CONCLUIDO, maquinaId: 1));
+        // ACT
+        await _sut.CreateAsync(BuildDto(estado: EstadoProducao.CONCLUIDO, maquinaId: null));
 
-        // Assert
+        // ASSERT
         maquina.Estado.Should().Be(EstadoMaquina.DISPONIVEL);
-        _maquinaRepository.Verify(r => r.UpdateAsync(It.Is<Maquina>(m => m.Estado == EstadoMaquina.DISPONIVEL)), Times.Once);
+        _maquinaRepository.Verify(r => r.UpdateAsync(It.IsAny<Maquina>()), Times.Never);
+        _registosRepository.Verify(r => r.AddWithMachineStateAsync(
+            It.Is<RegistosProducao>(rp => rp.Maquina_id == 1),
+            It.Is<Maquina>(m => m.Estado == EstadoMaquina.DISPONIVEL)), Times.Once);
     }
 
-    [Test]
-    public async Task shouldThrowArgumentExceptionWhenTransitionIsInvalid()
+    [Test(Description = "TRP010 - Criacao falha quando a transicao de estado e invalida.")]
+    public async Task CreateAsync_Should_Throw_When_TransitionIsInvalid()
     {
-        // Arrange
-        _fasesRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(BuildFase());
-        _userRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(BuildOperador());
-        _pecaRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(BuildPeca());
+        // ARRANGE
+        SetupValidDependencies();
         _registosRepository.Setup(r => r.GetUltimoRegistoAsync(1, 1)).ReturnsAsync(new RegistosProducao
         {
             Fase_id = 1,
@@ -257,10 +287,10 @@ public class RegistosProducaoServiceTests
             Data_hora = DateTime.UtcNow.AddMinutes(-5)
         });
 
-        // Act
-        Func<Task> act = () => _sut.CreateAsync(BuildRegisto(estado: EstadoProducao.CONCLUIDO));
+        // ACT
+        Func<Task> act = () => _sut.CreateAsync(BuildDto(estado: EstadoProducao.CONCLUIDO));
 
-        // Assert
+        // ASSERT
         await act.Should().ThrowAsync<ArgumentException>();
     }
 }

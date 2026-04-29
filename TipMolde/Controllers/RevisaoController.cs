@@ -36,20 +36,30 @@ namespace TipMolde.API.Controllers
         /// Lista revisoes de um projeto.
         /// </summary>
         /// <param name="projetoId">Identificador do projeto.</param>
+        /// <param name="page">Pagina atual.</param>
+        /// <param name="pageSize">Tamanho da pagina.</param>
         /// <returns>HTTP 200 com a colecao de revisoes; HTTP 400 para projetoId invalido.</returns>
         [Authorize(Roles = "ADMIN,GESTOR_DESENHO")]
         [HttpGet]
-        public async Task<IActionResult> GetByProjeto([FromQuery] int projetoId)
+        public async Task<IActionResult> GetByProjeto([FromQuery] int projetoId, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
             if (projetoId < 1)
             {
-                return BadRequest(CreateProblem(
+                return BadRequest(this.CreateProblem(
                     StatusCodes.Status400BadRequest,
                     "Pedido invalido",
                     "ProjetoId deve ser >= 1."));
             }
 
-            var revisoes = await _revisaoService.GetByProjetoIdAsync(projetoId);
+            if (page < 1 || pageSize < 1)
+            {
+                return BadRequest(this.CreateProblem(
+                    StatusCodes.Status400BadRequest,
+                    "Pedido invalido",
+                    "Page e pageSize devem ser maiores ou iguais a 1."));
+            }
+
+            var revisoes = await _revisaoService.GetByProjetoIdAsync(projetoId, page, pageSize);
             return Ok(revisoes);
         }
 
@@ -65,7 +75,7 @@ namespace TipMolde.API.Controllers
             var revisao = await _revisaoService.GetByIdAsync(id);
             if (revisao == null)
             {
-                return NotFound(CreateProblem(
+                return NotFound(this.CreateProblem(
                     StatusCodes.Status404NotFound,
                     "Recurso nao encontrado",
                     $"Revisao com ID {id} nao encontrada."));
@@ -85,7 +95,7 @@ namespace TipMolde.API.Controllers
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(CreateProblem(
+                return BadRequest(this.CreateProblem(
                     StatusCodes.Status400BadRequest,
                     "Pedido invalido",
                     "Dados de criacao invalidos."));
@@ -110,7 +120,7 @@ namespace TipMolde.API.Controllers
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(CreateProblem(
+                return BadRequest(this.CreateProblem(
                     StatusCodes.Status400BadRequest,
                     "Pedido invalido",
                     "Dados de resposta do cliente invalidos."));
@@ -137,24 +147,6 @@ namespace TipMolde.API.Controllers
             _logger.LogInformation("Controller: Revisao {RevisaoId} removida", id);
 
             return NoContent();
-        }
-
-        /// <summary>
-        /// Cria objeto ProblemDetails para respostas de erro no controller.
-        /// </summary>
-        /// <param name="status">Codigo HTTP do erro.</param>
-        /// <param name="title">Titulo curto do erro.</param>
-        /// <param name="detail">Detalhe funcional do erro.</param>
-        /// <returns>Objeto ProblemDetails preenchido com contexto do request atual.</returns>
-        private ProblemDetails CreateProblem(int status, string title, string detail)
-        {
-            return new ProblemDetails
-            {
-                Status = status,
-                Title = title,
-                Detail = detail,
-                Instance = HttpContext?.Request?.Path
-            };
         }
     }
 }

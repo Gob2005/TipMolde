@@ -57,7 +57,7 @@ namespace TipMolde.API.Controllers
             catch (UnauthorizedAccessException)
             {
                 _logger.LogWarning("Tentativa de login falhada para email {Email}", dto.Email);
-                return Unauthorized(CreateProblem(
+                return Unauthorized(this.CreateProblem(
                     StatusCodes.Status401Unauthorized,
                     "Credenciais invalidas",
                     "Email ou password incorretos."));
@@ -83,7 +83,7 @@ namespace TipMolde.API.Controllers
 
             if (!result.Success)
             {
-                return BadRequest(CreateProblem(
+                return BadRequest(this.CreateProblem(
                     StatusCodes.Status400BadRequest,
                     "Logout invalido",
                     result.Message));
@@ -91,24 +91,6 @@ namespace TipMolde.API.Controllers
 
             _logger.LogInformation("Utilizador terminou sessao");
             return Ok(result);
-        }
-
-        /// <summary>
-        /// Cria um objeto de erro padrao para respostas ProblemDetails.
-        /// </summary>
-        /// <param name="status">Codigo de estado HTTP a devolver.</param>
-        /// <param name="title">Titulo curto do problema funcional.</param>
-        /// <param name="detail">Descricao detalhada do erro.</param>
-        /// <returns>Instancia de ProblemDetails preenchida com os dados do erro.</returns>
-        private ProblemDetails CreateProblem(int status, string title, string detail)
-        {
-            return new ProblemDetails
-            {
-                Status = status,
-                Title = title,
-                Detail = detail,
-                Instance = HttpContext?.Request?.Path
-            };
         }
     }
 }

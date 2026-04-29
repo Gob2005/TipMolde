@@ -67,5 +67,87 @@ namespace TipMolde.Tests.Integracao.Repositorio
             // ASSERT
             result.Items.Should().ContainSingle(m => m.Numero == "M-001");
         }
+
+        [Test(Description = "TMOLREP3 - GetAll deve carregar especificacoes e paginar moldes por ID.")]
+        public async Task GetAllAsync_Should_LoadEspecificacoesAndReturnRequestedPage()
+        {
+            // ARRANGE
+            await using var context = CreateContext();
+            var molde1 = new Molde { Numero = "M-001", Numero_cavidades = 1, TipoPedido = TipoPedido.NOVO_MOLDE };
+            var molde2 = new Molde { Numero = "M-002", Numero_cavidades = 2, TipoPedido = TipoPedido.ALTERACAO };
+            await context.Moldes.AddRangeAsync(molde1, molde2);
+            await context.SaveChangesAsync();
+
+            await context.EspecificacoesTecnicas.AddRangeAsync(
+                new EspecificacoesTecnicas { Molde_id = molde1.Molde_id, MaterialMacho = "P20" },
+                new EspecificacoesTecnicas { Molde_id = molde2.Molde_id, MaterialMacho = "H13" });
+            await context.SaveChangesAsync();
+
+            var repository = new MoldeRepository(context);
+
+            // ACT
+            var result = await repository.GetAllAsync(page: 2, pageSize: 1);
+
+            // ASSERT
+            result.TotalCount.Should().Be(2);
+            result.Items.Should().ContainSingle(m => m.Numero == "M-002");
+            result.Items.Single().Especificacoes!.MaterialMacho.Should().Be("H13");
+        }
+
+        [Test(Description = "TMOLREP4 - GetById deve carregar especificacoes do molde.")]
+        public async Task GetByIdAsync_Should_LoadEspecificacoes_When_MoldeExists()
+        {
+            // ARRANGE
+            await using var context = CreateContext();
+            var molde = new Molde { Numero = "M-ID", Numero_cavidades = 1, TipoPedido = TipoPedido.REPARACAO };
+            await context.Moldes.AddAsync(molde);
+            await context.SaveChangesAsync();
+
+            await context.EspecificacoesTecnicas.AddAsync(new EspecificacoesTecnicas
+            {
+                Molde_id = molde.Molde_id,
+                MaterialCavidade = "H13"
+            });
+            await context.SaveChangesAsync();
+
+            var repository = new MoldeRepository(context);
+
+            // ACT
+            var result = await repository.GetByIdAsync(molde.Molde_id);
+
+            // ASSERT
+            result.Should().NotBeNull();
+            result!.Especificacoes!.MaterialCavidade.Should().Be("H13");
+        }
+
+        [Test(Description = "TMOLREP5 - AddMoldeWithSpecsAndLink deve persistir molde, especificacoes e associacao.")]
+        public async Task AddMoldeWithSpecsAndLinkAsync_Should_PersistAggregateParts()
+        {
+            // ARRANGE
+            await using var context = CreateContext();
+            var encomenda = new Encomenda { NumeroEncomendaCliente = "ENC-ADD" };
+            await context.Encomendas.AddAsync(encomenda);
+            await context.SaveChangesAsync();
+
+            var molde = new Molde { Numero = "M-ADD", Numero_cavidades = 2, TipoPedido = TipoPedido.NOVO_MOLDE };
+            var specs = new EspecificacoesTecnicas { MaterialMacho = "P20" };
+            var link = new EncomendaMolde
+            {
+                Encomenda_id = encomenda.Encomenda_id,
+                Quantidade = 1,
+                Prioridade = 1,
+                DataEntregaPrevista = DateTime.UtcNow.AddDays(10)
+            };
+
+            var repository = new MoldeRepository(context);
+
+            // ACT
+            await repository.AddMoldeWithSpecsAndLinkAsync(molde, specs, link);
+
+            // ASSERT
+            molde.Molde_id.Should().BeGreaterThan(0);
+            context.EspecificacoesTecnicas.Should().ContainSingle(e => e.Molde_id == molde.Molde_id && e.MaterialMacho == "P20");
+            context.EncomendasMoldes.Should().ContainSingle(em => em.Encomenda_id == encomenda.Encomenda_id && em.Molde_id == molde.Molde_id);
+        }
     }
 }

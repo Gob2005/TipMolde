@@ -43,7 +43,7 @@ namespace TipMolde.API.Controllers
         {
             if (page < 1 || pageSize < 1)
             {
-                return BadRequest(CreateProblem(
+                return BadRequest(this.CreateProblem(
                     StatusCodes.Status400BadRequest,
                     "Pedido invalido",
                     "Page e pageSize devem ser >= 1."));
@@ -65,7 +65,7 @@ namespace TipMolde.API.Controllers
             var fornecedor = await _service.GetByIdAsync(id);
             if (fornecedor == null)
             {
-                return NotFound(CreateProblem(
+                return NotFound(this.CreateProblem(
                     StatusCodes.Status404NotFound,
                     "Recurso nao encontrado",
                     $"Fornecedor com ID {id} nao encontrado."));
@@ -93,7 +93,7 @@ namespace TipMolde.API.Controllers
         {
             if (string.IsNullOrWhiteSpace(searchTerm))
             {
-                return BadRequest(CreateProblem(
+                return BadRequest(this.CreateProblem(
                     StatusCodes.Status400BadRequest,
                     "Pedido invalido",
                     "O parametro searchTerm e obrigatorio."));
@@ -101,7 +101,7 @@ namespace TipMolde.API.Controllers
 
             if (page < 1 || pageSize < 1)
             {
-                return BadRequest(CreateProblem(
+                return BadRequest(this.CreateProblem(
                     StatusCodes.Status400BadRequest,
                     "Pedido invalido",
                     "Page e pageSize devem ser >= 1."));
@@ -125,7 +125,7 @@ namespace TipMolde.API.Controllers
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(CreateProblem(
+                return BadRequest(this.CreateProblem(
                     StatusCodes.Status400BadRequest,
                     "Pedido invalido",
                     "Dados de criacao invalidos."));
@@ -150,7 +150,7 @@ namespace TipMolde.API.Controllers
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(CreateProblem(
+                return BadRequest(this.CreateProblem(
                     StatusCodes.Status400BadRequest,
                     "Pedido invalido",
                     "Dados de atualizacao invalidos."));
@@ -177,24 +177,6 @@ namespace TipMolde.API.Controllers
             _logger.LogInformation("Fornecedor {FornecedorId} removido com sucesso", id);
 
             return NoContent();
-        }
-
-        /// <summary>
-        /// Cria um objeto de erro padrao no formato ProblemDetails.
-        /// </summary>
-        /// <param name="status">Codigo de estado HTTP da resposta.</param>
-        /// <param name="title">Titulo curto do problema.</param>
-        /// <param name="detail">Descricao detalhada do problema.</param>
-        /// <returns>Instancia de ProblemDetails preenchida com o contexto do pedido.</returns>
-        private ProblemDetails CreateProblem(int status, string title, string detail)
-        {
-            return new ProblemDetails
-            {
-                Status = status,
-                Title = title,
-                Detail = detail,
-                Instance = HttpContext?.Request?.Path
-            };
         }
     }
 }

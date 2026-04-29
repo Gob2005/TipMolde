@@ -46,7 +46,7 @@ namespace TipMolde.API.Controllers
         {
             if (page < 1 || pageSize < 1)
             {
-                return BadRequest(CreateProblem(
+                return BadRequest(this.CreateProblem(
                     StatusCodes.Status400BadRequest,
                     "Pedido invalido",
                     "Page e pageSize devem ser >= 1."));
@@ -68,7 +68,7 @@ namespace TipMolde.API.Controllers
             var pedido = await _service.GetByIdAsync(id);
             if (pedido == null)
             {
-                return NotFound(CreateProblem(
+                return NotFound(this.CreateProblem(
                     StatusCodes.Status404NotFound,
                     "Recurso nao encontrado",
                     $"Pedido de material com ID {id} nao encontrado."));
@@ -104,7 +104,7 @@ namespace TipMolde.API.Controllers
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(CreateProblem(
+                return BadRequest(this.CreateProblem(
                     StatusCodes.Status400BadRequest,
                     "Pedido invalido",
                     "Dados de criacao invalidos."));
@@ -173,24 +173,6 @@ namespace TipMolde.API.Controllers
                 throw new UnauthorizedAccessException("Utilizador autenticado invalido no token.");
 
             return userId;
-        }
-
-        /// <summary>
-        /// Cria um objeto de erro padrao no formato ProblemDetails.
-        /// </summary>
-        /// <param name="status">Codigo de estado HTTP da resposta.</param>
-        /// <param name="title">Titulo curto do problema.</param>
-        /// <param name="detail">Descricao detalhada do problema.</param>
-        /// <returns>Instancia de ProblemDetails preenchida com o contexto do pedido.</returns>
-        private ProblemDetails CreateProblem(int status, string title, string detail)
-        {
-            return new ProblemDetails
-            {
-                Status = status,
-                Title = title,
-                Detail = detail,
-                Instance = HttpContext?.Request?.Path
-            };
         }
     }
 }

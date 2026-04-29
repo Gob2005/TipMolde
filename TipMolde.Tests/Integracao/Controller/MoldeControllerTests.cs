@@ -61,5 +61,95 @@ namespace TipMolde.Tests.Integracao.Controller
             var body = await response.Content.ReadFromJsonAsync<ResponseMoldeDto>();
             body.Should().BeEquivalentTo(created);
         }
+
+        [Test(Description = "TMOLAPI3 - GET /api/moldes devolve ProblemDetails quando paginacao e invalida.")]
+        public async Task GetAll_Should_ReturnProblemDetails_When_PaginationIsInvalid()
+        {
+            // ARRANGE
+
+            // ACT
+            var response = await Client.GetAsync("/api/moldes?page=0&pageSize=10");
+
+            // ASSERT
+            await AssertProblemAsync(response, HttpStatusCode.BadRequest, "Pedido invalido");
+            Factory.MoldeService.Verify(s => s.GetAllAsync(It.IsAny<int>(), It.IsAny<int>()), Times.Never);
+        }
+
+        [Test(Description = "TMOLAPI4 - GET /api/moldes/{id} devolve 404 quando molde nao existe.")]
+        public async Task GetById_Should_ReturnProblemDetails_When_MoldeDoesNotExist()
+        {
+            // ARRANGE
+            Factory.MoldeService
+                .Setup(s => s.GetByIdAsync(44))
+                .ReturnsAsync((ResponseMoldeDto?)null);
+
+            // ACT
+            var response = await Client.GetAsync("/api/moldes/44");
+
+            // ASSERT
+            await AssertProblemAsync(response, HttpStatusCode.NotFound, "Recurso nao encontrado");
+        }
+
+        [Test(Description = "TMOLAPI5 - GET /api/moldes/por-encomenda/{id} devolve ProblemDetails quando paginacao e invalida.")]
+        public async Task GetByEncomendaId_Should_ReturnProblemDetails_When_PaginationIsInvalid()
+        {
+            // ARRANGE
+
+            // ACT
+            var response = await Client.GetAsync("/api/moldes/por-encomenda/5?page=1&pageSize=0");
+
+            // ASSERT
+            await AssertProblemAsync(response, HttpStatusCode.BadRequest, "Pedido invalido");
+            Factory.MoldeService.Verify(s => s.GetByEncomendaIdAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>()), Times.Never);
+        }
+
+        [Test(Description = "TMOLAPI6 - GET /api/moldes/{id}/ciclo-vida-pdf devolve ficheiro PDF.")]
+        public async Task ExportCicloVidaPdf_Should_ReturnPdfFile_When_ServiceGeneratesReport()
+        {
+            // ARRANGE
+            Factory.RelatorioService
+                .Setup(s => s.GerarCicloVidaMoldePdfAsync(9))
+                .ReturnsAsync(("PDF"u8.ToArray(), "molde-9.pdf"));
+
+            // ACT
+            var response = await Client.GetAsync("/api/moldes/9/ciclo-vida-pdf");
+
+            // ASSERT
+            response.StatusCode.Should().Be(HttpStatusCode.OK);
+            response.Content.Headers.ContentType?.MediaType.Should().Be("application/pdf");
+            response.Content.Headers.ContentDisposition?.FileNameStar.Should().Be("molde-9.pdf");
+        }
+
+        [Test(Description = "TMOLAPI7 - PUT /api/moldes/{id} devolve 204 quando request e valida.")]
+        public async Task Update_Should_ReturnNoContent_When_RequestIsValid()
+        {
+            // ARRANGE
+            Factory.MoldeService
+                .Setup(s => s.UpdateAsync(9, It.IsAny<UpdateMoldeDto>()))
+                .Returns(Task.CompletedTask);
+
+            // ACT
+            var response = await Client.PutAsJsonAsync("/api/moldes/9", new { nome = "Molde Atualizado" });
+
+            // ASSERT
+            response.StatusCode.Should().Be(HttpStatusCode.NoContent);
+            Factory.MoldeService.Verify(s => s.UpdateAsync(9, It.IsAny<UpdateMoldeDto>()), Times.Once);
+        }
+
+        [Test(Description = "TMOLAPI8 - DELETE /api/moldes/{id} devolve 204 quando request e valida.")]
+        public async Task Delete_Should_ReturnNoContent_When_RequestIsValid()
+        {
+            // ARRANGE
+            Factory.MoldeService
+                .Setup(s => s.DeleteAsync(9))
+                .Returns(Task.CompletedTask);
+
+            // ACT
+            var response = await Client.DeleteAsync("/api/moldes/9");
+
+            // ASSERT
+            response.StatusCode.Should().Be(HttpStatusCode.NoContent);
+            Factory.MoldeService.Verify(s => s.DeleteAsync(9), Times.Once);
+        }
     }
 }

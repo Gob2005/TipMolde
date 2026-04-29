@@ -1,5 +1,7 @@
 ﻿using FluentAssertions;
+using Microsoft.EntityFrameworkCore;
 using TipMolde.Domain.Entities.Comercio;
+using TipMolde.Domain.Entities.Producao;
 using TipMolde.Domain.Enums;
 using TipMolde.Infrastructure.Repositorio;
 
@@ -40,7 +42,59 @@ public sealed class PedidoMaterialRepositoryTests : RepositoryIntegrationTestBas
         result.Itens.Single().Peca_id.Should().Be(100);
     }
 
-    /*[Test(Description = "TPMREP2 - RegistarRececao deve atualizar pedido e pecas na mesma operacao.")]
+    [Test(Description = "TPMREP2 - GetPagedWithItens deve devolver pedidos ordenados por data e com linhas carregadas.")]
+    public async Task GetPagedWithItensAsync_Should_ReturnOrderedPedidosWithItens()
+    {
+        // ARRANGE
+        await using var context = CreateContext();
+        await context.PedidosMaterial.AddRangeAsync(
+            new PedidoMaterial
+            {
+                Fornecedor_id = 10,
+                DataPedido = DateTime.UtcNow.AddDays(-2),
+                Itens = { new ItemPedidoMaterial { Peca_id = 101, Quantidade = 1 } }
+            },
+            new PedidoMaterial
+            {
+                Fornecedor_id = 11,
+                DataPedido = DateTime.UtcNow.AddDays(-1),
+                Itens = { new ItemPedidoMaterial { Peca_id = 102, Quantidade = 2 } }
+            });
+        await context.SaveChangesAsync();
+
+        var repository = new PedidoMaterialRepository(context);
+
+        // ACT
+        var result = await repository.GetPagedWithItensAsync(page: 1, pageSize: 10);
+
+        // ASSERT
+        result.TotalCount.Should().Be(2);
+        result.Items.Select(p => p.Fornecedor_id).Should().ContainInOrder(11, 10);
+        result.Items.Should().OnlyContain(p => p.Itens.Count == 1);
+    }
+
+    [Test(Description = "TPMREP3 - GetByFornecedorIdWithItens deve filtrar por fornecedor e paginar pedidos.")]
+    public async Task GetByFornecedorIdWithItensAsync_Should_FilterByFornecedorAndPaginate()
+    {
+        // ARRANGE
+        await using var context = CreateContext();
+        await context.PedidosMaterial.AddRangeAsync(
+            new PedidoMaterial { Fornecedor_id = 10, DataPedido = DateTime.UtcNow.AddDays(-3) },
+            new PedidoMaterial { Fornecedor_id = 10, DataPedido = DateTime.UtcNow.AddDays(-2) },
+            new PedidoMaterial { Fornecedor_id = 11, DataPedido = DateTime.UtcNow.AddDays(-1) });
+        await context.SaveChangesAsync();
+
+        var repository = new PedidoMaterialRepository(context);
+
+        // ACT
+        var result = await repository.GetByFornecedorIdWithItensAsync(fornecedorId: 10, page: 2, pageSize: 1);
+
+        // ASSERT
+        result.TotalCount.Should().Be(2);
+        result.Items.Should().ContainSingle(p => p.Fornecedor_id == 10);
+    }
+
+    [Test(Description = "TPMREP4 - RegistarRececao deve atualizar pedido e pecas na mesma operacao.")]
     public async Task RegistarRececaoAsync_Should_UpdatePedidoAndPecas_When_DataIsValid()
     {
         // ARRANGE
@@ -86,5 +140,5 @@ public sealed class PedidoMaterialRepositoryTests : RepositoryIntegrationTestBas
         persistedPedido!.Estado.Should().Be(EstadoPedido.RECEBIDO);
         persistedPedido.UserConferente_id.Should().Be(9);
         persistedPecas.Should().OnlyContain(p => p.MaterialRecebido);
-    }*/
+    }
 }

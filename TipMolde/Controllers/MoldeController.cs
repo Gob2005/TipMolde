@@ -47,7 +47,7 @@ namespace TipMolde.API.Controllers
         public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
             if (page < 1 || pageSize < 1)
-                return BadRequest(CreateProblem(StatusCodes.Status400BadRequest, "Pedido invalido", "Page e pageSize devem ser >= 1."));
+                return BadRequest(this.CreateProblem(StatusCodes.Status400BadRequest, "Pedido invalido", "Page e pageSize devem ser >= 1."));
 
             var result = await _moldeService.GetAllAsync(page, pageSize);
             return Ok(result);
@@ -64,7 +64,7 @@ namespace TipMolde.API.Controllers
         {
             var molde = await _moldeService.GetByIdAsync(id);
             if (molde == null)
-                return NotFound(CreateProblem(StatusCodes.Status404NotFound, "Recurso nao encontrado", $"Molde com ID {id} nao encontrado."));
+                return NotFound(this.CreateProblem(StatusCodes.Status404NotFound, "Recurso nao encontrado", $"Molde com ID {id} nao encontrado."));
 
             return Ok(molde);
         }
@@ -73,12 +73,20 @@ namespace TipMolde.API.Controllers
         /// Lista moldes associados a uma encomenda.
         /// </summary>
         /// <param name="encomendaId">Identificador da encomenda.</param>
-        /// <returns>HTTP 200 com a colecao de moldes associados.</returns>
+        /// <param name="page">Pagina atual.</param>
+        /// <param name="pageSize">Tamanho da pagina.</param>
+        /// <returns>HTTP 200 com resultado paginado; HTTP 400 para paginacao invalida.</returns>
         [Authorize(Roles = "ADMIN,GESTOR_COMERCIAL")]
         [HttpGet("por-encomenda/{encomendaId:int}")]
-        public async Task<IActionResult> GetByEncomendaId(int encomendaId)
+        public async Task<IActionResult> GetByEncomendaId(
+            int encomendaId,
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 10)
         {
-            var moldes = await _moldeService.GetByEncomendaIdAsync(encomendaId);
+            if (page < 1 || pageSize < 1)
+                return BadRequest(this.CreateProblem(StatusCodes.Status400BadRequest, "Pedido invalido", "Page e pageSize devem ser >= 1."));
+
+            var moldes = await _moldeService.GetByEncomendaIdAsync(encomendaId, page, pageSize);
             return Ok(moldes);
         }
 
@@ -92,12 +100,11 @@ namespace TipMolde.API.Controllers
         public async Task<IActionResult> GetByNumero([FromQuery] string? numero)
         {
             if (string.IsNullOrWhiteSpace(numero))
-                return BadRequest(CreateProblem(StatusCodes.Status400BadRequest, "Pedido invalido", "Numero do molde e obrigatorio."));
+                return BadRequest(this.CreateProblem(StatusCodes.Status400BadRequest, "Pedido invalido", "Numero do molde e obrigatorio."));
 
             var molde = await _moldeService.GetByNumeroAsync(numero);
             if (molde == null)
-                return NotFound(CreateProblem(StatusCodes.Status404NotFound, "Recurso nao encontrado", $"Molde com numero '{numero.Trim()}' nao encontrado."));
-
+                return NotFound(this.CreateProblem(StatusCodes.Status404NotFound, "Recurso nao encontrado", $"Molde com numero '{numero.Trim()}' nao encontrado."));
             return Ok(molde);
         }
 
@@ -130,7 +137,7 @@ namespace TipMolde.API.Controllers
         public async Task<IActionResult> Create([FromBody] CreateMoldeDto dto)
         {
             if (!ModelState.IsValid)
-                return BadRequest(CreateProblem(StatusCodes.Status400BadRequest, "Pedido invalido", "Dados de criacao invalidos."));
+                return BadRequest(this.CreateProblem(StatusCodes.Status400BadRequest, "Pedido invalido", "Dados de criacao invalidos."));
 
             var created = await _moldeService.CreateAsync(dto);
 
@@ -153,7 +160,7 @@ namespace TipMolde.API.Controllers
         public async Task<IActionResult> Update(int id, [FromBody] UpdateMoldeDto dto)
         {
             if (!ModelState.IsValid)
-                return BadRequest(CreateProblem(StatusCodes.Status400BadRequest, "Pedido invalido", "Dados de criacao invalidos."));
+                return BadRequest(this.CreateProblem(StatusCodes.Status400BadRequest, "Pedido invalido", "Dados de criacao invalidos."));
 
             await _moldeService.UpdateAsync(id, dto);
 
@@ -176,24 +183,6 @@ namespace TipMolde.API.Controllers
             _logger.LogInformation("Controller: Molde {MoldeId} removido", id);
 
             return NoContent();
-        }
-
-        /// <summary>
-        /// Cria objeto ProblemDetails para respostas de erro no controller.
-        /// </summary>
-        /// <param name="status">Codigo HTTP do erro.</param>
-        /// <param name="title">Titulo curto do erro.</param>
-        /// <param name="detail">Detalhe funcional do erro.</param>
-        /// <returns>Objeto ProblemDetails preenchido com contexto do request atual.</returns>
-        private ProblemDetails CreateProblem(int status, string title, string detail)
-        {
-            return new ProblemDetails
-            {
-                Status = status,
-                Title = title,
-                Detail = detail,
-                Instance = HttpContext?.Request?.Path
-            };
         }
     }
 }

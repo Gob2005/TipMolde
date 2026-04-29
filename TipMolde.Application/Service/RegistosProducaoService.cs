@@ -1,4 +1,7 @@
-﻿using TipMolde.Application.Interface;
+using AutoMapper;
+using Microsoft.Extensions.Logging;
+using TipMolde.Application.Dtos.RegistoProducaoDto;
+using TipMolde.Application.Interface;
 using TipMolde.Application.Interface.Producao.IFasesProducao;
 using TipMolde.Application.Interface.Producao.IMaquina;
 using TipMolde.Application.Interface.Producao.IPeca;
@@ -14,7 +17,8 @@ namespace TipMolde.Application.Service
     /// </summary>
     /// <remarks>
     /// Centraliza validacoes de fase, operador, peca, maquina e transicoes de estado
-    /// antes de persistir eventos de producao.
+    /// antes de persistir eventos de producao. A criacao do registo e a atualizacao
+    /// do estado da maquina pertencem a uma unica fronteira transacional.
     /// </remarks>
     public class RegistosProducaoService : IRegistosProducaoService
     {
@@ -23,6 +27,8 @@ namespace TipMolde.Application.Service
         private readonly IUserRepository _userRepository;
         private readonly IPecaRepository _pecaRepository;
         private readonly IMaquinaRepository _maquinaRepository;
+        private readonly IMapper _mapper;
+        private readonly ILogger<RegistosProducaoService> _logger;
 
         /// <summary>
         /// Construtor de RegistosProducaoService.
@@ -30,20 +36,26 @@ namespace TipMolde.Application.Service
         /// <param name="rpRepository">Repositorio responsavel pelos registos de producao.</param>
         /// <param name="fpRepository">Repositorio usado para validar fases de producao.</param>
         /// <param name="userRepository">Repositorio usado para validar operadores.</param>
-        /// <param name="maquinaRepository">Repositorio usado para validar e atualizar maquinas.</param>
+        /// <param name="maquinaRepository">Repositorio usado para validar maquinas.</param>
         /// <param name="pecaRepository">Repositorio usado para validar pecas em producao.</param>
+        /// <param name="mapper">Mapper para conversao entre DTOs e entidade.</param>
+        /// <param name="logger">Logger para rastreabilidade das operacoes criticas.</param>
         public RegistosProducaoService(
             IRegistosProducaoRepository rpRepository,
             IFasesProducaoRepository fpRepository,
             IUserRepository userRepository,
             IMaquinaRepository maquinaRepository,
-            IPecaRepository pecaRepository)
+            IPecaRepository pecaRepository,
+            IMapper mapper,
+            ILogger<RegistosProducaoService> logger)
         {
             _rpRepository = rpRepository;
             _fpRepository = fpRepository;
             _userRepository = userRepository;
             _maquinaRepository = maquinaRepository;
             _pecaRepository = pecaRepository;
+            _mapper = mapper;
+            _logger = logger;
         }
 
         /// <summary>
@@ -51,21 +63,29 @@ namespace TipMolde.Application.Service
         /// </summary>
         /// <param name="page">Numero da pagina a consultar.</param>
         /// <param name="pageSize">Quantidade de itens por pagina.</param>
-        /// <returns>Resultado paginado com registos de producao.</returns>
-        public Task<PagedResult<RegistosProducao>> GetAllAsync(int page = 1, int pageSize = 10)
+        /// <returns>Resultado paginado com DTOs de registos de producao.</returns>
+        public async Task<PagedResult<ResponseRegistosProducaoDto>> GetAllAsync(int page = 1, int pageSize = 10)
         {
             var (normalizedPage, normalizedPageSize) = PaginationDefaults.Normalize(page, pageSize);
-            return _rpRepository.GetAllAsync(normalizedPage, normalizedPageSize);
+            var result = await _rpRepository.GetAllAsync(normalizedPage, normalizedPageSize);
+            var items = _mapper.Map<IEnumerable<ResponseRegistosProducaoDto>>(result.Items);
+
+            return new PagedResult<ResponseRegistosProducaoDto>(
+                items,
+                result.TotalCount,
+                result.CurrentPage,
+                result.PageSize);
         }
 
         /// <summary>
         /// Obtem um registo de producao pelo identificador.
         /// </summary>
         /// <param name="id">Identificador unico do registo.</param>
-        /// <returns>Registo encontrado ou nulo quando nao existe.</returns>
-        public Task<RegistosProducao?> GetByIdAsync(int id)
+        /// <returns>DTO do registo encontrado ou nulo quando nao existe.</returns>
+        public async Task<ResponseRegistosProducaoDto?> GetByIdAsync(int id)
         {
-            return _rpRepository.GetByIdAsync(id);
+            var registo = await _rpRepository.GetByIdAsync(id);
+            return registo == null ? null : _mapper.Map<ResponseRegistosProducaoDto>(registo);
         }
 
         /// <summary>
@@ -73,92 +93,171 @@ namespace TipMolde.Application.Service
         /// </summary>
         /// <param name="faseId">Identificador da fase de producao.</param>
         /// <param name="pecaId">Identificador da peca.</param>
-        /// <returns>Colecao de registos historicos encontrados.</returns>
-        public Task<IEnumerable<RegistosProducao>> GetHistoricoAsync(int faseId, int pecaId)
+        /// <param name="page">Numero da pagina a consultar.</param>
+        /// <param name="pageSize">Quantidade de itens por pagina.</param>
+        /// <returns>Resultado paginado de registos historicos em ordem cronologica.</returns>
+        public async Task<PagedResult<ResponseRegistosProducaoDto>> GetHistoricoAsync(int faseId, int pecaId, int page = 1, int pageSize = 10)
         {
-            return _rpRepository.GetHistoricoAsync(faseId, pecaId);
-        }
+            var (normalizedPage, normalizedPageSize) = PaginationDefaults.Normalize(page, pageSize);
+            var historico = await _rpRepository.GetHistoricoAsync(faseId, pecaId, normalizedPage, normalizedPageSize);
+            var items = _mapper.Map<IEnumerable<ResponseRegistosProducaoDto>>(historico.Items);
 
+            return new PagedResult<ResponseRegistosProducaoDto>(
+                items,
+                historico.TotalCount,
+                historico.CurrentPage,
+                historico.PageSize);
+        }
         /// <summary>
         /// Obtem o ultimo registo de producao de uma peca numa fase.
         /// </summary>
         /// <param name="faseId">Identificador da fase de producao.</param>
         /// <param name="pecaId">Identificador da peca.</param>
         /// <returns>Ultimo registo encontrado ou nulo quando ainda nao existe historico.</returns>
-        public Task<RegistosProducao?> GetUltimoRegistoAsync(int faseId, int pecaId)
+        public async Task<ResponseRegistosProducaoDto?> GetUltimoRegistoAsync(int faseId, int pecaId)
         {
-            return _rpRepository.GetUltimoRegistoAsync(faseId, pecaId);
+            var registo = await _rpRepository.GetUltimoRegistoAsync(faseId, pecaId);
+            return registo == null ? null : _mapper.Map<ResponseRegistosProducaoDto>(registo);
         }
 
         /// <summary>
-        /// Cria um novo registo de producao apos validar dependencias e transicao de estado.
+        /// Cria um novo registo de producao e sincroniza o estado da maquina associada.
         /// </summary>
         /// <remarks>
-        /// Fluxo principal:
+        /// Fluxo critico:
         /// 1. Valida fase, operador e peca.
         /// 2. Garante que a peca ja tem material recebido.
-        /// 3. Valida transicao de estado face ao ultimo registo.
-        /// 4. Atualiza estado da maquina quando aplicavel.
-        /// 5. Persiste o registo com data gerada no servidor.
+        /// 3. Valida a transicao de estado face ao ultimo registo.
+        /// 4. Determina a alteracao de maquina necessaria.
+        /// 5. Persiste registo e maquina na mesma fronteira transacional.
         /// </remarks>
-        /// <param name="registo">Entidade com dados do evento de producao.</param>
-        /// <returns>Registo persistido.</returns>
-        public async Task<RegistosProducao> CreateAsync(RegistosProducao registo)
+        /// <param name="dto">Dados de entrada do registo de producao.</param>
+        /// <returns>DTO do registo persistido.</returns>
+        public async Task<ResponseRegistosProducaoDto> CreateAsync(CreateRegistosProducaoDto dto)
         {
-            if (await _fpRepository.GetByIdAsync(registo.Fase_id) == null)
-                throw new KeyNotFoundException($"Fase com ID {registo.Fase_id} nao encontrada.");
+            if (!dto.Estado_producao.HasValue)
+                throw new ArgumentException("Estado de producao e obrigatorio.");
 
-            if (await _userRepository.GetByIdAsync(registo.Operador_id) == null)
-                throw new KeyNotFoundException($"Operador com ID {registo.Operador_id} nao encontrado.");
+            if (await _fpRepository.GetByIdAsync(dto.Fase_id) == null)
+                throw new KeyNotFoundException($"Fase com ID {dto.Fase_id} nao encontrada.");
 
-            var peca = await _pecaRepository.GetByIdAsync(registo.Peca_id)
-                ?? throw new KeyNotFoundException($"Peca com ID {registo.Peca_id} nao encontrada.");
+            if (await _userRepository.GetByIdAsync(dto.Operador_id) == null)
+                throw new KeyNotFoundException($"Operador com ID {dto.Operador_id} nao encontrado.");
+
+            var peca = await _pecaRepository.GetByIdAsync(dto.Peca_id)
+                ?? throw new KeyNotFoundException($"Peca com ID {dto.Peca_id} nao encontrada.");
 
             if (!peca.MaterialRecebido)
                 throw new ArgumentException("Nao e possivel iniciar producao sem material recebido.");
 
-            var ultimo = await _rpRepository.GetUltimoRegistoAsync(registo.Fase_id, registo.Peca_id);
-            var estadoAtual = ultimo?.Estado_producao;
-            ValidarTransicaoEstado(estadoAtual, registo.Estado_producao);
+            var ultimo = await _rpRepository.GetUltimoRegistoAsync(dto.Fase_id, dto.Peca_id);
+            ValidarTransicaoEstado(ultimo?.Estado_producao, dto.Estado_producao.Value);
 
-            if ((registo.Estado_producao == EstadoProducao.PREPARACAO || registo.Estado_producao == EstadoProducao.EM_CURSO) &&
-                registo.Maquina_id.HasValue)
-            {
-                var maquina = await _maquinaRepository.GetByIdUnicoAsync(registo.Maquina_id.Value)
-                    ?? throw new KeyNotFoundException($"Maquina com ID {registo.Maquina_id.Value} nao encontrada.");
-                if (maquina.FaseDedicada_id != registo.Fase_id)
-                    throw new ArgumentException("Maquina nao esta apta para esta fase.");
-
-                if (maquina.Estado == EstadoMaquina.DISPONIVEL)
-                {
-                    maquina.Estado = EstadoMaquina.EM_USO;
-                    await _maquinaRepository.UpdateAsync(maquina);
-                }
-                else
-                {
-                    throw new ArgumentException("Maquina indisponivel.");
-                }
-            }
-
-            if ((registo.Estado_producao == EstadoProducao.PAUSADO || registo.Estado_producao == EstadoProducao.CONCLUIDO) &&
-                registo.Maquina_id.HasValue)
-            {
-                var maquina = await _maquinaRepository.GetByIdUnicoAsync(registo.Maquina_id.Value);
-                if (maquina != null && maquina.Estado == EstadoMaquina.EM_USO)
-                {
-                    maquina.Estado = EstadoMaquina.DISPONIVEL;
-                    await _maquinaRepository.UpdateAsync(maquina);
-                }
-            }
-
+            var registo = _mapper.Map<RegistosProducao>(dto);
             registo.Data_hora = DateTime.UtcNow;
-            await _rpRepository.AddAsync(registo);
-            return registo;
+
+            var maquinaToUpdate = await ResolveMaquinaToUpdateAsync(dto, ultimo, registo);
+            var created = await _rpRepository.AddWithMachineStateAsync(registo, maquinaToUpdate);
+
+            _logger.LogInformation(
+                "Registo de producao {RegistoId} criado para peca {PecaId}, fase {FaseId}, estado {Estado}.",
+                created.Registo_Producao_id,
+                created.Peca_id,
+                created.Fase_id,
+                created.Estado_producao);
+
+            return _mapper.Map<ResponseRegistosProducaoDto>(created);
+        }
+
+        /// <summary>
+        /// Determina a alteracao de maquina exigida pela nova transicao de producao.
+        /// </summary>
+        /// <remarks>
+        /// Regra de negocio: PREPARACAO e EM_CURSO ocupam uma maquina valida; PAUSADO
+        /// e CONCLUIDO libertam a maquina informada ou a maquina do ultimo registo.
+        /// </remarks>
+        /// <param name="dto">Dados de entrada do registo de producao.</param>
+        /// <param name="ultimo">Ultimo registo conhecido para a peca/fase.</param>
+        /// <param name="registo">Entidade que sera persistida.</param>
+        /// <returns>Maquina com estado alterado ou nulo quando nao ha alteracao.</returns>
+        private async Task<Maquina?> ResolveMaquinaToUpdateAsync(
+            CreateRegistosProducaoDto dto,
+            RegistosProducao? ultimo,
+            RegistosProducao registo)
+        {
+            if (dto.Estado_producao is EstadoProducao.PREPARACAO or EstadoProducao.EM_CURSO)
+                return await ResolveMaquinaEntradaAsync(dto, ultimo);
+
+            if (dto.Estado_producao is EstadoProducao.PAUSADO or EstadoProducao.CONCLUIDO)
+                return await ResolveMaquinaSaidaAsync(dto, ultimo, registo);
+
+            return null;
+        }
+
+        /// <summary>
+        /// Valida e ocupa a maquina usada para iniciar ou continuar producao.
+        /// </summary>
+        /// <param name="dto">Dados de entrada do registo de producao.</param>
+        /// <param name="ultimo">Ultimo registo conhecido para a peca/fase.</param>
+        /// <returns>Maquina marcada como em uso.</returns>
+        private async Task<Maquina> ResolveMaquinaEntradaAsync(CreateRegistosProducaoDto dto, RegistosProducao? ultimo)
+        {
+            if (!dto.Maquina_id.HasValue)
+                throw new ArgumentException("Maquina e obrigatoria para PREPARACAO e EM_CURSO.");
+
+            var maquina = await _maquinaRepository.GetByIdUnicoAsync(dto.Maquina_id.Value)
+                ?? throw new KeyNotFoundException($"Maquina com ID {dto.Maquina_id.Value} nao encontrada.");
+
+            if (maquina.FaseDedicada_id != dto.Fase_id)
+                throw new ArgumentException("Maquina nao esta apta para esta fase.");
+
+            if (maquina.Estado == EstadoMaquina.DISPONIVEL)
+            {
+                maquina.Estado = EstadoMaquina.EM_USO;
+                return maquina;
+            }
+
+            if (maquina.Estado == EstadoMaquina.EM_USO && ultimo?.Maquina_id == maquina.Maquina_id)
+                return maquina;
+
+            throw new ArgumentException("Maquina indisponivel.");
+        }
+
+        /// <summary>
+        /// Liberta a maquina associada a uma pausa ou conclusao de producao.
+        /// </summary>
+        /// <param name="dto">Dados de entrada do registo de producao.</param>
+        /// <param name="ultimo">Ultimo registo conhecido para a peca/fase.</param>
+        /// <param name="registo">Entidade que sera persistida.</param>
+        /// <returns>Maquina marcada como disponivel ou nulo quando nao ha maquina associada.</returns>
+        private async Task<Maquina?> ResolveMaquinaSaidaAsync(
+            CreateRegistosProducaoDto dto,
+            RegistosProducao? ultimo,
+            RegistosProducao registo)
+        {
+            var maquinaId = dto.Maquina_id ?? ultimo?.Maquina_id;
+            if (!maquinaId.HasValue)
+                return null;
+
+            var maquina = await _maquinaRepository.GetByIdUnicoAsync(maquinaId.Value);
+            if (maquina == null)
+                return null;
+
+            registo.Maquina_id = maquinaId.Value;
+
+            if (maquina.Estado == EstadoMaquina.EM_USO)
+                maquina.Estado = EstadoMaquina.DISPONIVEL;
+
+            return maquina;
         }
 
         /// <summary>
         /// Valida se a transicao de estado de producao e permitida.
         /// </summary>
+        /// <remarks>
+        /// Esta maquina de estados protege a sequencia operacional da fase e deve
+        /// manter compatibilidade com o fluxo real de producao.
+        /// </remarks>
         /// <param name="estadoActual">Estado persistido no ultimo registo, quando existe.</param>
         /// <param name="novoEstado">Novo estado solicitado.</param>
         private static void ValidarTransicaoEstado(EstadoProducao? estadoActual, EstadoProducao novoEstado)
@@ -174,9 +273,9 @@ namespace TipMolde.Application.Service
             {
                 { EstadoProducao.PENDENTE, new() { EstadoProducao.PREPARACAO } },
                 { EstadoProducao.PREPARACAO, new() { EstadoProducao.EM_CURSO } },
-                { EstadoProducao.EM_CURSO,   new() { EstadoProducao.PAUSADO, EstadoProducao.CONCLUIDO } },
-                { EstadoProducao.PAUSADO,    new() { EstadoProducao.EM_CURSO, EstadoProducao.PREPARACAO } },
-                { EstadoProducao.CONCLUIDO,  new() }
+                { EstadoProducao.EM_CURSO, new() { EstadoProducao.PAUSADO, EstadoProducao.CONCLUIDO } },
+                { EstadoProducao.PAUSADO, new() { EstadoProducao.EM_CURSO, EstadoProducao.PREPARACAO } },
+                { EstadoProducao.CONCLUIDO, new() }
             };
 
             if (!transicoesValidas[estadoActual.Value].Contains(novoEstado))

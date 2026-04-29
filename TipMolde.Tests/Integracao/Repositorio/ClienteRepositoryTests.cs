@@ -48,5 +48,63 @@ namespace TipMolde.Tests.Integracao.Repositorio
             result.TotalCount.Should().Be(2);
             result.Items.Select(c => c.Sigla).Should().ContainInOrder("ATA", "BTA");
         }
+
+        [Test(Description = "TCLIREP3 - GetByNif deve devolver cliente sem tracking quando NIF existe.")]
+        public async Task GetByNifAsync_Should_ReturnCliente_When_NifExists()
+        {
+            // ARRANGE
+            await using var context = CreateContext();
+            await context.Clientes.AddAsync(new Cliente { Nome = "Cliente NIF", NIF = "333333333", Sigla = "NIF" });
+            await context.SaveChangesAsync();
+
+            var repository = new ClienteRepository(context);
+
+            // ACT
+            var result = await repository.GetByNifAsync("333333333");
+
+            // ASSERT
+            result.Should().NotBeNull();
+            result!.Nome.Should().Be("Cliente NIF");
+        }
+
+        [Test(Description = "TCLIREP4 - GetBySigla deve devolver cliente quando sigla existe.")]
+        public async Task GetBySiglaAsync_Should_ReturnCliente_When_SiglaExists()
+        {
+            // ARRANGE
+            await using var context = CreateContext();
+            await context.Clientes.AddAsync(new Cliente { Nome = "Cliente Sigla", NIF = "444444444", Sigla = "SIG" });
+            await context.SaveChangesAsync();
+
+            var repository = new ClienteRepository(context);
+
+            // ACT
+            var result = await repository.GetBySiglaAsync("SIG");
+
+            // ASSERT
+            result.Should().NotBeNull();
+            result!.NIF.Should().Be("444444444");
+        }
+
+        [Test(Description = "TCLIREP5 - SearchByName deve devolver pagina solicitada ordenada por nome.")]
+        public async Task SearchByNameAsync_Should_ReturnRequestedPageOrderedByName()
+        {
+            // ARRANGE
+            await using var context = CreateContext();
+            await context.Clientes.AddRangeAsync(
+                new Cliente { Nome = "Zeta Moldes", NIF = "555555555", Sigla = "ZET" },
+                new Cliente { Nome = "Alfa Moldes", NIF = "666666666", Sigla = "ALF" },
+                new Cliente { Nome = "Beta Moldes", NIF = "777777777", Sigla = "BET" });
+            await context.SaveChangesAsync();
+
+            var repository = new ClienteRepository(context);
+
+            // ACT
+            var result = await repository.SearchByNameAsync("Moldes", page: 2, pageSize: 1);
+
+            // ASSERT
+            result.TotalCount.Should().Be(3);
+            result.CurrentPage.Should().Be(2);
+            result.Items.Should().ContainSingle(c => c.Nome == "Beta Moldes");
+        }
     }
 }

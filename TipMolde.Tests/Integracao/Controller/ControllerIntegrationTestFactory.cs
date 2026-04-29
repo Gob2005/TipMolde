@@ -1,9 +1,11 @@
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Logging;
 using Moq;
 using System.Net.Http.Headers;
 using TipMolde.Application.Interface.Comercio.ICliente;
@@ -20,6 +22,7 @@ using TipMolde.Application.Interface.Producao.IMolde;
 using TipMolde.Application.Interface.Producao.IPeca;
 using TipMolde.Application.Interface.Producao.IRegistosProducao;
 using TipMolde.Application.Interface.Relatorios;
+using TipMolde.Application.Interface.Utilizador.IAuth;
 using TipMolde.Application.Interface.Utilizador.IUser;
 
 namespace TipMolde.Tests.Integracao.Controller;
@@ -47,6 +50,7 @@ public sealed class ControllerIntegrationTestFactory : WebApplicationFactory<Pro
     public Mock<IRegistosProducaoService> RegistosProducaoService { get; } = new();
     public Mock<IRevisaoService> RevisaoService { get; } = new();
     public Mock<IRelatorioService> RelatorioService { get; } = new();
+    public Mock<IAuthService> AuthService { get; } = new();
     public Mock<IUserManagementService> UserManagementService { get; } = new();
     public Mock<IPasswordService> PasswordService { get; } = new();
 
@@ -69,6 +73,7 @@ public sealed class ControllerIntegrationTestFactory : WebApplicationFactory<Pro
         RegistosProducaoService.Reset();
         RevisaoService.Reset();
         RelatorioService.Reset();
+        AuthService.Reset();
         UserManagementService.Reset();
         PasswordService.Reset();
     }
@@ -80,9 +85,13 @@ public sealed class ControllerIntegrationTestFactory : WebApplicationFactory<Pro
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseEnvironment("Testing");
+        builder.ConfigureLogging(logging => logging.ClearProviders());
 
         builder.ConfigureTestServices(services =>
         {
+            services.AddDataProtection()
+                .UseEphemeralDataProtectionProvider();
+
             services
                 .AddAuthentication(TestAuthHandler.SchemeName)
                 .AddScheme<AuthenticationSchemeOptions, TestAuthHandler>(
@@ -103,6 +112,7 @@ public sealed class ControllerIntegrationTestFactory : WebApplicationFactory<Pro
             services.ReplaceScoped(RegistosProducaoService.Object);
             services.ReplaceScoped(RevisaoService.Object);
             services.ReplaceScoped(RelatorioService.Object);
+            services.ReplaceScoped(AuthService.Object);
             services.ReplaceScoped(UserManagementService.Object);
             services.ReplaceScoped(PasswordService.Object);
         });

@@ -87,4 +87,48 @@ public sealed class FasesProducaoRepositoryTests : RepositoryIntegrationTestBase
         result.Should().BeFalse();
     }
 
+    [Test(Description = "TFPREP4 - CreateAsync deve persistir nova fase de producao.")]
+    public async Task CreateAsync_Should_PersistFase_When_DataIsValid()
+    {
+        // ARRANGE
+        await using var context = CreateContext();
+        var repository = new FasesProducaoRepository(context);
+        var fase = new FasesProducao
+        {
+            Nome = NomeFases.MAQUINACAO,
+            Descricao = "Acabamento final"
+        };
+
+        // ACT
+        var result = await repository.CreateAsync(fase);
+
+        // ASSERT
+        result.Fases_producao_id.Should().BeGreaterThan(0);
+        context.Fases_Producao.Should().ContainSingle(f => f.Nome == NomeFases.MAQUINACAO);
+    }
+
+    [Test(Description = "TFPREP5 - UpdateExistingAsync deve persistir alteracoes na fase existente.")]
+    public async Task UpdateExistingAsync_Should_PersistChanges_When_FaseExists()
+    {
+        // ARRANGE
+        await using var context = CreateContext();
+        var fase = new FasesProducao
+        {
+            Nome = NomeFases.EROSAO,
+            Descricao = "Descricao inicial"
+        };
+
+        await context.Fases_Producao.AddAsync(fase);
+        await context.SaveChangesAsync();
+
+        fase.Descricao = "Descricao atualizada";
+        var repository = new FasesProducaoRepository(context);
+
+        // ACT
+        await repository.UpdateExistingAsync(fase);
+
+        // ASSERT
+        context.Fases_Producao.Single(f => f.Fases_producao_id == fase.Fases_producao_id)
+            .Descricao.Should().Be("Descricao atualizada");
+    }
 }

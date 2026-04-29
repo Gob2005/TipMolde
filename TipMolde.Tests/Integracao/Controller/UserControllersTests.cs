@@ -109,6 +109,93 @@ public sealed class UserControllerTests : ControllerHttpTestBase
         await AssertProblemAsync(response, HttpStatusCode.Forbidden, "Proibido");
         Factory.UserManagementService.Verify(s => s.UpdateAsync(It.IsAny<int>(), It.IsAny<UpdateUserDto>()), Times.Never);
     }
+
+    [Test(Description = "TUSERAPI6 - GET /api/users/search devolve ProblemDetails quando paginacao e invalida.")]
+    public async Task SearchByName_Should_ReturnProblemDetails_When_PaginationIsInvalid()
+    {
+        // ARRANGE
+
+        // ACT
+        var response = await Client.GetAsync("/api/users/search?searchTerm=ana&page=0&pageSize=10");
+
+        // ASSERT
+        await AssertProblemAsync(response, HttpStatusCode.BadRequest, "Pedido invalido");
+        Factory.UserManagementService.Verify(
+            s => s.SearchByNameAsync(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<int>()),
+            Times.Never);
+    }
+
+    [Test(Description = "TUSERAPI7 - PUT /api/users/{id} devolve 401 quando token nao contem utilizador.")]
+    public async Task UpdateUser_Should_ReturnUnauthorized_When_UserClaimIsMissing()
+    {
+        // ARRANGE
+        Client.AuthenticateAs(TestAuthHandler.MissingUserId, "GESTOR_PRODUCAO");
+
+        // ACT
+        var response = await Client.PutAsJsonAsync("/api/users/5", new { nome = "Novo Nome" });
+
+        // ASSERT
+        await AssertProblemAsync(response, HttpStatusCode.Unauthorized, "Nao autorizado");
+        Factory.UserManagementService.Verify(s => s.UpdateAsync(It.IsAny<int>(), It.IsAny<UpdateUserDto>()), Times.Never);
+    }
+
+    [Test(Description = "TUSERAPI8 - PUT /api/users/{id} devolve 204 quando utilizador atualiza a propria conta.")]
+    public async Task UpdateUser_Should_ReturnNoContent_When_UserUpdatesSelf()
+    {
+        // ARRANGE
+        Client.AuthenticateAs("5", "GESTOR_PRODUCAO");
+        Factory.UserManagementService
+            .Setup(s => s.GetByIdAsync(5))
+            .ReturnsAsync(new ResponseUserDto
+            {
+                User_id = 5,
+                Nome = "Gestor Producao",
+                Email = "gestor@tipmolde.pt",
+                Role = UserRole.GESTOR_PRODUCAO
+            });
+        Factory.UserManagementService
+            .Setup(s => s.UpdateAsync(5, It.IsAny<UpdateUserDto>()))
+            .Returns(Task.CompletedTask);
+
+        // ACT
+        var response = await Client.PutAsJsonAsync("/api/users/5", new { nome = "Nome Atualizado" });
+
+        // ASSERT
+        response.StatusCode.Should().Be(HttpStatusCode.NoContent);
+        Factory.UserManagementService.Verify(s => s.UpdateAsync(5, It.IsAny<UpdateUserDto>()), Times.Once);
+    }
+
+    [Test(Description = "TUSERAPI9 - PUT /api/users/{id}/role devolve 204 quando admin altera perfil.")]
+    public async Task ChangeRole_Should_ReturnNoContent_When_RequestIsValid()
+    {
+        // ARRANGE
+        Factory.UserManagementService
+            .Setup(s => s.ChangeRoleAsync(5, UserRole.GESTOR_DESENHO))
+            .Returns(Task.CompletedTask);
+
+        // ACT
+        var response = await Client.PutAsJsonAsync("/api/users/5/role", new { role = UserRole.GESTOR_DESENHO });
+
+        // ASSERT
+        response.StatusCode.Should().Be(HttpStatusCode.NoContent);
+        Factory.UserManagementService.Verify(s => s.ChangeRoleAsync(5, UserRole.GESTOR_DESENHO), Times.Once);
+    }
+
+    [Test(Description = "TUSERAPI10 - DELETE /api/users/{id} devolve 204 quando admin remove utilizador.")]
+    public async Task DeleteUser_Should_ReturnNoContent_When_RequestIsValid()
+    {
+        // ARRANGE
+        Factory.UserManagementService
+            .Setup(s => s.DeleteAsync(5))
+            .Returns(Task.CompletedTask);
+
+        // ACT
+        var response = await Client.DeleteAsync("/api/users/5");
+
+        // ASSERT
+        response.StatusCode.Should().Be(HttpStatusCode.NoContent);
+        Factory.UserManagementService.Verify(s => s.DeleteAsync(5), Times.Once);
+    }
 }
 
 [TestFixture]

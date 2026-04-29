@@ -40,7 +40,7 @@ namespace TipMolde.API.Controllers
         public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
             if (page < 1 || pageSize < 1)
-                return BadRequest(CreateProblem(StatusCodes.Status400BadRequest, "Pedido invalido", "Page e pageSize devem ser >= 1."));
+                return BadRequest(this.CreateProblem(StatusCodes.Status400BadRequest, "Pedido invalido", "Page e pageSize devem ser >= 1."));
 
             var result = await _pecaService.GetAllAsync(page, pageSize);
             return Ok(result);
@@ -57,7 +57,7 @@ namespace TipMolde.API.Controllers
         {
             var peca = await _pecaService.GetByIdAsync(id);
             if (peca == null)
-                return NotFound(CreateProblem(StatusCodes.Status404NotFound, "Recurso nao encontrado", $"Peca com ID {id} nao encontrada."));
+                return NotFound(this.CreateProblem(StatusCodes.Status404NotFound, "Recurso nao encontrado", $"Peca com ID {id} nao encontrada."));
 
             return Ok(peca);
         }
@@ -74,7 +74,7 @@ namespace TipMolde.API.Controllers
         public async Task<IActionResult> GetByMoldeId(int moldeId, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
             if (page < 1 || pageSize < 1)
-                return BadRequest(CreateProblem(StatusCodes.Status400BadRequest, "Pedido invalido", "Page e pageSize devem ser >= 1."));
+                return BadRequest(this.CreateProblem(StatusCodes.Status400BadRequest, "Pedido invalido", "Page e pageSize devem ser >= 1."));
 
             var result = await _pecaService.GetByMoldeIdAsync(moldeId, page, pageSize);
             return Ok(result);
@@ -91,11 +91,11 @@ namespace TipMolde.API.Controllers
         public async Task<IActionResult> GetByDesignacao([FromQuery] string? designacao, [FromQuery] int moldeId)
         {
             if (string.IsNullOrWhiteSpace(designacao))
-                return BadRequest(CreateProblem(StatusCodes.Status400BadRequest, "Pedido invalido", "Designacao e obrigatoria."));
+                return BadRequest(this.CreateProblem(StatusCodes.Status400BadRequest, "Pedido invalido", "Designacao e obrigatoria."));
 
             var peca = await _pecaService.GetByDesignacaoAsync(designacao, moldeId);
             if (peca == null)
-                return NotFound(CreateProblem(StatusCodes.Status404NotFound, "Recurso nao encontrado", $"Peca '{designacao.Trim()}' nao encontrada no molde {moldeId}."));
+                return NotFound(this.CreateProblem(StatusCodes.Status404NotFound, "Recurso nao encontrado", $"Peca '{designacao.Trim()}' nao encontrada no molde {moldeId}."));
 
             return Ok(peca);
         }
@@ -110,7 +110,7 @@ namespace TipMolde.API.Controllers
         public async Task<IActionResult> Create([FromBody] CreatePecaDto dto)
         {
             if (!ModelState.IsValid)
-                return BadRequest(CreateProblem(StatusCodes.Status400BadRequest, "Pedido invalido", "Dados de criacao invalidos."));
+                return BadRequest(this.CreateProblem(StatusCodes.Status400BadRequest, "Pedido invalido", "Dados de criacao invalidos."));
 
             var created = await _pecaService.CreateAsync(dto);
 
@@ -128,10 +128,10 @@ namespace TipMolde.API.Controllers
         [Authorize(Roles = "ADMIN,GESTOR_DESENHO")]
         [HttpPost("por-molde/{moldeId:int}/importacao-csv")]
         [Consumes("multipart/form-data")]
-        public async Task<IActionResult> ImportarCsv(int moldeId, [FromForm] IFormFile? file = null)
+        public async Task<IActionResult> ImportarCsv(int moldeId, IFormFile? file = null)
         {
             if (file == null || file.Length == 0)
-                return BadRequest(CreateProblem(StatusCodes.Status400BadRequest, "Pedido invalido", "O ficheiro CSV e obrigatorio."));
+                return BadRequest(this.CreateProblem(StatusCodes.Status400BadRequest, "Pedido invalido", "O ficheiro CSV e obrigatorio."));
 
             await using var stream = file.OpenReadStream();
             var result = await _pecaService.ImportarCsvAsync(moldeId, stream);
@@ -155,7 +155,7 @@ namespace TipMolde.API.Controllers
         public async Task<IActionResult> Update(int id, [FromBody] UpdatePecaDto dto)
         {
             if (!ModelState.IsValid)
-                return BadRequest(CreateProblem(StatusCodes.Status400BadRequest, "Pedido invalido", "Dados de atualizacao invalidos."));
+                return BadRequest(this.CreateProblem(StatusCodes.Status400BadRequest, "Pedido invalido", "Dados de atualizacao invalidos."));
 
             await _pecaService.UpdateAsync(id, dto);
 
@@ -178,24 +178,6 @@ namespace TipMolde.API.Controllers
             _logger.LogInformation("Controller: Peca {PecaId} removida", id);
 
             return NoContent();
-        }
-
-        /// <summary>
-        /// Cria objeto ProblemDetails para respostas de erro no controller.
-        /// </summary>
-        /// <param name="status">Codigo HTTP do erro.</param>
-        /// <param name="title">Titulo curto do erro.</param>
-        /// <param name="detail">Detalhe funcional do erro.</param>
-        /// <returns>Objeto ProblemDetails preenchido com contexto do request atual.</returns>
-        private ProblemDetails CreateProblem(int status, string title, string detail)
-        {
-            return new ProblemDetails
-            {
-                Status = status,
-                Title = title,
-                Detail = detail,
-                Instance = HttpContext?.Request?.Path
-            };
         }
     }
 }

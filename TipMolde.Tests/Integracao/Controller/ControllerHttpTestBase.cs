@@ -22,7 +22,10 @@ public abstract class ControllerHttpTestBase
     {
         // ARRANGE
         Factory = new ControllerIntegrationTestFactory();
-        Client = Factory.CreateClient();
+        Client = Factory.CreateClient(new Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactoryClientOptions
+        {
+            BaseAddress = new Uri("https://localhost")
+        });
         Client.AuthenticateAs("1", "ADMIN");
     }
 

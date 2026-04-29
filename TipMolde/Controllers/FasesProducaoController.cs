@@ -42,7 +42,7 @@ namespace TipMolde.API.Controllers
         public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
             if (page < 1 || pageSize < 1)
-                return BadRequest(CreateProblem(
+                return BadRequest(this.CreateProblem(
                     StatusCodes.Status400BadRequest,
                     "Pedido invalido",
                     "Page e pageSize devem ser maiores ou iguais a 1."));
@@ -63,7 +63,7 @@ namespace TipMolde.API.Controllers
             var fase = await _fasesProducaoService.GetByIdAsync(id);
             if (fase == null)
             {
-                return NotFound(CreateProblem(
+                return NotFound(this.CreateProblem(
                     StatusCodes.Status404NotFound,
                     "Recurso nao encontrado",
                     $"Fase de producao com ID {id} nao encontrada."));
@@ -83,7 +83,7 @@ namespace TipMolde.API.Controllers
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(CreateProblem(
+                return BadRequest(this.CreateProblem(
                     StatusCodes.Status400BadRequest,
                     "Pedido invalido",
                     "Dados de criacao invalidos para a fase de producao."));
@@ -108,7 +108,7 @@ namespace TipMolde.API.Controllers
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(CreateProblem(
+                return BadRequest(this.CreateProblem(
                     StatusCodes.Status400BadRequest,
                     "Pedido invalido",
                     "Dados de atualizacao invalidos para a fase de producao."));
@@ -135,24 +135,6 @@ namespace TipMolde.API.Controllers
             _logger.LogInformation("Controller: fase de producao {FaseId} removida.", id);
 
             return NoContent();
-        }
-
-        /// <summary>
-        /// Cria objeto ProblemDetails para respostas de erro construidas no controller.
-        /// </summary>
-        /// <param name="status">Codigo HTTP do erro.</param>
-        /// <param name="title">Titulo curto do erro.</param>
-        /// <param name="detail">Detalhe funcional do erro.</param>
-        /// <returns>Objeto ProblemDetails preenchido com o contexto do request atual.</returns>
-        private ProblemDetails CreateProblem(int status, string title, string detail)
-        {
-            return new ProblemDetails
-            {
-                Status = status,
-                Title = title,
-                Detail = detail,
-                Instance = HttpContext?.Request?.Path
-            };
         }
     }
 }

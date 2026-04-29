@@ -38,7 +38,10 @@ namespace TipMolde.API.Controllers
         [HttpPut("me/password")]
         public async Task<IActionResult> ChangePassword([FromBody] ChangeUserPasswordDto dto)
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
+            if (!ModelState.IsValid) return BadRequest(this.CreateProblem(
+                StatusCodes.Status400BadRequest,
+                "Pedido invalido",
+                "O body do pedido e invalido."));
 
             try
             {
@@ -49,15 +52,24 @@ namespace TipMolde.API.Controllers
             }
             catch (UnauthorizedAccessException ex)
             {
-                return Unauthorized(new { message = ex.Message });
+                return Unauthorized(this.CreateProblem(
+                    StatusCodes.Status401Unauthorized,
+                    "Nao autorizado",
+                    ex.Message));
             }
             catch (ArgumentException ex)
             {
-                return BadRequest(new { message = ex.Message });
+                return BadRequest(this.CreateProblem(
+                    StatusCodes.Status400BadRequest,
+                    "Pedido invalido",
+                    ex.Message));
             }
             catch (KeyNotFoundException ex)
             {
-                return NotFound(new { message = ex.Message });
+                return NotFound(this.CreateProblem(
+                    StatusCodes.Status404NotFound,
+                    "Recurso nao encontrado",
+                    ex.Message));
             }
         }
 
@@ -71,7 +83,10 @@ namespace TipMolde.API.Controllers
         [HttpPut("{id:int}/password/reset")]
         public async Task<IActionResult> ResetPassword(int id, [FromBody] ResetUserPasswordDto dto)
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
+            if (!ModelState.IsValid) return BadRequest(this.CreateProblem(
+                StatusCodes.Status400BadRequest,
+                "Pedido invalido",
+                "O body do pedido e invalido."));
 
             await _passwordService.ResetPasswordAsync(id, dto.NewPassword);
             return NoContent();

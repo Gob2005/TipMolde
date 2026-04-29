@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using TipMolde.Infrastructure.DB;
 
 namespace TipMolde.Tests.Integracao.Repositorio;
@@ -16,6 +17,7 @@ public abstract class RepositoryIntegrationTestBase
     {
         var options = new DbContextOptionsBuilder<ApplicationDbContext>()
             .UseInMemoryDatabase(Guid.NewGuid().ToString())
+            .ConfigureWarnings(warnings => warnings.Ignore(InMemoryEventId.TransactionIgnoredWarning))
             .Options;
 
         return new ApplicationDbContext(options);
