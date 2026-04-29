@@ -92,7 +92,7 @@ jobs:
           path: ${{ env.TEST_RESULTS_DIR }}
           if-no-files-found: warn
 
-    integration-tests:
+  integration-tests:
     name: Integration Tests
     runs-on: self-hosted
     needs: [ build ]
