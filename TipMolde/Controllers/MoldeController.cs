@@ -125,6 +125,20 @@ namespace TipMolde.API.Controllers
         }
 
         /// <summary>
+        /// Mostra o dashboard do ciclo de vida do molde.
+        /// </summary>
+        /// <param name="id">Identificador interno do molde.</param>
+        /// <returns>Dados do dashboard do ciclo de vida do molde.</returns>
+        [Authorize(Roles = "ADMIN")]
+        [HttpGet("{id:int}/dashboard-ciclo-vida")]
+        public async Task<IActionResult> GetDashboardCicloVida(int id)
+        {
+            var result = await _relatorioService.ObterDashboardMoldeAsync(id);
+            _logger.LogInformation("Dashboard de ciclo de vida consultado para o molde {MoldeId}", id);
+            return Ok(result);
+        }
+
+        /// <summary>
         /// Cria um novo molde.
         /// </summary>
         /// <remarks>

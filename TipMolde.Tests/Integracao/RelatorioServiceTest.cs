@@ -43,8 +43,33 @@ namespace TipMolde.Tests.Integracao
                     ["Templates:FolhaFOP"] = "FOP - TM.07.05"
                 })
                 .Build();
+
             var repo = new RelatorioRepository(ctx);
+
             var fichaDocServiceMock = new Mock<IFichaDocumentoService>();
+
+            fichaDocServiceMock
+                .Setup(s => s.GuardarGeradoAsync(
+                    It.IsAny<int>(),
+                    It.IsAny<byte[]>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<int>(),
+                    It.IsAny<string>()))
+                .ReturnsAsync((int fichaId, byte[] content, string fileName, string tipoFicheiro, int userId, string origem) =>
+                    new FichaDocumento
+                    {
+                        FichaProducao_id = fichaId,
+                        NomeFicheiro = fileName,
+                        TipoFicheiro = tipoFicheiro,
+                        CaminhoFicheiro = $@"C:\mock\{fileName}",
+                        CriadoPor_user_id = userId,
+                        Origem = origem,
+                        Versao = 1,
+                        Ativo = true,
+                        HashSha256 = "TEST_HASH"
+                    });
+
             return new RelatorioService(repo, config, fichaDocServiceMock.Object);
         }
 

@@ -1,12 +1,53 @@
-﻿namespace TipMolde.Application.Interface.Relatorios
+﻿using TipMolde.Application.Dtos.RelatorioDto;
+
+namespace TipMolde.Application.Interface.Relatorios
 {
+    /// <summary>
+    /// Define os casos de uso de relatorios e indicadores do modulo de moldes e fichas.
+    /// </summary>
+    /// <remarks>
+    /// O contrato separa a geracao documental dos indicadores operacionais para manter
+    /// fronteiras claras entre exportacao de artefactos e consumo de dados pelo frontend.
+    /// </remarks>
     public interface IRelatorioService
     {
+        /// <summary>
+        /// Gera o relatorio PDF do ciclo de vida completo de um molde.
+        /// </summary>
+        /// <param name="moldeId">Identificador interno do molde.</param>
+        /// <returns>Conteudo binario do PDF e respetivo nome de ficheiro.</returns>
         Task<(byte[] Content, string FileName)> GerarCicloVidaMoldePdfAsync(int moldeId);
+
+        /// <summary>
+        /// Calcula os KPI do ciclo de vida produtivo de um molde.
+        /// </summary>
+        /// <param name="moldeId">Identificador interno do molde.</param>
+        /// <returns>DTO com indicadores agregados do molde.</returns>
+        Task<MoldeCicloVidaDashboardDto> ObterDashboardMoldeAsync(int moldeId);
+
+        /// <summary>
+        /// Gera a ficha FLT pre-preenchida com os dados registados no sistema.
+        /// </summary>
         Task<(byte[] Content, string FileName)> GerarFichaExcelFLTAsync(int fichaId, int userId);
+
+        /// <summary>
+        /// Gera a ficha FRE pre-preenchida com os dados registados no sistema.
+        /// </summary>
         Task<(byte[] Content, string FileName)> GerarFichaExcelFREAsync(int fichaId, int userId);
+
+        /// <summary>
+        /// Gera a ficha FRM pre-preenchida com os dados registados no sistema.
+        /// </summary>
         Task<(byte[] Content, string FileName)> GerarFichaExcelFRMAsync(int fichaId, int userId);
+
+        /// <summary>
+        /// Gera a ficha FRA pre-preenchida com os dados registados no sistema.
+        /// </summary>
         Task<(byte[] Content, string FileName)> GerarFichaExcelFRAAsync(int fichaId, int userId);
+
+        /// <summary>
+        /// Gera a ficha FOP pre-preenchida com os dados registados no sistema.
+        /// </summary>
         Task<(byte[] Content, string FileName)> GerarFichaExcelFOPAsync(int fichaId, int userId);
     }
 }

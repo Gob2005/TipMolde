@@ -153,8 +153,8 @@ namespace TipMolde.Application.Service
 
 
             if (dto.FaseDedicada_id.HasValue && !await _maquinaRepository.ExistsFaseDedicadaAsync(dto.FaseDedicada_id.Value))
-                    throw new KeyNotFoundException($"Fase de producao com ID {dto.FaseDedicada_id.Value} nao encontrada.");
-            
+                throw new KeyNotFoundException($"Fase de producao com ID {dto.FaseDedicada_id.Value} nao encontrada.");
+
 
             _mapper.Map(dto, existing);
 
