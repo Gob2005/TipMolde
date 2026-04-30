@@ -138,8 +138,8 @@ namespace TipMolde.Application.Service
             if (!dto.Estado_producao.HasValue)
                 throw new ArgumentException("Estado de producao e obrigatorio.");
 
-            if (await _fpRepository.GetByIdAsync(dto.Fase_id) == null)
-                throw new KeyNotFoundException($"Fase com ID {dto.Fase_id} nao encontrada.");
+            var fase = await _fpRepository.GetByIdAsync(dto.Fase_id)
+                ?? throw new KeyNotFoundException($"Fase com ID {dto.Fase_id} nao encontrada.");
 
             if (await _userRepository.GetByIdAsync(dto.Operador_id) == null)
                 throw new KeyNotFoundException($"Operador com ID {dto.Operador_id} nao encontrado.");
@@ -151,7 +151,8 @@ namespace TipMolde.Application.Service
                 throw new ArgumentException("Nao e possivel iniciar producao sem material recebido.");
 
             var ultimo = await _rpRepository.GetUltimoRegistoAsync(dto.Fase_id, dto.Peca_id);
-            ValidarTransicaoEstado(ultimo?.Estado_producao, dto.Estado_producao.Value);
+            ValidarTransicaoEstado(ultimo?.Estado_producao, dto.Estado_producao.Value, fase.Nome);
+            await ValidarRegrasDeMontagemAsync(dto, fase.Nome, peca);
 
             var registo = _mapper.Map<RegistosProducao>(dto);
             registo.Data_hora = DateTime.UtcNow;
@@ -167,6 +168,38 @@ namespace TipMolde.Application.Service
                 created.Estado_producao);
 
             return _mapper.Map<ResponseRegistosProducaoDto>(created);
+        }
+
+        /// <summary>
+        /// Aplica validacoes transversais especificas da fase de montagem.
+        /// </summary>
+        /// <remarks>
+        /// Regra de negocio: uma peca pode entrar em montagem com estado PENDENTE para sinalizar
+        /// que esta pronta. O arranque efetivo da montagem (EM_CURSO) so e permitido quando todas
+        /// as pecas do mesmo molde ja se encontram atualmente na fase de montagem.
+        /// </remarks>
+        /// <param name="dto">Dados do registo pedido.</param>
+        /// <param name="nomeFase">Nome funcional da fase alvo.</param>
+        /// <param name="peca">Peca associada ao registo.</param>
+        private async Task ValidarRegrasDeMontagemAsync(
+            CreateRegistosProducaoDto dto,
+            NomeFases nomeFase,
+            Peca peca)
+        {
+            if (nomeFase != NomeFases.MONTAGEM || dto.Estado_producao != EstadoProducao.EM_CURSO)
+                return;
+
+            var pecasDoMolde = await _pecaRepository.GetAllByMoldeIdAsync(peca.Molde_id);
+            var ultimosRegistos = await _rpRepository.GetUltimosRegistosGlobaisAsync(pecasDoMolde.Select(p => p.Peca_id));
+            var pecasEmMontagem = ultimosRegistos
+                .Where(r => r.Fase_id == dto.Fase_id)
+                .Select(r => r.Peca_id)
+                .Distinct()
+                .ToHashSet();
+
+            if (pecasDoMolde.Count == 0 || pecasEmMontagem.Count != pecasDoMolde.Count)
+                throw new ArgumentException(
+                    "Nao e possivel iniciar a montagem: todas as pecas do molde devem estar primeiro na fase MONTAGEM.");
         }
 
         /// <summary>
@@ -260,16 +293,32 @@ namespace TipMolde.Application.Service
         /// </remarks>
         /// <param name="estadoActual">Estado persistido no ultimo registo, quando existe.</param>
         /// <param name="novoEstado">Novo estado solicitado.</param>
-        private static void ValidarTransicaoEstado(EstadoProducao? estadoActual, EstadoProducao novoEstado)
+        private static void ValidarTransicaoEstado(
+            EstadoProducao? estadoActual,
+            EstadoProducao novoEstado,
+            NomeFases nomeFase)
         {
             if (estadoActual is null)
             {
-                if (novoEstado != EstadoProducao.PREPARACAO)
-                    throw new ArgumentException("Primeiro estado deve ser PREPARACAO.");
+                var primeiroEstadoValido = nomeFase == NomeFases.MONTAGEM
+                    ? EstadoProducao.PENDENTE
+                    : EstadoProducao.PREPARACAO;
+
+                if (novoEstado != primeiroEstadoValido)
+                    throw new ArgumentException($"Primeiro estado deve ser {primeiroEstadoValido}.");
                 return;
             }
 
-            var transicoesValidas = new Dictionary<EstadoProducao, List<EstadoProducao>>
+            var transicoesValidas = nomeFase == NomeFases.MONTAGEM
+                ? new Dictionary<EstadoProducao, List<EstadoProducao>>
+                {
+                    { EstadoProducao.PENDENTE, new() { EstadoProducao.EM_CURSO } },
+                    { EstadoProducao.PREPARACAO, new() },
+                    { EstadoProducao.EM_CURSO, new() { EstadoProducao.PAUSADO, EstadoProducao.CONCLUIDO } },
+                    { EstadoProducao.PAUSADO, new() { EstadoProducao.EM_CURSO } },
+                    { EstadoProducao.CONCLUIDO, new() }
+                }
+                : new Dictionary<EstadoProducao, List<EstadoProducao>>
             {
                 { EstadoProducao.PENDENTE, new() { EstadoProducao.PREPARACAO } },
                 { EstadoProducao.PREPARACAO, new() { EstadoProducao.EM_CURSO } },

@@ -13,7 +13,7 @@ namespace TipMolde.API.Controllers
     /// </remarks>
     [ApiController]
     [Route("api/users")]
-    public class UserPasswordController : AuthenticatedControllerBase
+    public class UserPasswordController : ControllerBase
     {
         private readonly IPasswordService _passwordService;
         private readonly ILogger<UserPasswordController> _logger;
@@ -45,7 +45,7 @@ namespace TipMolde.API.Controllers
 
             try
             {
-                var userId = GetAuthenticatedUserId();
+                var userId = this.GetAuthenticatedUserId();
                 await _passwordService.ChangePasswordAsync(userId, dto.CurrentPassword, dto.NewPassword);
                 _logger.LogInformation("Utilizador {UserId} alterou password com sucesso", userId);
                 return NoContent();

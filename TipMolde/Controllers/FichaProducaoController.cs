@@ -1,125 +1,132 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TipMolde.Application.Dtos.FichaProducaoDto;
 using TipMolde.Application.Interface.Fichas.IFichaProducao;
-using TipMolde.Application.Interface.Relatorios;
-using TipMolde.Domain.Entities.Fichas;
 
 namespace TipMolde.API.Controllers
 {
+    /// <summary>
+    /// Exponibiliza operacoes de consulta e manutencao das fichas editaveis de producao.
+    /// </summary>
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/fichas-producao")]
     public class FichaProducaoController : ControllerBase
     {
         private readonly IFichaProducaoService _service;
-        private readonly IRelatorioService _relatorioService;
 
-        public FichaProducaoController(IFichaProducaoService service, IRelatorioService relatorioService)
+        /// <summary>
+        /// Construtor de FichaProducaoController.
+        /// </summary>
+        /// <param name="service">Servico responsavel pelos casos de uso das fichas editaveis de producao.</param>
+        public FichaProducaoController(IFichaProducaoService service)
         {
             _service = service;
-            _relatorioService = relatorioService;
         }
 
-        [Authorize(Roles = "ADMIN")]
+        /// <summary>
+        /// Lista as fichas editaveis associadas a uma relacao Encomenda-Molde.
+        /// </summary>
+        /// <param name="encomendaMoldeId">Identificador da relacao Encomenda-Molde usada como contexto da ficha.</param>
+        /// <param name="page">Pagina pedida pelo consumidor.</param>
+        /// <param name="pageSize">Quantidade maxima de registos por pagina.</param>
+        /// <returns>Pagina com os cabecalhos das fichas editaveis encontradas.</returns>
+        [Authorize(Roles = "ADMIN,GESTOR_PRODUCAO")]
         [HttpGet("by-encomendamolde")]
-        public async Task<IActionResult> GetByEncomendaMoldeId(int encomendaMoldeId) =>
-            Ok(await _service.GetByEncomendaMoldeIdAsync(encomendaMoldeId));
-
-        [Authorize(Roles = "ADMIN")]
-        [HttpGet("header-by-id")]
-        public async Task<IActionResult> GetHeaderById(int id)
+        public async Task<IActionResult> GetByEncomendaMoldeId(int encomendaMoldeId, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
-            var ficha = await _service.GetByIdWithHeaderAsync(id);
-            if (ficha == null) return NotFound();
+            if (page < 1 || pageSize < 1)
+                return BadRequest(this.CreateProblem(StatusCodes.Status400BadRequest, "Pedido invalido", "Page e pageSize devem ser maiores ou iguais a 1."));
+
+            return Ok(await _service.GetByEncomendaMoldeIdAsync(encomendaMoldeId, page, pageSize));
+        }
+
+        /// <summary>
+        /// Lista as fichas editaveis associadas a um molde.
+        /// </summary>
+        /// <param name="moldeId">Identificador interno do molde.</param>
+        /// <param name="page">Pagina pedida pelo consumidor.</param>
+        /// <param name="pageSize">Quantidade maxima de registos por pagina.</param>
+        /// <returns>Pagina com os cabecalhos das fichas editaveis encontradas.</returns>
+        [Authorize(Roles = "ADMIN,GESTOR_PRODUCAO")]
+        [HttpGet("by-molde")]
+        public async Task<IActionResult> GetByMoldeId(int moldeId, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+        {
+            if (page < 1 || pageSize < 1)
+                return BadRequest(this.CreateProblem(StatusCodes.Status400BadRequest, "Pedido invalido", "Page e pageSize devem ser maiores ou iguais a 1."));
+
+            return Ok(await _service.GetByMoldeIdAsync(moldeId, page, pageSize));
+        }
+
+        /// <summary>
+        /// Obtem o detalhe completo de uma ficha editavel.
+        /// </summary>
+        /// <param name="id">Identificador interno da ficha editavel.</param>
+        /// <returns>Detalhe da ficha quando existe.</returns>
+        [Authorize(Roles = "ADMIN,GESTOR_PRODUCAO")]
+        [HttpGet("{id:int}")]
+        public async Task<IActionResult> GetById(int id)
+        {
+            var ficha = await _service.GetByIdAsync(id);
+            if (ficha == null)
+            {
+                return NotFound(this.CreateProblem(
+                    StatusCodes.Status404NotFound,
+                    "Recurso nao encontrado",
+                    $"Ficha de producao com ID {id} nao encontrada."));
+            }
+
             return Ok(ficha);
         }
 
-        [Authorize(Roles = "ADMIN")]
-        [HttpGet("flt-by-id")]
-        public async Task<IActionResult> GetFLTById(int id)
-        {
-            var ficha = await _service.GetFLTByIdAsync(id);
-            if (ficha == null) return NotFound();
-            return Ok(ficha);
-        }
-
-        [Authorize(Roles = "ADMIN")]
-        [HttpGet("{id:int}/export-FLT")]
-        public async Task<IActionResult> ExportFLT(int id)
-        {
-            var userIdClaim = User.FindFirst("id")?.Value ?? User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-            if (!int.TryParse(userIdClaim, out var userId))
-                return Unauthorized("Utilizador invalido no token.");
-            var result = await _relatorioService.GerarFichaExcelFLTAsync(id, userId);
-            return File(result.Content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", result.FileName);
-        }
-
-        [Authorize(Roles = "ADMIN")]
-        [HttpGet("{id:int}/export-FRE")]
-        public async Task<IActionResult> ExportFRE(int id)
-        {
-            var userIdClaim = User.FindFirst("id")?.Value ?? User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-            if (!int.TryParse(userIdClaim, out var userId))
-                return Unauthorized("Utilizador invalido no token.");
-            var result = await _relatorioService.GerarFichaExcelFREAsync(id, userId);
-            return File(result.Content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", result.FileName);
-        }
-
-        [Authorize(Roles = "ADMIN")]
-        [HttpGet("{id:int}/export-FRM")]
-        public async Task<IActionResult> ExportFRM(int id)
-        {
-            var userIdClaim = User.FindFirst("id")?.Value ?? User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-            if (!int.TryParse(userIdClaim, out var userId))
-                return Unauthorized("Utilizador invalido no token.");
-            var result = await _relatorioService.GerarFichaExcelFRMAsync(id, userId);
-            return File(result.Content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", result.FileName);
-        }
-
-        [Authorize(Roles = "ADMIN")]
-        [HttpGet("{id:int}/export-FRA")]
-        public async Task<IActionResult> ExportFRA(int id)
-        {
-            var userIdClaim = User.FindFirst("id")?.Value ?? User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-            if (!int.TryParse(userIdClaim, out var userId))
-                return Unauthorized("Utilizador invalido no token.");
-            var result = await _relatorioService.GerarFichaExcelFRAAsync(id, userId);
-            return File(result.Content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", result.FileName);
-        }
-
-        [Authorize(Roles = "ADMIN")]
-        [HttpGet("{id:int}/export-FOP")]
-        public async Task<IActionResult> ExportFOP(int id)
-        {
-            var userIdClaim = User.FindFirst("id")?.Value ?? User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-            if (!int.TryParse(userIdClaim, out var userId))
-                return Unauthorized("Utilizador invalido no token.");
-            var result = await _relatorioService.GerarFichaExcelFOPAsync(id, userId);
-            return File(result.Content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", result.FileName);
-        }
-
-        [Authorize(Roles = "ADMIN")]
+        /// <summary>
+        /// Cria uma nova ficha editavel de producao.
+        /// </summary>
+        /// <param name="dto">Dados minimos necessarios para abrir a ficha no contexto Encomenda-Molde.</param>
+        /// <returns>Ficha criada em estado de rascunho.</returns>
+        [Authorize(Roles = "ADMIN,GESTOR_PRODUCAO")]
         [HttpPost("create")]
         public async Task<IActionResult> Create([FromBody] CreateFichaProducaoDto dto)
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
-
-            var ficha = new FichaProducao
+            if (!ModelState.IsValid)
             {
-                Tipo = dto.Tipo,
-                EncomendaMolde_id = dto.EncomendaMolde_id
-            };
+                return BadRequest(this.CreateProblem(
+                    StatusCodes.Status400BadRequest,
+                    "Pedido invalido",
+                    "Dados invalidos para a criacao da ficha de producao."));
+            }
 
-            var created = await _service.CreateAsync(ficha);
-            return CreatedAtAction(nameof(GetHeaderById), new { id = created.FichaProducao_id }, created);
+            var created = await _service.CreateAsync(dto);
+            return CreatedAtAction(nameof(GetById), new { id = created.FichaProducao_id }, created);
         }
 
-        [Authorize(Roles = "ADMIN")]
-        [HttpDelete("delete/{id:int}")]
-        public async Task<IActionResult> Delete(int id)
+        /// <summary>
+        /// Submete uma ficha editavel e bloqueia novas alteracoes funcionais.
+        /// </summary>
+        /// <param name="id">Identificador da ficha a submeter.</param>
+        /// <returns>Cabecalho atualizado da ficha submetida.</returns>
+        [Authorize(Roles = "ADMIN,GESTOR_PRODUCAO")]
+        [HttpPost("{id:int}/submit")]
+        public async Task<IActionResult> Submit(int id)
         {
-            await _service.DeleteAsync(id);
-            return NoContent();
+            if (!this.TryGetAuthenticatedUserId(out var userId, out var errorResult))
+                return errorResult!;
+
+            return Ok(await _service.SubmitAsync(id, userId));
+        }
+
+        /// <summary>
+        /// Cancela logicamente uma ficha editavel sem remover o historico.
+        /// </summary>
+        /// <param name="id">Identificador da ficha a cancelar.</param>
+        /// <returns>Cabecalho atualizado da ficha cancelada.</returns>
+        [Authorize(Roles = "ADMIN")]
+        [HttpPost("{id:int}/cancel")]
+        public async Task<IActionResult> Cancel(int id)
+        {
+            if (!this.TryGetAuthenticatedUserId(out var userId, out var errorResult))
+                return errorResult!;
+
+            return Ok(await _service.CancelAsync(id, userId));
         }
     }
 }

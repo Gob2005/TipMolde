@@ -1,7 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using TipMolde.Application.Dtos.RelatorioDto;
 using TipMolde.Application.Interface.Relatorios;
-using TipMolde.Domain.Entities.Fichas;
 using TipMolde.Domain.Entities.Producao;
 using TipMolde.Domain.Enums;
 using TipMolde.Infrastructure.DB;
@@ -20,25 +19,15 @@ namespace TipMolde.Infrastructure.Repositorio
     {
         private readonly ApplicationDbContext _context;
 
+        /// <summary>
+        /// Construtor de RelatorioRepository.
+        /// </summary>
+        /// <param name="context">DbContext usado nas queries especializadas de relatorio.</param>
         public RelatorioRepository(ApplicationDbContext context)
         {
             _context = context;
         }
 
-        public Task<Molde?> GetMoldeComEspecificacoesAsync(int moldeId) =>
-            _context.Moldes
-                .Include(m => m.Especificacoes)
-                .FirstOrDefaultAsync(m => m.Molde_id == moldeId);
-
-        public Task<FichaProducao?> GetFichaFltCompletaAsync(int fichaId) =>
-            _context.FichasProducao
-                .Include(f => f.EncomendaMolde)
-                    .ThenInclude(em => em.Encomenda)
-                        .ThenInclude(e => e.Cliente)
-                .Include(f => f.EncomendaMolde)
-                    .ThenInclude(em => em.Molde)
-                        .ThenInclude(m => m.Especificacoes)
-                .FirstOrDefaultAsync(f => f.FichaProducao_id == fichaId);
         public async Task<MoldeCicloVidaRelatorioDto?> ObterMoldeCicloVidaAsync(int moldeId)
         {
             var molde = await _context.Moldes
@@ -46,7 +35,6 @@ namespace TipMolde.Infrastructure.Repositorio
                 .Include(m => m.EncomendasMoldes)
                     .ThenInclude(em => em.Encomenda)
                         .ThenInclude(e => e.Cliente)
-                .Include(m => m.Pecas)
                 .FirstOrDefaultAsync(m => m.Molde_id == moldeId);
 
             if (molde is null)
@@ -56,7 +44,12 @@ namespace TipMolde.Infrastructure.Repositorio
                 .OrderByDescending(em => em.DataEntregaPrevista)
                 .FirstOrDefault();
 
-            var pecaIds = molde.Pecas.Select(p => p.Peca_id).ToArray();
+            var pecas = await _context.Pecas
+                .AsNoTracking()
+                .Where(p => p.Molde_id == moldeId)
+                .ToListAsync();
+
+            var pecaIds = pecas.Select(p => p.Peca_id).ToArray();
 
             var projetos = await _context.Projetos
                 .AsNoTracking()
@@ -101,6 +94,11 @@ namespace TipMolde.Infrastructure.Repositorio
                 .Select(g => g.OrderByDescending(x => x.Data_hora).First())
                 .ToList();
 
+            var ultimosPorPeca = registos
+                .GroupBy(r => r.Peca_id)
+                .Select(g => g.OrderByDescending(x => x.Data_hora).First())
+                .ToList();
+
             int CountDistinctPiecesByPhase(NomeFases fase) =>
                 ultimosPorPecaEFase
                     .Where(r => fases.TryGetValue(r.Fase_id, out var nome) &&
@@ -109,6 +107,13 @@ namespace TipMolde.Infrastructure.Repositorio
                     .Select(r => r.Peca_id)
                     .Distinct()
                     .Count();
+
+            var pecasEmMontagem = ultimosPorPeca
+                .Where(r => fases.TryGetValue(r.Fase_id, out var nome) &&
+                            nome == NomeFases.MONTAGEM)
+                .Select(r => r.Peca_id)
+                .Distinct()
+                .Count();
 
             var concluidas = ultimosPorPecaEFase
                 .Where(r => fases.TryGetValue(r.Fase_id, out var nome) &&
@@ -136,25 +141,25 @@ namespace TipMolde.Infrastructure.Repositorio
                 NomeResponsavelCliente = encomendaMoldeAtual?.Encomenda?.NomeResponsavelCliente,
                 DataRegistoEncomenda = encomendaMoldeAtual?.Encomenda?.DataRegisto,
                 DataEntregaPrevista = encomendaMoldeAtual?.DataEntregaPrevista,
-                TotalPecas = molde.Pecas.Count,
-                MaterialPendente = molde.Pecas.Count(p => !p.MaterialRecebido),
+                TotalPecas = pecas.Count,
+                MaterialPendente = pecas.Count(p => !p.MaterialRecebido),
                 TotalProjetos = projetos.Count,
                 TotalRevisoes = totalRevisoes,
                 UltimaRevisaoEm = ultimaRevisaoEm,
                 Maquinacao = CountDistinctPiecesByPhase(NomeFases.MAQUINACAO),
                 Erosao = CountDistinctPiecesByPhase(NomeFases.EROSAO),
-                Montagem = CountDistinctPiecesByPhase(NomeFases.MONTAGEM),
+                Montagem = pecasEmMontagem,
                 EmTrabalho = emTrabalho,
                 Concluidas = concluidas,
-                PercentagemConclusao = molde.Pecas.Count == 0
+                PercentagemConclusao = pecas.Count == 0
                     ? 0
-                    : Math.Round((decimal)concluidas / molde.Pecas.Count * 100m, 2),
+                    : Math.Round((decimal)pecasEmMontagem / pecas.Count * 100m, 2),
                 Projetos = projetos,
                 Fases =
                 [
                     new MoldeFaseResumoDto { NomeFase = NomeFases.MAQUINACAO.ToString(), PecasComMovimento = CountDistinctPiecesByPhase(NomeFases.MAQUINACAO) },
                     new MoldeFaseResumoDto { NomeFase = NomeFases.EROSAO.ToString(), PecasComMovimento = CountDistinctPiecesByPhase(NomeFases.EROSAO) },
-                    new MoldeFaseResumoDto { NomeFase = NomeFases.MONTAGEM.ToString(), PecasComMovimento = CountDistinctPiecesByPhase(NomeFases.MONTAGEM) }
+                    new MoldeFaseResumoDto { NomeFase = NomeFases.MONTAGEM.ToString(), PecasComMovimento = pecasEmMontagem }
                 ]
             };
 
@@ -162,13 +167,58 @@ namespace TipMolde.Infrastructure.Repositorio
         }
 
         /// <summary>
-        /// Obtem o contexto base usado no preenchimento das fichas exportadas.
+        /// Obtem o contexto base usado no preenchimento da ficha FLT.
+        /// </summary>
+        /// <remarks>
+        /// A FLT nao depende de uma ficha editavel persistida.
+        /// O documento e gerado diretamente a partir do contexto Encomenda-Molde e dos dados
+        /// tecnicos ja registados no sistema.
+        /// </remarks>
+        /// <param name="encomendaMoldeId">Identificador da relacao Encomenda-Molde usada para gerar a FLT.</param>
+        /// <returns>Read-model base da FLT ou nulo quando o contexto nao existe.</returns>
+        public Task<FichaRelatorioBaseDto?> ObterFltRelatorioBaseAsync(int encomendaMoldeId)
+        {
+            return _context.EncomendasMoldes
+                .AsNoTracking()
+                .Where(em => em.EncomendaMolde_id == encomendaMoldeId)
+                .Select(em => new FichaRelatorioBaseDto
+                {
+                    FichaId = em.EncomendaMolde_id,
+                    Tipo = TipoFicha.FLT,
+                    MoldeNumero = em.Molde != null ? em.Molde.Numero : string.Empty,
+                    MoldeNome = em.Molde != null ? em.Molde.Nome : null,
+                    NumeroMoldeCliente = em.Molde != null ? em.Molde.NumeroMoldeCliente : null,
+                    ImagemCapaPath = em.Molde != null ? em.Molde.ImagemCapaPath : null,
+                    NumeroCavidades = em.Molde != null ? em.Molde.Numero_cavidades : 0,
+                    TipoPedido = em.Molde != null ? em.Molde.TipoPedido : TipoPedido.NOVO_MOLDE,
+                    ClienteNome = em.Encomenda != null && em.Encomenda.Cliente != null ? em.Encomenda.Cliente.Nome : string.Empty,
+                    NomeServicoCliente = em.Encomenda != null ? em.Encomenda.NomeServicoCliente : null,
+                    NumeroProjetoCliente = em.Encomenda != null ? em.Encomenda.NumeroProjetoCliente : null,
+                    NomeResponsavelCliente = em.Encomenda != null ? em.Encomenda.NomeResponsavelCliente : null,
+                    DataEntregaPrevista = em.DataEntregaPrevista,
+                    MaterialInjecao = em.Molde != null && em.Molde.Especificacoes != null ? em.Molde.Especificacoes.MaterialInjecao : null,
+                    Contracao = em.Molde != null && em.Molde.Especificacoes != null ? em.Molde.Especificacoes.Contracao : null,
+                    TipoInjecao = em.Molde != null && em.Molde.Especificacoes != null ? em.Molde.Especificacoes.TipoInjecao : null,
+                    AcabamentoPeca = em.Molde != null && em.Molde.Especificacoes != null ? em.Molde.Especificacoes.AcabamentoPeca : null,
+                    MaterialMacho = em.Molde != null && em.Molde.Especificacoes != null ? em.Molde.Especificacoes.MaterialMacho : null,
+                    MaterialCavidade = em.Molde != null && em.Molde.Especificacoes != null ? em.Molde.Especificacoes.MaterialCavidade : null,
+                    MaterialMovimentos = em.Molde != null && em.Molde.Especificacoes != null ? em.Molde.Especificacoes.MaterialMovimentos : null,
+                    SistemaInjecao = em.Molde != null && em.Molde.Especificacoes != null ? em.Molde.Especificacoes.SistemaInjecao : null,
+                    Cor = em.Molde != null && em.Molde.Especificacoes != null ? em.Molde.Especificacoes.Cor : null,
+                    LadoFixo = em.Molde != null && em.Molde.Especificacoes != null && em.Molde.Especificacoes.LadoFixo,
+                    LadoMovel = em.Molde != null && em.Molde.Especificacoes != null && em.Molde.Especificacoes.LadoMovel
+                })
+                .FirstOrDefaultAsync();
+        }
+
+        /// <summary>
+        /// Obtem o contexto base usado no preenchimento das fichas editaveis exportadas.
         /// </summary>
         /// <remarks>
         /// Esta query devolve apenas o shape necessario ao documento para evitar acoplamento
         /// entre a geracao do Excel e o modelo de persistencia completo.
         /// </remarks>
-        /// <param name="fichaId">Identificador interno da ficha de producao.</param>
+        /// <param name="fichaId">Identificador interno da ficha editavel.</param>
         /// <returns>Read-model base da ficha ou nulo quando a ficha nao existe.</returns>
         public Task<FichaRelatorioBaseDto?> ObterFichaRelatorioBaseAsync(int fichaId)
         {

@@ -43,6 +43,19 @@ namespace TipMolde.Infrastructure.Repositorio
         }
 
         /// <summary>
+        /// Obtem todas as pecas associadas a um molde.
+        /// </summary>
+        /// <param name="moldeId">Identificador do molde.</param>
+        /// <returns>Colecao completa de pecas do molde informado.</returns>
+        public async Task<IReadOnlyList<Peca>> GetAllByMoldeIdAsync(int moldeId)
+        {
+            return await _context.Pecas
+                .Where(p => p.Molde_id == moldeId)
+                .OrderBy(p => p.Peca_id)
+                .ToListAsync();
+        }
+
+        /// <summary>
         /// Obtem uma peca pela designacao dentro de um molde.
         /// </summary>
         /// <param name="designacao">Designacao funcional da peca.</param>

@@ -28,26 +28,45 @@ namespace TipMolde.Application.Interface.Relatorios
         /// <summary>
         /// Gera a ficha FLT pre-preenchida com os dados registados no sistema.
         /// </summary>
-        Task<(byte[] Content, string FileName)> GerarFichaExcelFLTAsync(int fichaId, int userId);
+        /// <remarks>
+        /// A FLT nao depende de uma ficha editavel persistida.
+        /// O documento e gerado diretamente a partir da relacao Encomenda-Molde.
+        /// </remarks>
+        /// <param name="encomendaMoldeId">Identificador da relacao Encomenda-Molde usada como contexto da FLT.</param>
+        /// <param name="userId">Identificador do utilizador que desencadeou a geracao.</param>
+        /// <returns>Conteudo binario do Excel e nome final versionado do ficheiro.</returns>
+        Task<(byte[] Content, string FileName)> GerarFichaExcelFLTAsync(int encomendaMoldeId, int userId);
 
         /// <summary>
         /// Gera a ficha FRE pre-preenchida com os dados registados no sistema.
         /// </summary>
+        /// <param name="fichaId">Identificador interno da ficha de producao.</param>
+        /// <param name="userId">Identificador do utilizador que desencadeou a geracao.</param>
+        /// <returns>Conteudo binario do Excel e nome final versionado do ficheiro.</returns>
         Task<(byte[] Content, string FileName)> GerarFichaExcelFREAsync(int fichaId, int userId);
 
         /// <summary>
         /// Gera a ficha FRM pre-preenchida com os dados registados no sistema.
         /// </summary>
+        /// <param name="fichaId">Identificador interno da ficha de producao.</param>
+        /// <param name="userId">Identificador do utilizador que desencadeou a geracao.</param>
+        /// <returns>Conteudo binario do Excel e nome final versionado do ficheiro.</returns>
         Task<(byte[] Content, string FileName)> GerarFichaExcelFRMAsync(int fichaId, int userId);
 
         /// <summary>
         /// Gera a ficha FRA pre-preenchida com os dados registados no sistema.
         /// </summary>
+        /// <param name="fichaId">Identificador interno da ficha de producao.</param>
+        /// <param name="userId">Identificador do utilizador que desencadeou a geracao.</param>
+        /// <returns>Conteudo binario do Excel e nome final versionado do ficheiro.</returns>
         Task<(byte[] Content, string FileName)> GerarFichaExcelFRAAsync(int fichaId, int userId);
 
         /// <summary>
         /// Gera a ficha FOP pre-preenchida com os dados registados no sistema.
         /// </summary>
+        /// <param name="fichaId">Identificador interno da ficha de producao.</param>
+        /// <param name="userId">Identificador do utilizador que desencadeou a geracao.</param>
+        /// <returns>Conteudo binario do Excel e nome final versionado do ficheiro.</returns>
         Task<(byte[] Content, string FileName)> GerarFichaExcelFOPAsync(int fichaId, int userId);
     }
 }

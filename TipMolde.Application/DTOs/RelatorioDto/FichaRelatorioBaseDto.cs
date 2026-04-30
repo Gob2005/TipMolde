@@ -2,6 +2,13 @@
 
 namespace TipMolde.Application.Dtos.RelatorioDto
 {
+    /// <summary>
+    /// Representa o contexto base comum ao preenchimento das fichas exportadas.
+    /// </summary>
+    /// <remarks>
+    /// Este DTO concentra apenas os campos transversais a varios templates de relatorio.
+    /// Dados especificos de cada tipo de ficha devem viver em read-models dedicados.
+    /// </remarks>
     public sealed class FichaRelatorioBaseDto
     {
         public int FichaId { get; set; }

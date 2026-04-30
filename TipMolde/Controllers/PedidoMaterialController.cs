@@ -1,7 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
 using TipMolde.Application.Dtos.PedidoMaterialDto;
 using TipMolde.Application.Interface.Comercio.IPedidoMaterial;
 
@@ -130,7 +128,7 @@ namespace TipMolde.API.Controllers
         [HttpPut("{id:int}/rececao")]
         public async Task<IActionResult> RegistarRececao(int id)
         {
-            var userId = GetAuthenticatedUserId();
+            var userId = this.GetAuthenticatedUserId();
 
             await _service.RegistarRececaoAsync(id, userId);
 
@@ -156,23 +154,6 @@ namespace TipMolde.API.Controllers
             _logger.LogInformation("Pedido de material {PedidoId} removido com sucesso", id);
 
             return NoContent();
-        }
-
-        /// <summary>
-        /// Extrai o identificador do utilizador autenticado a partir dos claims do JWT.
-        /// </summary>
-        /// <returns>Identificador numerico do utilizador autenticado.</returns>
-        private int GetAuthenticatedUserId()
-        {
-            var userIdClaim =
-                User.FindFirstValue(JwtRegisteredClaimNames.Sub) ??
-                User.FindFirstValue(ClaimTypes.NameIdentifier) ??
-                User.FindFirstValue("id");
-
-            if (!int.TryParse(userIdClaim, out var userId))
-                throw new UnauthorizedAccessException("Utilizador autenticado invalido no token.");
-
-            return userId;
         }
     }
 }

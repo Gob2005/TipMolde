@@ -63,6 +63,28 @@ namespace TipMolde.Infrastructure.Repositorio
         }
 
         /// <summary>
+        /// Obtem o ultimo registo global conhecido de cada peca informada.
+        /// </summary>
+        /// <param name="pecaIds">Identificadores das pecas a analisar.</param>
+        /// <returns>Ultimos registos globais por peca.</returns>
+        public async Task<List<RegistosProducao>> GetUltimosRegistosGlobaisAsync(IEnumerable<int> pecaIds)
+        {
+            var idList = pecaIds
+                .Distinct()
+                .ToList();
+
+            if (idList.Count == 0)
+                return [];
+
+            return await _context.RegistosProducao
+                .AsNoTracking()
+                .Where(r => idList.Contains(r.Peca_id))
+                .GroupBy(r => r.Peca_id)
+                .Select(g => g.OrderByDescending(r => r.Data_hora).First())
+                .ToListAsync();
+        }
+
+        /// <summary>
         /// Lista registos associados a uma maquina.
         /// </summary>
         /// <param name="maquinaId">Identificador da maquina.</param>

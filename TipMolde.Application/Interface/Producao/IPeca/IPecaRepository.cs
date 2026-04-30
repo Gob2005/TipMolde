@@ -17,6 +17,13 @@ namespace TipMolde.Application.Interface.Producao.IPeca
         Task<PagedResult<Peca>> GetByMoldeIdAsync(int moldeId, int page, int pageSize);
 
         /// <summary>
+        /// Obtem todas as pecas associadas a um molde.
+        /// </summary>
+        /// <param name="moldeId">Identificador do molde.</param>
+        /// <returns>Colecao completa de pecas do molde informado.</returns>
+        Task<IReadOnlyList<Peca>> GetAllByMoldeIdAsync(int moldeId);
+
+        /// <summary>
         /// Obtem uma peca pela designacao dentro de um molde.
         /// </summary>
         /// <param name="designacao">Designacao funcional da peca.</param>

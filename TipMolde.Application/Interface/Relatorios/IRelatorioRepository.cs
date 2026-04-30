@@ -19,9 +19,16 @@ namespace TipMolde.Application.Interface.Relatorios
         Task<MoldeCicloVidaRelatorioDto?> ObterMoldeCicloVidaAsync(int moldeId);
 
         /// <summary>
-        /// Obtem o contexto base usado pelas fichas de producao exportadas.
+        /// Obtem o contexto base usado na geracao da ficha FLT.
         /// </summary>
-        /// <param name="fichaId">Identificador interno da ficha.</param>
+        /// <param name="encomendaMoldeId">Identificador da relacao Encomenda-Molde usada para gerar a FLT.</param>
+        /// <returns>Read-model base da FLT ou nulo quando o contexto nao existe.</returns>
+        Task<FichaRelatorioBaseDto?> ObterFltRelatorioBaseAsync(int encomendaMoldeId);
+
+        /// <summary>
+        /// Obtem o contexto base usado pelas fichas editaveis exportadas.
+        /// </summary>
+        /// <param name="fichaId">Identificador interno da ficha editavel.</param>
         /// <returns>Read-model base da ficha ou nulo quando a ficha nao existe.</returns>
         Task<FichaRelatorioBaseDto?> ObterFichaRelatorioBaseAsync(int fichaId);
     }

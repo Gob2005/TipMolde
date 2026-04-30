@@ -107,17 +107,6 @@ namespace TipMolde.Infrastructure.Service
                             ("Pecas concluidas", relatorio.Concluidas.ToString()),
                             ("Percentagem de conclusao", $"{relatorio.PercentagemConclusao:N2}%")
                         ]);
-
-                        column.Item().PaddingTop(8).Text("Projetos").Bold().FontSize(14);
-                        if (relatorio.Projetos.Count == 0)
-                        {
-                            column.Item().Text("Sem projetos de desenho registados.");
-                        }
-                        else
-                        {
-                            foreach (var projeto in relatorio.Projetos)
-                                column.Item().Text($"- {projeto.NomeProjeto} | {projeto.SoftwareUtilizado} | {projeto.TipoProjeto}");
-                        }
                     });
                 });
             }).GeneratePdf();
@@ -125,6 +114,11 @@ namespace TipMolde.Infrastructure.Service
             return (bytes, $"ciclo_vida_molde_{moldeId}.pdf");
         }
 
+        /// <summary>
+        /// Calcula os KPI do ciclo de vida produtivo de um molde.
+        /// </summary>
+        /// <param name="moldeId">Identificador interno do molde.</param>
+        /// <returns>DTO com os principais indicadores agregados do molde.</returns>
         public async Task<MoldeCicloVidaDashboardDto> ObterDashboardMoldeAsync(int moldeId)
         {
             var relatorio = await _relatorioRepository.ObterMoldeCicloVidaAsync(moldeId)
@@ -145,17 +139,35 @@ namespace TipMolde.Infrastructure.Service
             };
         }
 
-        public Task<(byte[] Content, string FileName)> GerarFichaExcelFLTAsync(int fichaId, int userId)
+        /// <summary>
+        /// Gera a ficha FLT oficial a partir do template configurado.
+        /// </summary>
+        /// <remarks>
+        /// A FLT nao e uma ficha editavel persistida.
+        /// O documento e gerado diretamente a partir da relacao Encomenda-Molde e por isso
+        /// nao entra no fluxo de versionamento de FichaDocumento.
+        /// </remarks>
+        /// <param name="encomendaMoldeId">Identificador da relacao Encomenda-Molde usada como contexto da FLT.</param>
+        /// <param name="userId">Identificador do utilizador responsavel pela geracao.</param>
+        /// <returns>Conteudo binario do Excel e nome final do ficheiro gerado.</returns>
+        public Task<(byte[] Content, string FileName)> GerarFichaExcelFLTAsync(int encomendaMoldeId, int userId)
         {
-            return GerarFichaExcelAsync(
-                fichaId,
-                userId,
+            return GerarFichaExcelSemVersionamentoAsync(
+                encomendaMoldeId,
                 "Templates:FichaFLT",
                 "Templates:FolhaFLT",
                 "FLT - TM.04.05",
-                $"ficha_FLT_{fichaId}.xlsx",
+                $"ficha_FLT_{encomendaMoldeId}.xlsx",
+                _relatorioRepository.ObterFltRelatorioBaseAsync,
                 FillFltBody);
         }
+
+        /// <summary>
+        /// Gera a ficha FRE oficial a partir do template configurado.
+        /// </summary>
+        /// <param name="fichaId">Identificador interno da ficha de producao.</param>
+        /// <param name="userId">Identificador do utilizador responsavel pela geracao.</param>
+        /// <returns>Conteudo binario do Excel e nome final versionado do ficheiro.</returns>
 
         public Task<(byte[] Content, string FileName)> GerarFichaExcelFREAsync(int fichaId, int userId)
         {
@@ -168,6 +180,18 @@ namespace TipMolde.Infrastructure.Service
                 $"ficha_FRE_{fichaId}.xlsx",
                 FillFreBody);
         }
+
+        /// <summary>
+        /// Gera a ficha FRM oficial a partir do template configurado.
+        /// </summary>
+        /// <remarks>
+        /// No estado atual, este metodo so cumpre o criterio documental.
+        /// Para cumprir o criterio funcional na totalidade, precisa de uma projection propria com
+        /// os registos de melhoria/alteracao efetivamente persistidos no dominio.
+        /// </remarks>
+        /// <param name="fichaId">Identificador interno da ficha de producao.</param>
+        /// <param name="userId">Identificador do utilizador responsavel pela geracao.</param>
+        /// <returns>Conteudo binario do Excel e nome final versionado do ficheiro.</returns>
 
         public Task<(byte[] Content, string FileName)> GerarFichaExcelFRMAsync(int fichaId, int userId)
         {
@@ -224,6 +248,27 @@ namespace TipMolde.Infrastructure.Service
         /// <param name="fileName">Nome base do ficheiro a persistir.</param>
         /// <param name="fillBody">Acao responsavel por preencher o corpo especifico da ficha.</param>
         /// <returns>Conteudo binario do Excel e nome final versionado do ficheiro.</returns>
+        private async Task<(byte[] Content, string FileName)> GerarFichaExcelSemVersionamentoAsync(
+            int contextId,
+            string templateConfigKey,
+            string folhaConfigKey,
+            string defaultSheetName,
+            string fileName,
+            Func<int, Task<FichaRelatorioBaseDto?>> loadContext,
+            Action<IXLWorksheet, FichaRelatorioBaseDto> fillBody)
+        {
+            var context = await loadContext(contextId)
+                ?? throw new KeyNotFoundException($"Contexto {contextId} nao encontrado.");
+
+            using var workbook = LoadWorkbook(templateConfigKey, folhaConfigKey, defaultSheetName, out var worksheet);
+            FillHeaderComum(worksheet, context);
+            fillBody(worksheet, context);
+
+            using var ms = new MemoryStream();
+            workbook.SaveAs(ms);
+            return (ms.ToArray(), fileName);
+        }
+
         private async Task<(byte[] Content, string FileName)> GerarFichaExcelAsync(
             int fichaId,
             int userId,
@@ -236,19 +281,7 @@ namespace TipMolde.Infrastructure.Service
             var context = await _relatorioRepository.ObterFichaRelatorioBaseAsync(fichaId)
                 ?? throw new KeyNotFoundException($"Ficha {fichaId} nao encontrada.");
 
-            var templatePath = _configuration[templateConfigKey]
-                ?? throw new InvalidOperationException($"{templateConfigKey} nao configurado.");
-
-            var worksheetName = _configuration[folhaConfigKey] ?? defaultSheetName;
-
-            if (!File.Exists(templatePath))
-                throw new FileNotFoundException($"Template nao encontrado: {templatePath}");
-
-            using var workbook = new XLWorkbook(templatePath);
-            var worksheet = workbook.Worksheet(worksheetName);
-
-            if (worksheet is null)
-                throw new KeyNotFoundException($"Folha '{worksheetName}' nao encontrada no template.");
+            using var workbook = LoadWorkbook(templateConfigKey, folhaConfigKey, defaultSheetName, out var worksheet);
 
             FillHeaderComum(worksheet, context);
             fillBody(worksheet, context);
@@ -266,6 +299,35 @@ namespace TipMolde.Infrastructure.Service
                 "SISTEMA");
 
             return (bytes, documento.NomeFicheiro);
+        }
+
+        /// <summary>
+        /// Carrega o workbook e valida a configuracao do template Excel.
+        /// </summary>
+        /// <param name="templateConfigKey">Chave de configuracao do caminho do template Excel.</param>
+        /// <param name="folhaConfigKey">Chave de configuracao do nome da folha a usar.</param>
+        /// <param name="defaultSheetName">Nome por defeito da folha quando a configuracao nao existe.</param>
+        /// <param name="worksheet">Folha carregada pronta a ser preenchida.</param>
+        /// <returns>Workbook carregado a partir do template configurado.</returns>
+        private XLWorkbook LoadWorkbook(
+            string templateConfigKey,
+            string folhaConfigKey,
+            string defaultSheetName,
+            out IXLWorksheet worksheet)
+        {
+            var templatePath = _configuration[templateConfigKey]
+                ?? throw new InvalidOperationException($"{templateConfigKey} nao configurado.");
+
+            var worksheetName = _configuration[folhaConfigKey] ?? defaultSheetName;
+
+            if (!File.Exists(templatePath))
+                throw new FileNotFoundException($"Template nao encontrado: {templatePath}");
+
+            var workbook = new XLWorkbook(templatePath);
+            worksheet = workbook.Worksheet(worksheetName)
+                ?? throw new KeyNotFoundException($"Folha '{worksheetName}' nao encontrada no template.");
+
+            return workbook;
         }
 
         private void FillFltBody(IXLWorksheet ws, FichaRelatorioBaseDto context)
@@ -292,7 +354,7 @@ namespace TipMolde.Infrastructure.Service
             SetX(ws, "J33", context.LadoMovel);
 
             ws.Cell("E38").Value = context.TipoPedido.ToString();
-            FillBlocoCliente(ws, context);
+            FillBlocoClienteFlt(ws, context);
             ws.Cell("B48").Value = context.DataEntregaPrevista.ToString("dd/MM/yyyy");
         }
 
@@ -314,7 +376,7 @@ namespace TipMolde.Infrastructure.Service
             SetX(ws, "H18", context.Cor == CorMolde.BICOLOR);
             SetX(ws, "J18", context.Cor == CorMolde.OUTRO);
 
-            FillBlocoCliente(ws, context);
+            FillBlocoClienteFre(ws, context);
         }
 
         private static void FillHeaderComum(IXLWorksheet ws, FichaRelatorioBaseDto context)
@@ -331,6 +393,24 @@ namespace TipMolde.Infrastructure.Service
             ws.Cell("E11").Value = context.NumeroProjetoCliente;
             ws.Cell("I11").Value = context.NumeroMoldeCliente;
             ws.Cell("E12").Value = context.NomeResponsavelCliente;
+        }
+
+        private static void FillBlocoClienteFlt(IXLWorksheet ws, FichaRelatorioBaseDto context)
+        {
+            ws.Cell("D43").Value = context.ClienteNome;
+            ws.Cell("D44").Value = context.NomeServicoCliente;
+            ws.Cell("E45").Value = context.NumeroProjetoCliente;
+            ws.Cell("I45").Value = context.NumeroMoldeCliente;
+            ws.Cell("E46").Value = context.NomeResponsavelCliente;
+        }
+
+        private static void FillBlocoClienteFre(IXLWorksheet ws, FichaRelatorioBaseDto context)
+        {
+            ws.Cell("D26").Value = context.ClienteNome;
+            ws.Cell("D27").Value = context.NomeServicoCliente;
+            ws.Cell("E28").Value = context.NumeroProjetoCliente;
+            ws.Cell("I28").Value = context.NumeroMoldeCliente;
+            ws.Cell("E29").Value = context.NomeResponsavelCliente;
         }
 
         /// <summary>

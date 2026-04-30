@@ -30,6 +30,13 @@ namespace TipMolde.Application.Interface.Producao.IRegistosProducao
         Task<RegistosProducao?> GetUltimoRegistoAsync(int faseId, int pecaId);
 
         /// <summary>
+        /// Obtem o ultimo registo global conhecido de cada peca informada.
+        /// </summary>
+        /// <param name="pecaIds">Identificadores das pecas a analisar.</param>
+        /// <returns>Ultimos registos globais por peca.</returns>
+        Task<List<RegistosProducao>> GetUltimosRegistosGlobaisAsync(IEnumerable<int> pecaIds);
+
+        /// <summary>
         /// Lista registos associados a uma maquina.
         /// </summary>
         /// <param name="maquinaId">Identificador da maquina.</param>

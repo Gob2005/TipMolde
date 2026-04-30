@@ -3,6 +3,8 @@ using TipMolde.Domain.Entities;
 using TipMolde.Domain.Entities.Comercio;
 using TipMolde.Domain.Entities.Desenho;
 using TipMolde.Domain.Entities.Fichas;
+using TipMolde.Domain.Entities.Fichas.TipoFichas;
+using TipMolde.Domain.Entities.Fichas.TipoFichas.Linhas;
 using TipMolde.Domain.Entities.Producao;
 using TipMolde.Domain.Enums;
 
@@ -31,7 +33,14 @@ namespace TipMolde.Infrastructure.DB
         public virtual DbSet<Revisao> Revisoes { get; set; }
         public virtual DbSet<RegistoTempoProjeto> RegistosTempoProjeto { get; set; }
         public virtual DbSet<FichaProducao> FichasProducao { get; set; }
+        public virtual DbSet<FichaFre> FichasFre { get; set; }
+        public virtual DbSet<FichaFrm> FichasFrm { get; set; }
+        public virtual DbSet<FichaFra> FichasFra { get; set; }
+        public virtual DbSet<FichaFop> FichasFop { get; set; }
         public virtual DbSet<FichaDocumento> FichasDocumentos { get; set; }
+        public virtual DbSet<FichaFrmLinha> FichasFrmLinhas { get; set; }
+        public virtual DbSet<FichaFraLinha> FichasFraLinhas { get; set; }
+        public virtual DbSet<FichaFopLinha> FichasFopLinhas { get; set; }
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -55,6 +64,9 @@ namespace TipMolde.Infrastructure.DB
             modelBuilder.Entity<RegistoTempoProjeto>().HasKey(x => x.Registo_Tempo_Projeto_id);
             modelBuilder.Entity<FichaProducao>().HasKey(x => x.FichaProducao_id);
             modelBuilder.Entity<FichaDocumento>().HasKey(x => x.FichaDocumento_id);
+            modelBuilder.Entity<FichaFrmLinha>().HasKey(x => x.FichaFrmLinha_id);
+            modelBuilder.Entity<FichaFraLinha>().HasKey(x => x.FichaFraLinha_id);
+            modelBuilder.Entity<FichaFopLinha>().HasKey(x => x.FichaFopLinha_id);
             modelBuilder.Entity<RevokedToken>().HasKey(x => x.RevokedToken_id);
             modelBuilder.Entity<Maquina>().HasKey(m => m.Maquina_id);
             modelBuilder.Entity<ItemPedidoMaterial>().HasKey(i => new { i.PedidoMaterial_id, i.Peca_id });
@@ -188,9 +200,34 @@ namespace TipMolde.Infrastructure.DB
                 .Property(f => f.Tipo).HasConversion<string>().HasMaxLength(10);
 
             modelBuilder.Entity<FichaProducao>()
+                .Property(f => f.Estado)
+                .HasConversion<string>()
+                .HasMaxLength(20);
+
+            modelBuilder.Entity<FichaProducao>()
+                .HasDiscriminator(f => f.Tipo)
+                .HasValue<FichaFlt>(TipoFicha.FLT)
+                .HasValue<FichaFre>(TipoFicha.FRE)
+                .HasValue<FichaFrm>(TipoFicha.FRM)
+                .HasValue<FichaFra>(TipoFicha.FRA)
+                .HasValue<FichaFop>(TipoFicha.FOP);
+
+            modelBuilder.Entity<FichaProducao>()
                 .HasOne(f => f.EncomendaMolde)
                 .WithMany(em => em.Fichas)
                 .HasForeignKey(f => f.EncomendaMolde_id)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<FichaProducao>()
+                .HasOne<User>()
+                .WithMany()
+                .HasForeignKey(f => f.SubmetidaPor_user_id)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<FichaProducao>()
+                .HasOne<User>()
+                .WithMany()
+                .HasForeignKey(f => f.DesativadaPor_user_id)
                 .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<FichaDocumento>()
@@ -206,6 +243,65 @@ namespace TipMolde.Infrastructure.DB
                 .HasOne<User>()
                 .WithMany()
                 .HasForeignKey(x => x.CriadoPor_user_id)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<FichaFrmLinha>()
+                .Property(x => x.Defeito)
+                .HasMaxLength(2000)
+                .IsRequired();
+
+            modelBuilder.Entity<FichaFrmLinha>()
+                .Property(x => x.Pormenor)
+                .HasMaxLength(4000);
+
+            modelBuilder.Entity<FichaFrmLinha>()
+                .HasOne(x => x.FichaFrm)
+                .WithMany(x => x.Linhas)
+                .HasForeignKey(x => x.FichaFrm_id)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<FichaFrmLinha>()
+                .HasOne<User>()
+                .WithMany()
+                .HasForeignKey(x => x.Responsavel_id)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<FichaFraLinha>()
+                .Property(x => x.Alteracoes)
+                .HasMaxLength(4000)
+                .IsRequired();
+
+            modelBuilder.Entity<FichaFraLinha>()
+                .HasOne(x => x.FichaFra)
+                .WithMany(x => x.Linhas)
+                .HasForeignKey(x => x.FichaFra_id)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<FichaFraLinha>()
+                .HasOne<User>()
+                .WithMany()
+                .HasForeignKey(x => x.Responsavel_id)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<FichaFopLinha>()
+                .Property(x => x.Ocorrencia)
+                .HasMaxLength(4000)
+                .IsRequired();
+
+            modelBuilder.Entity<FichaFopLinha>()
+                .Property(x => x.Correcao)
+                .HasMaxLength(4000);
+
+            modelBuilder.Entity<FichaFopLinha>()
+                .HasOne(x => x.FichaFop)
+                .WithMany(x => x.Linhas)
+                .HasForeignKey(x => x.FichaFop_id)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<FichaFopLinha>()
+                .HasOne<User>()
+                .WithMany()
+                .HasForeignKey(x => x.Responsavel_id)
                 .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<Projeto>()

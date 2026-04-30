@@ -53,10 +53,10 @@ public class RegistosProducaoServiceTests
             NullLogger<RegistosProducaoService>.Instance);
     }
 
-    private static FasesProducao BuildFase(int id = 1) => new()
+    private static FasesProducao BuildFase(int id = 1, NomeFases nome = NomeFases.MAQUINACAO) => new()
     {
         Fases_producao_id = id,
-        Nome = NomeFases.MAQUINACAO,
+        Nome = nome,
         Descricao = "Fase teste"
     };
 
@@ -94,19 +94,24 @@ public class RegistosProducaoServiceTests
         int pecaId = 1,
         EstadoProducao? estado = EstadoProducao.PREPARACAO,
         int? maquinaId = 1) => new()
-    {
-        Fase_id = faseId,
-        Operador_id = operadorId,
-        Peca_id = pecaId,
-        Estado_producao = estado,
-        Maquina_id = maquinaId
-    };
+        {
+            Fase_id = faseId,
+            Operador_id = operadorId,
+            Peca_id = pecaId,
+            Estado_producao = estado,
+            Maquina_id = maquinaId
+        };
 
-    private void SetupValidDependencies()
+    private void SetupValidDependencies(
+        int faseId = 1,
+        NomeFases nomeFase = NomeFases.MAQUINACAO,
+        int operadorId = 1,
+        int pecaId = 1,
+        bool materialRecebido = true)
     {
-        _fasesRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(BuildFase());
-        _userRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(BuildOperador());
-        _pecaRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(BuildPeca());
+        _fasesRepository.Setup(r => r.GetByIdAsync(faseId)).ReturnsAsync(BuildFase(faseId, nomeFase));
+        _userRepository.Setup(r => r.GetByIdAsync(operadorId)).ReturnsAsync(BuildOperador(operadorId));
+        _pecaRepository.Setup(r => r.GetByIdAsync(pecaId)).ReturnsAsync(BuildPeca(pecaId, materialRecebido));
     }
 
     private void SetupPersistCreated()
@@ -292,5 +297,126 @@ public class RegistosProducaoServiceTests
 
         // ASSERT
         await act.Should().ThrowAsync<ArgumentException>();
+    }
+
+    [Test(Description = "TRP011 - MONTAGEM aceita PENDENTE como primeiro estado para assinalar pronta para montar.")]
+    public async Task CreateAsync_Should_AcceptPendenteAsFirstState_When_PhaseIsMontagem()
+    {
+        // ARRANGE
+        SetupValidDependencies(faseId: 2, nomeFase: NomeFases.MONTAGEM);
+        SetupPersistCreated();
+        _registosRepository.Setup(r => r.GetUltimoRegistoAsync(2, 1)).ReturnsAsync((RegistosProducao?)null);
+
+        // ACT
+        var result = await _sut.CreateAsync(BuildDto(faseId: 2, estado: EstadoProducao.PENDENTE, maquinaId: null));
+
+        // ASSERT
+        result.Estado_producao.Should().Be(EstadoProducao.PENDENTE);
+        _registosRepository.Verify(r => r.AddWithMachineStateAsync(
+            It.Is<RegistosProducao>(rp => rp.Fase_id == 2 && rp.Estado_producao == EstadoProducao.PENDENTE),
+            null), Times.Once);
+    }
+
+    [Test(Description = "TRP012 - MONTAGEM EM_CURSO falha quando nem todas as pecas do molde ja estao em montagem.")]
+    public async Task CreateAsync_Should_Throw_When_MontagemStartsBeforeAllPiecesReachMontagem()
+    {
+        // ARRANGE
+        SetupValidDependencies(faseId: 2, nomeFase: NomeFases.MONTAGEM);
+        _registosRepository.Setup(r => r.GetUltimoRegistoAsync(2, 1)).ReturnsAsync(new RegistosProducao
+        {
+            Fase_id = 2,
+            Peca_id = 1,
+            Estado_producao = EstadoProducao.PENDENTE,
+            Data_hora = DateTime.UtcNow.AddMinutes(-5)
+        });
+
+        _pecaRepository
+            .Setup(r => r.GetAllByMoldeIdAsync(1))
+            .ReturnsAsync(new List<Peca>
+            {
+                BuildPeca(1),
+                BuildPeca(2)
+            });
+
+        _registosRepository
+            .Setup(r => r.GetUltimosRegistosGlobaisAsync(It.IsAny<IEnumerable<int>>()))
+            .ReturnsAsync(new List<RegistosProducao>
+            {
+                new()
+                {
+                    Peca_id = 1,
+                    Fase_id = 2,
+                    Estado_producao = EstadoProducao.PENDENTE,
+                    Data_hora = DateTime.UtcNow.AddMinutes(-5)
+                },
+                new()
+                {
+                    Peca_id = 2,
+                    Fase_id = 1,
+                    Estado_producao = EstadoProducao.EM_CURSO,
+                    Data_hora = DateTime.UtcNow.AddMinutes(-2)
+                }
+            });
+
+        // ACT
+        Func<Task> act = () => _sut.CreateAsync(BuildDto(faseId: 2, estado: EstadoProducao.EM_CURSO, maquinaId: 1));
+
+        // ASSERT
+        await act.Should().ThrowAsync<ArgumentException>()
+            .WithMessage("*todas as pecas do molde devem estar primeiro na fase MONTAGEM*");
+    }
+
+    [Test(Description = "TRP013 - MONTAGEM EM_CURSO e permitida quando todas as pecas do molde ja estao em montagem.")]
+    public async Task CreateAsync_Should_StartMontagem_When_AllPiecesAreAlreadyInMontagem()
+    {
+        // ARRANGE
+        SetupValidDependencies(faseId: 2, nomeFase: NomeFases.MONTAGEM);
+        SetupPersistCreated();
+        _registosRepository.Setup(r => r.GetUltimoRegistoAsync(2, 1)).ReturnsAsync(new RegistosProducao
+        {
+            Fase_id = 2,
+            Peca_id = 1,
+            Estado_producao = EstadoProducao.PENDENTE,
+            Maquina_id = 7,
+            Data_hora = DateTime.UtcNow.AddMinutes(-5)
+        });
+
+        _pecaRepository
+            .Setup(r => r.GetAllByMoldeIdAsync(1))
+            .ReturnsAsync(new List<Peca>
+            {
+                BuildPeca(1),
+                BuildPeca(2)
+            });
+
+        _registosRepository
+            .Setup(r => r.GetUltimosRegistosGlobaisAsync(It.IsAny<IEnumerable<int>>()))
+            .ReturnsAsync(new List<RegistosProducao>
+            {
+                new()
+                {
+                    Peca_id = 1,
+                    Fase_id = 2,
+                    Estado_producao = EstadoProducao.PENDENTE,
+                    Data_hora = DateTime.UtcNow.AddMinutes(-5)
+                },
+                new()
+                {
+                    Peca_id = 2,
+                    Fase_id = 2,
+                    Estado_producao = EstadoProducao.PENDENTE,
+                    Data_hora = DateTime.UtcNow.AddMinutes(-3)
+                }
+            });
+
+        var maquina = BuildMaquina(id: 1, faseId: 2, estado: EstadoMaquina.DISPONIVEL);
+        _maquinaRepository.Setup(r => r.GetByIdUnicoAsync(1)).ReturnsAsync(maquina);
+
+        // ACT
+        var result = await _sut.CreateAsync(BuildDto(faseId: 2, estado: EstadoProducao.EM_CURSO, maquinaId: 1));
+
+        // ASSERT
+        result.Estado_producao.Should().Be(EstadoProducao.EM_CURSO);
+        maquina.Estado.Should().Be(EstadoMaquina.EM_USO);
     }
 }

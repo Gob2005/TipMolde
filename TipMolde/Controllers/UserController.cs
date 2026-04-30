@@ -1,39 +1,11 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
 using TipMolde.Application.Dtos.UserDto;
 using TipMolde.Application.Interface.Utilizador.IUser;
 using TipMolde.Domain.Enums;
 
 namespace TipMolde.API.Controllers
 {
-    /// <summary>
-    /// Fornece utilitarios comuns para controladores que dependem do utilizador autenticado.
-    /// </summary>
-    /// <remarks>
-    /// Centraliza a resolucao do identificador do utilizador a partir das claims do JWT.
-    /// </remarks>
-    public abstract class AuthenticatedControllerBase : ControllerBase
-    {
-        /// <summary>
-        /// Resolve o identificador do utilizador autenticado a partir das claims do token.
-        /// </summary>
-        /// <returns>ID do utilizador autenticado.</returns>
-        protected int GetAuthenticatedUserId()
-        {
-            // Porque: suportamos emissores JWT diferentes que podem usar "sub" ou NameIdentifier.
-            // Risco: alterar esta ordem sem alinhar o emissor pode impedir a resolucao do utilizador autenticado.
-            var sub = User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value
-                ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-            if (!int.TryParse(sub, out var userId))
-                throw new UnauthorizedAccessException("Token invalido ou utilizador nao identificado.");
-
-            return userId;
-        }
-    }
-
     /// <summary>
     /// Disponibiliza endpoints para gestao de utilizadores.
     /// </summary>
@@ -42,7 +14,7 @@ namespace TipMolde.API.Controllers
     /// </remarks>
     [ApiController]
     [Route("api/users")]
-    public class UserController : AuthenticatedControllerBase
+    public class UserController : ControllerBase
     {
         private readonly IUserManagementService _userService;
         private readonly ILogger<UserController> _logger;
@@ -159,7 +131,7 @@ namespace TipMolde.API.Controllers
             }
 
             var createdUser = await _userService.CreateAsync(dto);
-            _logger.LogInformation("Utilizador {Email} criado com sucesso por admin {AdminId}", dto.Email, GetAuthenticatedUserId());
+            _logger.LogInformation("Utilizador {Email} criado com sucesso por admin {AdminId}", dto.Email, this.GetAuthenticatedUserId());
 
             return CreatedAtAction(
                 nameof(GetUserById),
@@ -191,7 +163,7 @@ namespace TipMolde.API.Controllers
             int authenticatedUserId;
             try
             {
-                authenticatedUserId = GetAuthenticatedUserId();
+                authenticatedUserId = this.GetAuthenticatedUserId();
             }
             catch (UnauthorizedAccessException ex)
             {
